@@ -9,7 +9,7 @@
       "vite",
       "nodejs"
     ],
-    "status": "aguardando_humano",
+    "status": "em_andamento",
     "motivo_termino": null,
     "iniciada_em": "2026-05-24T19:13:59Z",
     "terminada_em": null
@@ -158,6 +158,17 @@
       "tool_calls": 1,
       "wallclock_seconds": 388,
       "motivo_termino": "bloqueio_humano",
+      "proxima_onda_agendada_para": null,
+      "skills_invoked": []
+    },
+    {
+      "id": "onda-007",
+      "inicio": "2026-05-24T20:56:11Z",
+      "fim": null,
+      "etapas_executadas": [],
+      "tool_calls": 0,
+      "wallclock_seconds": 0,
+      "motivo_termino": null,
       "proxima_onda_agendada_para": null,
       "skills_invoked": []
     }
@@ -843,6 +854,80 @@
       "evidencia": null,
       "referencias": [],
       "artefato_originador": null
+    },
+    {
+      "id": "dec-037",
+      "onda_id": "onda-006",
+      "timestamp": "2026-05-24T20:55:42Z",
+      "etapa": "model-routing",
+      "agente": "agente-00c-feature-orchestrator",
+      "contexto": "Selecao de modelo para onda 6 (fase execute-task)",
+      "opcoes_consideradas": [
+        "haiku",
+        "sonnet",
+        "opus",
+        "manter-atual"
+      ],
+      "escolha": "model:sonnet",
+      "justificativa": "sugerido=sonnet aplicado=sonnet origem=mapa | faixa=rasa fase=execute-task (mapa primario)",
+      "score_justificativa": 0,
+      "evidencia": null,
+      "referencias": [],
+      "artefato_originador": null
+    },
+    {
+      "id": "dec-038",
+      "onda_id": "onda-007",
+      "timestamp": "2026-05-24T20:56:50Z",
+      "etapa": "execute-task",
+      "agente": "agente-00c-orchestrator",
+      "contexto": "Verificar npm install (1.1.6) e tsc --noEmit em shared-types (1.2.4)",
+      "opcoes_consideradas": [
+        "confirmar-ok",
+        "reportar-falha"
+      ],
+      "escolha": "confirmar-ok",
+      "justificativa": "npm install: node_modules presente (314 pkgs). tsc --noEmit em packages/shared-types: exit 0, zero erros. fixture.db criada (14 execucoes, 237 ondas, 927 decisoes).",
+      "score_justificativa": 3,
+      "evidencia": "npm run typecheck --workspace=packages/shared-types: exit 0 sem saida de erro. node scripts/create-fixture.mjs: OK schema v2 confirmado, Execucoes: 14, Ondas: 237, Decisoes: 927",
+      "referencias": [],
+      "artefato_originador": null
+    },
+    {
+      "id": "dec-039",
+      "onda_id": "onda-007",
+      "timestamp": "2026-05-24T20:59:13Z",
+      "etapa": "execute-task",
+      "agente": "agente-00c-orchestrator",
+      "contexto": "Testes unitarios shared-types (2.1.5, 2.3.5): envelope + paridade Zod",
+      "opcoes_consideradas": [
+        "criar-testes",
+        "pular-testes"
+      ],
+      "escolha": "criar-testes",
+      "justificativa": "30 testes passaram em 2 arquivos (envelope.test.ts + parity.test.ts). Cobrem: parse valido/invalido, ZodError obrigatorio, score union, lintOk boolean, arquivosTocadosCount number, etapas string, campos nullable.",
+      "score_justificativa": 3,
+      "evidencia": "npx vitest run packages/shared-types/src/__tests__/: 2 passed (envelope.test.ts 9 tests, parity.test.ts 21 tests), 30 total passed, Duration 239ms",
+      "referencias": [],
+      "artefato_originador": null
+    },
+    {
+      "id": "dec-040",
+      "onda_id": "onda-007",
+      "timestamp": "2026-05-24T21:04:54Z",
+      "etapa": "execute-task",
+      "agente": "agente-00c-orchestrator",
+      "contexto": "FASE 3 BE Fundacao: db/open.ts, freshness.ts, lib/etag.ts, envelope.ts, pagination.ts, fts.ts, queries (executions/waves/decisions/tasks/events/alerts/bloqueios/skills/overview), mappers (8 entidades), testes mappers+fts",
+      "opcoes_consideradas": [
+        "implementar-completo",
+        "implementar-parcial"
+      ],
+      "escolha": "implementar-completo",
+      "justificativa": "Todos os arquivos da FASE 3 (3.2-3.5) criados. typecheck server: exit 0. lint:readonly-check: OK (0 verbos mutacao). Testes mappers: 15/15. Testes FTS: 13/13.",
+      "score_justificativa": 3,
+      "evidencia": "npm run typecheck --workspace=apps/server: exit 0 sem erros. npm run lint:readonly-check: OK: no mutation verbs. vitest run test/mappers/: 15 passed. vitest run test/lib/fts.test.ts: 13 passed.",
+      "referencias": [],
+      "artefato_originador": null
     }
   ],
   "bloqueios_humanos": [
@@ -855,9 +940,9 @@
         "sim-rodar-npm-install",
         "nao-pular-install-por-agora"
       ],
-      "status": "aguardando",
-      "resposta_humana": null,
-      "respondido_em": null,
+      "status": "respondido",
+      "resposta_humana": "sim-rodar-npm-install",
+      "respondido_em": "2026-05-24T20:54:51Z",
       "disparado_em": "2026-05-24T20:49:38Z"
     }
   ],
@@ -872,7 +957,7 @@
     "wallclock_threshold_segundos": 5400,
     "estado_size_threshold_bytes": 1048576,
     "tool_calls_onda_corrente": 1,
-    "inicio_onda_corrente": "2026-05-24T20:44:44Z"
+    "inicio_onda_corrente": "2026-05-24T20:56:11Z"
   },
   "metricas_acumuladas": {
     "ondas_total": 6,
@@ -880,7 +965,7 @@
     "tempo_wallclock_total_segundos": 1391,
     "profundidade_max_atingida": 1,
     "subagentes_spawned": 0,
-    "decisoes_total": 36,
+    "decisoes_total": 40,
     "bloqueios_humanos_total": 1,
     "sugestoes_skills_globais_total": 1,
     "issues_toolkit_abertas": 0,

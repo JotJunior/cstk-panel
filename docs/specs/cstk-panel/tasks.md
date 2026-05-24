@@ -35,7 +35,7 @@ Ref: plan.md §Project Structure; spec.md FR-017 (localhost bind)
 - [x] 1.1.3 Criar `packages/shared-types/package.json` com `name: "@cstk-panel/shared-types"`, exports e `main`
 - [x] 1.1.4 Criar `apps/server/package.json` com dependências (`fastify`, `better-sqlite3`, `zod`, `@fastify/cors`, `@fastify/rate-limit`) e `@cstk-panel/shared-types` via workspace
 - [x] 1.1.5 Criar `apps/web/package.json` com dependências (`react 19`, `vite 5`, `@tanstack/react-query`, `react-router-dom v6`, `zod`) e `@cstk-panel/shared-types` via workspace
-- [!] 1.1.6 Rodar `npm install` na raiz e confirmar que workspaces resolvem sem conflito de versão — BLOQUEADO (block-001: aguardando confirmacao humana — FR-018)
+- [x] 1.1.6 Rodar `npm install` na raiz e confirmar que workspaces resolvem sem conflito de versão — onda-007: 314 pkgs instalados, workspaces resolvem
 - [x] 1.1.7 Criar `README.md` raiz com instruções de setup (dois comandos: `npm install` + `npm run dev`)
 
 ### 1.2 Configuração TypeScript por workspace `[A]`
@@ -45,7 +45,7 @@ Ref: plan.md §Technical Context; contracts/envelope.md
 - [x] 1.2.1 Criar `packages/shared-types/tsconfig.json` estendendo `tsconfig.base.json`, `declaration: true`, `outDir: dist`
 - [x] 1.2.2 Criar `apps/server/tsconfig.json` estendendo base, `module: CommonJS` (Node), `rootDir: src`, `outDir: dist`
 - [x] 1.2.3 Criar `apps/web/tsconfig.json` estendendo base, `module: ESNext` (Vite/bundler), `jsx: react-jsx`
-- [!] 1.2.4 Confirmar que `tsc --noEmit` passa sem erros em `shared-types` com os tipos iniciais — BLOQUEADO por 1.1.6 (npm install pendente)
+- [x] 1.2.4 Confirmar que `tsc --noEmit` passa sem erros em `shared-types` com os tipos iniciais — onda-007: exit 0, zero erros
 - [x] 1.2.5 Adicionar `build` e `typecheck` scripts a cada workspace
 
 ### 1.3 Tooling: Vitest + ESLint + scripts utilitários `[M]`
@@ -56,7 +56,7 @@ Ref: plan.md §Technical Context; quickstart.md §Cenário 1
 - [x] 1.3.2 Configurar `vitest.config.ts` em `apps/server` (integração com DB real read-only, sem mock de DB)
 - [x] 1.3.3 Instalar `eslint` + `@typescript-eslint` e criar `.eslintrc.cjs` raiz proibindo `dangerouslySetInnerHTML` (rule custom) e verbos SQL de mutação em `apps/server/src`
 - [x] 1.3.4 Criar script `npm run lint:readonly-check` fazendo `grep -rniE '\b(INSERT|UPDATE|DELETE|CREATE|DROP|ALTER)\b' apps/server/src` (SC-003)
-- [~] 1.3.5 Criar `apps/server/test/` com fixture `knowledge-fixture.db` (cópia minimal de `~/.claude/cstk/knowledge.db`) para testes de integração — dir+README+script criados; fixture.db gerada pos-npm-install via scripts/create-fixture.mjs
+- [x] 1.3.5 Criar `apps/server/test/` com fixture `knowledge-fixture.db` (cópia minimal de `~/.claude/cstk/knowledge.db`) para testes de integração — onda-007: fixture criada (14 execucoes, 237 ondas, schema v2 OK)
 
 ---
 
@@ -73,7 +73,7 @@ Ref: contracts/envelope.md; spec.md FR-023; data-model.md §Convenção de tipos
 - [x] 2.1.2 Criar schema Zod correspondente `MetaSchema`, `ApiEnvelopeSchema<T>` em `packages/shared-types/src/schemas/envelope.ts`
 - [x] 2.1.3 Garantir que `meta.freshness` tem `mtime` (ISO) + `maxIngestedAt` (ISO) — obrigatórios (FR-014)
 - [x] 2.1.4 Garantir que `meta.degraded` é `boolean` obrigatório e `meta.reason` é `string | null`
-- [ ] 2.1.5 Teste unitário: `ApiEnvelopeSchema.parse(payload_valido)` passa; `parse(sem_degraded)` falha com ZodError — pendente pos-npm-install
+- [x] 2.1.5 Teste unitário: `ApiEnvelopeSchema.parse(payload_valido)` passa; `parse(sem_degraded)` falha com ZodError — onda-007: 9 testes em envelope.test.ts
 
 ### 2.2 DTOs de domínio — entidades core `[C]`
 
@@ -95,7 +95,7 @@ Ref: plan.md §Convenções de Borda; spec.md FR-012; quickstart.md §Cenário 1
 - [x] 2.3.2 Criar `packages/shared-types/src/schemas/params.ts` com schemas Zod para `PaginationParams`, `PeriodParam`, `ScoreParam`, `SearchParams`
 - [x] 2.3.3 Criar `packages/shared-types/src/index.ts` reexportando todos os tipos e schemas
 - [ ] 2.3.4 **Paridade FE**: confirmar que `apps/web` importa tipos de `@cstk-panel/shared-types` diretamente — zero tipos redefinidos localmente em `apps/web/src/types/` — pendente (apps/web/src nao populado ainda)
-- [ ] 2.3.5 Teste de paridade smoke: script `test:parity` que instancia cada schema Zod com fixture real — pendente pos-npm-install
+- [x] 2.3.5 Teste de paridade smoke: script `test:parity` que instancia cada schema Zod com fixture real — onda-007: 21 testes em parity.test.ts (payloads sinteticos, todos os schemas)
 
 ---
 
@@ -108,59 +108,59 @@ Ref: plan.md §Convenções de Borda; spec.md FR-012; quickstart.md §Cenário 1
 
 Ref: plan.md §Project Structure `apps/server`; spec.md FR-017, FR-019
 
-- [ ] 3.1.1 Criar `apps/server/src/index.ts` bootstrapando Fastify com `logger: true` e bind `127.0.0.1:<PORT>` (FR-017)
-- [ ] 3.1.2 Criar `apps/server/src/config.ts` resolvendo path do DB: config explícita > `$CSTK_KNOWLEDGE_DB` > padrão `~/.claude/cstk/knowledge.db` — canonicalização via `path.resolve` (FR-018)
-- [ ] 3.1.3 Registrar plugin CORS restrito à origem do front-end (`http://localhost:5173`) via `@fastify/cors` (FR-017)
-- [ ] 3.1.4 Registrar hook `onSend` global injetando `Content-Type: application/json` + `X-Content-Type-Options: nosniff` (FR-019)
+- [x] 3.1.1 Criar `apps/server/src/index.ts` bootstrapando Fastify com `logger: true` e bind `127.0.0.1:<PORT>` (FR-017)
+- [x] 3.1.2 Criar `apps/server/src/config.ts` resolvendo path do DB: config explícita > `$CSTK_KNOWLEDGE_DB` > padrão `~/.claude/cstk/knowledge.db` — canonicalização via `path.resolve` (FR-018)
+- [x] 3.1.3 Registrar plugin CORS restrito à origem do front-end (`http://localhost:5173`) via `@fastify/cors` (FR-017)
+- [x] 3.1.4 Registrar hook `onSend` global injetando `Content-Type: application/json` + `X-Content-Type-Options: nosniff` (FR-019)
 - [ ] 3.1.5 Teste de integração: servidor sobe, responde `GET /api/v1/health` com `200` e os headers obrigatórios presentes
 
 ### 3.2 Camada de abertura do banco — degradação de 1ª classe `[C]`
 
 Ref: research.md §Decision 1, §Decision 8; spec.md FR-002, FR-005, FR-007
 
-- [ ] 3.2.1 Criar `apps/server/src/db/open.ts` retornando `{ ok: true, db }` ou `{ ok: false, reason: DegradedReason }` — **nunca lança** (Princípio II)
-- [ ] 3.2.2 Abrir com `new Database(path, { readonly: true, fileMustExist: false })` + `PRAGMA query_only = 1` (FR-002)
-- [ ] 3.2.3 Implementar `quick_check` na abertura: resultado `!== 'ok'` → `{ ok: false, reason: 'db-corrupt' }` (FR-007)
-- [ ] 3.2.4 Validar `schema_version === '2'` em `schema_meta`; divergência → `{ ok: false, reason: 'schema-mismatch' }`
-- [ ] 3.2.5 Tratar base ausente (`ENOENT`) → `{ ok: false, reason: 'db-missing' }` e tabela vazia por recurso → `reason: 'table-empty'`
-- [ ] 3.2.6 Criar `apps/server/src/db/freshness.ts`: `mtime` do arquivo via `fs.statSync` + `SELECT max(ingested_at) FROM executions`; retornar `Freshness` do shared-types
-- [ ] 3.2.7 Implementar ETag: `W/"<mtime_epoch>-<max_ingested_at>"` (research.md §Decision 7) em `apps/server/src/lib/etag.ts`
+- [x] 3.2.1 Criar `apps/server/src/db/open.ts` retornando `{ ok: true, db }` ou `{ ok: false, reason: DegradedReason }` — **nunca lança** (Princípio II)
+- [x] 3.2.2 Abrir com `new Database(path, { readonly: true, fileMustExist: false })` + `PRAGMA query_only = 1` (FR-002)
+- [x] 3.2.3 Implementar `quick_check` na abertura: resultado `!== 'ok'` → `{ ok: false, reason: 'db-corrupt' }` (FR-007)
+- [x] 3.2.4 Validar `schema_version === '2'` em `schema_meta`; divergência → `{ ok: false, reason: 'schema-mismatch' }`
+- [x] 3.2.5 Tratar base ausente (`ENOENT`) → `{ ok: false, reason: 'db-missing' }` e tabela vazia por recurso → `reason: 'table-empty'`
+- [x] 3.2.6 Criar `apps/server/src/db/freshness.ts`: `mtime` do arquivo via `fs.statSync` + `SELECT max(ingested_at) FROM executions`; retornar `Freshness` do shared-types
+- [x] 3.2.7 Implementar ETag: `W/"<mtime_epoch>-<max_ingested_at>"` (research.md §Decision 7) em `apps/server/src/lib/etag.ts`
 - [ ] 3.2.8 Testes de integração para os 4 motivos de degradação: ausente, corrompida, schema-mismatch, tabela vazia
 
 ### 3.3 Camada de queries SQL read-only `[A]`
 
 Ref: data-model.md §Entities; contracts/api-read.md; spec.md FR-001, FR-003
 
-- [ ] 3.3.1 Criar `apps/server/src/db/queries/executions.ts` com prepared statements read-only: list, get por id, rollup por project/feature
-- [ ] 3.3.2 Criar `apps/server/src/db/queries/waves.ts` com query por `execucao_id`
-- [ ] 3.3.3 Criar `apps/server/src/db/queries/decisions.ts` com query paginada por `execucao_id` com filtros `wave`, `etapa`, `score` (binding parametrizado)
-- [ ] 3.3.4 Criar `apps/server/src/db/queries/tasks.ts`, `events.ts`, `alerts.ts`, `bloqueios.ts`, `skills.ts` (queries por `execucao_id`)
+- [x] 3.3.1 Criar `apps/server/src/db/queries/executions.ts` com prepared statements read-only: list, get por id, rollup por project/feature
+- [x] 3.3.2 Criar `apps/server/src/db/queries/waves.ts` com query por `execucao_id`
+- [x] 3.3.3 Criar `apps/server/src/db/queries/decisions.ts` com query paginada por `execucao_id` com filtros `wave`, `etapa`, `score` (binding parametrizado)
+- [x] 3.3.4 Criar `apps/server/src/db/queries/tasks.ts`, `events.ts`, `alerts.ts`, `bloqueios.ts`, `skills.ts` (queries por `execucao_id`)
 - [ ] 3.3.5 Criar `apps/server/src/db/queries/cross.ts` com queries cross-execução para `/alerts`, `/tasks`, `/events`
 - [ ] 3.3.6 Criar `apps/server/src/db/queries/metrics.ts` com 8 queries de métricas agregadas (GROUP BY, date(), etc.)
-- [ ] 3.3.7 Criar `apps/server/src/db/queries/overview.ts` com query de KPIs, alertas recentes, execuções em andamento, leaderboard, funil
-- [ ] 3.3.8 Auditoria de mutação: rodar lint `npm run lint:readonly-check` e confirmar 0 verbos de mutação (SC-003)
+- [x] 3.3.7 Criar `apps/server/src/db/queries/overview.ts` com query de KPIs, alertas recentes, execuções em andamento, leaderboard, funil
+- [x] 3.3.8 Auditoria de mutação: rodar lint `npm run lint:readonly-check` e confirmar 0 verbos de mutação (SC-003) — onda-007: OK, 0 verbos
 
 ### 3.4 Camada de mappers DB-row → DTO `[C]`
 
 Ref: plan.md §Convenções de Borda; data-model.md §Convenção de tipos
 
-- [ ] 3.4.1 Criar `apps/server/src/mappers/execution.ts`: `snake_case` → `camelCase`, todos os campos de `ExecutionDTO`
-- [ ] 3.4.2 Criar `apps/server/src/mappers/wave.ts`: `etapas: string` — manter como string (NÃO converter para array)
-- [ ] 3.4.3 Criar `apps/server/src/mappers/decision.ts`: `score` como `0|1|2|3|null`, campos textuais UNTRUSTED preservados crus
-- [ ] 3.4.4 Criar `apps/server/src/mappers/task.ts`: `lint_ok: INTEGER 0/1` → `lintOk: boolean` via `=== 1`; `arquivos_tocados: INTEGER` → `arquivosTocadosCount: number` (contagem, NÃO array)
-- [ ] 3.4.5 Criar mappers para `event`, `alert_signal`, `bloqueio`, `skill`, `retro`, `fts_hit`
-- [ ] 3.4.6 Testes unitários dos mappers: `lint_ok=0` → `false`, `lint_ok=1` → `true`; `etapas` permanece string; `score=2` → `2`; campos UNTRUSTED não sofrem transformação
-- [ ] 3.4.7 **Paridade round-trip**: parse com schema Zod de `shared-types` sobre saída de cada mapper — `safeParse(...).success === true`
+- [x] 3.4.1 Criar `apps/server/src/mappers/execution.ts`: `snake_case` → `camelCase`, todos os campos de `ExecutionDTO`
+- [x] 3.4.2 Criar `apps/server/src/mappers/wave.ts`: `etapas: string` — manter como string (NÃO converter para array)
+- [x] 3.4.3 Criar `apps/server/src/mappers/decision.ts`: `score` como `0|1|2|3|null`, campos textuais UNTRUSTED preservados crus
+- [x] 3.4.4 Criar `apps/server/src/mappers/task.ts`: `lint_ok: INTEGER 0/1` → `lintOk: boolean` via `=== 1`; `arquivos_tocados: INTEGER` → `arquivosTocadosCount: number` (contagem, NÃO array)
+- [x] 3.4.5 Criar mappers para `event`, `alert_signal`, `bloqueio`, `skill`, `retro`, `fts_hit`
+- [x] 3.4.6 Testes unitários dos mappers: `lint_ok=0` → `false`, `lint_ok=1` → `true`; `etapas` permanece string; `score=2` → `2`; campos UNTRUSTED não sofrem transformação — onda-007: 15/15 testes
+- [x] 3.4.7 **Paridade round-trip**: parse com schema Zod de `shared-types` sobre saída de cada mapper — `safeParse(...).success === true` — onda-007: validado em 15 testes
 
 ### 3.5 Utilitários: envelope, paginação, FTS escaping, rate-limit `[A]`
 
 Ref: contracts/envelope.md; contracts/search-fts.md; spec.md FR-012, FR-020, FR-023
 
-- [ ] 3.5.1 Criar `apps/server/src/lib/envelope.ts`: `wrap<T>(data: T, meta: Partial<Meta>, db): ApiEnvelope<T>` computando `freshness` e `schemaVersion` automaticamente
-- [ ] 3.5.2 Criar `apps/server/src/lib/pagination.ts`: parser Zod de `limit` (1..100) e `offset` (>=0) com defaults e teto (SC-008)
-- [ ] 3.5.3 Criar `apps/server/src/lib/fts.ts`: tokenizar input por whitespace, envolver cada token em `"token"` (aspas duplicando internas), juntar com espaço → query FTS5 safe (research.md §Decision 6)
+- [x] 3.5.1 Criar `apps/server/src/lib/envelope.ts`: `wrap<T>(data: T, meta: Partial<Meta>, db): ApiEnvelope<T>` computando `freshness` e `schemaVersion` automaticamente
+- [x] 3.5.2 Criar `apps/server/src/lib/pagination.ts`: parser Zod de `limit` (1..100) e `offset` (>=0) com defaults e teto (SC-008)
+- [x] 3.5.3 Criar `apps/server/src/lib/fts.ts`: tokenizar input por whitespace, envolver cada token em `"token"` (aspas duplicando internas), juntar com espaço → query FTS5 safe (research.md §Decision 6)
 - [ ] 3.5.4 Registrar `@fastify/rate-limit` apenas na rota `/search` — limite leve (ex: 30 req/min por IP) (FR-020)
-- [ ] 3.5.5 Testes unitários de `fts.ts`: `') OR 1=1 --'` → query FTS5 sem caracteres ativos; `'"aspas"'` → tokens quoted corretamente
+- [x] 3.5.5 Testes unitários de `fts.ts`: `') OR 1=1 --'` → query FTS5 sem caracteres ativos; `'"aspas"'` → tokens quoted corretamente — onda-007: 13/13 testes
 
 ---
 

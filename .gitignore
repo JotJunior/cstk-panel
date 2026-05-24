@@ -6,8 +6,9 @@ dist/
 build/
 *.tsbuildinfo
 
-# test fixtures / generated db
+# test fixtures / generated db (binarios derivados, nao versionar)
 test/fixtures/*.db
+apps/server/test/*.db
 *.db-journal
 *.db-wal
 *.db-shm
@@ -19,3 +20,5 @@ test/fixtures/*.db
 # agente-00c runtime churn (state.json/report sao versionados; locks e history nao)
 .claude/agente-00c-state/.lock/
 .claude/agente-00c-state/state-history/
+.claude/scheduled_tasks.lock
+.claude/*.lock

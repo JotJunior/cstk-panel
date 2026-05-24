@@ -1,0 +1,12 @@
+/**
+ * Barrel de mappers — ponto de importacao unico.
+ * Task 3.4.5
+ */
+export { mapExecution, mapExecutions } from './execution.js';
+export { mapWave, mapWaves } from './wave.js';
+export { mapDecision, mapDecisions } from './decision.js';
+export { mapTask, mapTasks } from './task.js';
+export { mapEvent, mapEvents } from './event.js';
+export { mapAlert, mapAlerts } from './alert.js';
+export { mapBloqueio, mapBloqueios } from './bloqueio.js';
+export { mapSkill, mapSkills } from './skill.js';
