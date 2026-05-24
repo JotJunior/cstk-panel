@@ -15,7 +15,7 @@
     "terminada_em": null
   },
   "etapa_corrente": "execute-task",
-  "proxima_instrucao": "onda-011: execute-task FASE 7 (testes de integracao). 7.1: roundtrip E2E real (Vitest + servidor real + base real). 7.2: testes de degradacao. 7.3: read-only e FTS hostil. 7.4: paridade shared-types. 7.5: frescor. FASE 6 concluida: 35 subtarefas, 6 telas, typecheck+build green.",
+  "proxima_instrucao": "onda-012: execute-task FASE 8 (qualidade, build e documentacao final). 8.1: build producao tsc+vite, script start. 8.2: auditoria final invariantes. 8.3: documentacao README+CONTRIBUTING.",
   "ondas": [
     {
       "id": "onda-001",
@@ -222,6 +222,25 @@
       "motivo_termino": "etapa_concluida_avancando",
       "proxima_onda_agendada_para": null,
       "skills_invoked": []
+    },
+    {
+      "id": "onda-011",
+      "inicio": "2026-05-24T22:16:10Z",
+      "fim": "2026-05-24T22:17:20Z",
+      "etapas_executadas": [
+        "execute-task"
+      ],
+      "tool_calls": 0,
+      "wallclock_seconds": 70,
+      "motivo_termino": "etapa_concluida_avancando",
+      "proxima_onda_agendada_para": null,
+      "skills_invoked": [
+        {
+          "skill": "execute-task",
+          "timestamp": "2026-05-24T22:16:46Z",
+          "decisao_id": "dec-051"
+        }
+      ]
     }
   ],
   "decisoes": [
@@ -1151,6 +1170,83 @@
       "evidencia": "npm run typecheck --workspace=apps/web: saida vazia (exit 0). npm run build --workspace=apps/web: 125 modules, dist/assets/index-D4gUi3yS.js 391.16kB (gzip 110.28kB), built in 725ms",
       "referencias": [],
       "artefato_originador": null
+    },
+    {
+      "id": "dec-050",
+      "onda_id": "onda-010",
+      "timestamp": "2026-05-24T22:08:06Z",
+      "etapa": "model-routing",
+      "agente": "agente-00c-feature-orchestrator",
+      "contexto": "Selecao de modelo para onda 10 (fase execute-task)",
+      "opcoes_consideradas": [
+        "haiku",
+        "sonnet",
+        "opus",
+        "manter-atual"
+      ],
+      "escolha": "model:sonnet",
+      "justificativa": "sugerido=sonnet aplicado=sonnet origem=mapa | faixa=rasa fase=execute-task (mapa primario)",
+      "score_justificativa": 0,
+      "evidencia": null,
+      "referencias": [],
+      "artefato_originador": null
+    },
+    {
+      "id": "dec-051",
+      "onda_id": "onda-011",
+      "timestamp": "2026-05-24T22:16:24Z",
+      "etapa": "execute-task",
+      "agente": "agente-00c-orchestrator",
+      "contexto": "FASE 7 testes de integracao: abordagem para roundtrip E2E real, degradacao, read-only, paridade shared-types e frescor",
+      "opcoes_consideradas": [
+        "criar-testes-vitest-reais-sem-mock",
+        "usar-mocks-sqlite",
+        "pular-testes-integracao"
+      ],
+      "escolha": "criar-testes-vitest-reais-sem-mock",
+      "justificativa": "Spec SC-003 e Constitution Principio I exigem validacao real sem mock do DB. Fixture knowledge-fixture.db real disponivel com 14 execucoes e 1079 registros FTS. Vitest inject() evita bind de porta.",
+      "score_justificativa": 3,
+      "evidencia": "npm test --workspace apps/server: 109 passed (9 test files) — todos verde apos correcao NOT NULL constraint em freshness.test.ts (campo wave obrigatorio)",
+      "referencias": [],
+      "artefato_originador": null
+    },
+    {
+      "id": "dec-052",
+      "onda_id": "onda-011",
+      "timestamp": "2026-05-24T22:16:33Z",
+      "etapa": "execute-task",
+      "agente": "agente-00c-orchestrator",
+      "contexto": "Bug detectado em freshness.test.ts: INSERT em executions sem campo 'wave' causa NOT NULL constraint. Confirmado schema real do fixture DB",
+      "opcoes_consideradas": [
+        "corrigir-insert-adicionando-campos-nao-nulos",
+        "usar-INSERT-OR-IGNORE-sem-wave",
+        "pular-teste-7.5.3"
+      ],
+      "escolha": "corrigir-insert-adicionando-campos-nao-nulos",
+      "justificativa": "Schema real da tabela executions tem NOT NULL em: project, feature, wave, execucao_id, source_ts, source_id, ingested_at. INSERT foi corrigido incluindo todos os campos obrigatorios com OR IGNORE para idempotencia.",
+      "score_justificativa": 3,
+      "evidencia": "python3: executions DDL confirmado com UNIQUE(project, feature, wave, source_id) + NOT NULL em wave. Apos correcao: npm test: 109 passed, 0 failed",
+      "referencias": [],
+      "artefato_originador": null
+    },
+    {
+      "id": "dec-053",
+      "onda_id": "onda-011",
+      "timestamp": "2026-05-24T22:16:42Z",
+      "etapa": "execute-task",
+      "agente": "agente-00c-orchestrator",
+      "contexto": "7.1.2 Verificacao de convencao de borda camelCase: todas as chaves de kpis do /overview e resultados do /search estao em camelCase na base fixture real",
+      "opcoes_consideradas": [
+        "confirmar-camelcase-ok",
+        "detectar-drift-e-corrigir",
+        "registrar-warning"
+      ],
+      "escolha": "confirmar-camelcase-ok",
+      "justificativa": "Teste roundtrip.test.ts valida explicitamente ausencia de snake_case em kpis (toolCallsTotal presente, tool_calls_total ausente) e em FtsHitDTO (sourceId/sourceTs presentes, source_id/source_ts ausentes). Todos 8 testes do roundtrip passando.",
+      "score_justificativa": 3,
+      "evidencia": "npm test: test/lib/roundtrip.test.ts 8 tests passed — inclui verificacao explicita de 'toolCallsTotal' in kpis e ausencia de 'tool_calls_total'",
+      "referencias": [],
+      "artefato_originador": null
     }
   ],
   "bloqueios_humanos": [
@@ -1179,16 +1275,16 @@
     "tool_calls_threshold_onda": 80,
     "wallclock_threshold_segundos": 5400,
     "estado_size_threshold_bytes": 1048576,
-    "tool_calls_onda_corrente": 14,
-    "inicio_onda_corrente": "2026-05-24T21:48:35Z"
+    "tool_calls_onda_corrente": 0,
+    "inicio_onda_corrente": "2026-05-24T22:16:10Z"
   },
   "metricas_acumuladas": {
-    "ondas_total": 10,
+    "ondas_total": 11,
     "tool_calls_total": 19,
-    "tempo_wallclock_total_segundos": 4306,
+    "tempo_wallclock_total_segundos": 4376,
     "profundidade_max_atingida": 1,
     "subagentes_spawned": 0,
-    "decisoes_total": 49,
+    "decisoes_total": 53,
     "bloqueios_humanos_total": 1,
     "sugestoes_skills_globais_total": 1,
     "issues_toolkit_abertas": 0,
