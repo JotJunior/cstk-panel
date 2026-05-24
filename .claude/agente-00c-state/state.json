@@ -245,18 +245,30 @@
     {
       "id": "onda-012",
       "inicio": "2026-05-24T22:22:32Z",
+      "fim": "2026-05-24T22:28:53Z",
+      "etapas_executadas": [
+        "execute-task"
+      ],
+      "tool_calls": 0,
+      "wallclock_seconds": 381,
+      "motivo_termino": "etapa_concluida_avancando",
+      "proxima_onda_agendada_para": null,
+      "skills_invoked": []
+    },
+    {
+      "id": "onda-013",
+      "inicio": "2026-05-24T22:34:00Z",
       "fim": "2026-05-24T22:35:47Z",
       "etapas_executadas": [
         "review-task"
       ],
       "tool_calls": 0,
-      "wallclock_seconds": 381,
+      "wallclock_seconds": 107,
       "motivo_termino": "etapa_concluida_execucao_completada",
       "proxima_onda_agendada_para": null,
       "skills_invoked": [
         "review-task"
-      ],
-      "aspectos_chave_tocados": []
+      ]
     }
   ],
   "decisoes": [
@@ -1359,6 +1371,25 @@
       "evidencia": null,
       "referencias": [],
       "artefato_originador": null
+    },
+    {
+      "id": "dec-059",
+      "onda_id": "onda-013",
+      "timestamp": "2026-05-24T22:39:20Z",
+      "etapa": "review-task",
+      "agente": "orquestrador-00c",
+      "contexto": "Reconciliacao pos-conclusao do audit trail (Principio I). O wave haiku da etapa review-task NAO iniciou uma nova onda (Loop passo 2): em vez de anexar onda-013, sobrescreveu o registro da onda-012 (que era execute-task FASE 8, fim 22:28:53Z) com dados de review-task, e ondas_total ficou em 12. A execucao foi corretamente marcada concluida, mas o historico de ondas perdeu a identidade da onda-012. Recuperei a onda-012 original do backup state-history/onda-012-20260524T223406Z.json e anexei uma onda-013 propria para review-task; ondas_total=13.",
+      "opcoes_consideradas": [
+        "restaurar-onda-012-e-anexar-onda-013",
+        "deixar-historico-corrompido",
+        "reverter-conclusao"
+      ],
+      "escolha": "restaurar-onda-012-e-anexar-onda-013",
+      "justificativa": "Auditabilidade Total (Principio I) exige historico fiel. A entrega esta correta e a conclusao e legitima; apenas o registro de ondas estava corrompido pelo wave haiku. Restauracao via backup integro preserva a verdade sem reverter a conclusao valida. state-validate e sha256-verify OK pos-reconciliacao.",
+      "score_justificativa": null,
+      "evidencia": null,
+      "referencias": [],
+      "artefato_originador": null
     }
   ],
   "bloqueios_humanos": [
@@ -1391,14 +1422,14 @@
     "inicio_onda_corrente": "2026-05-24T22:22:32Z"
   },
   "metricas_acumuladas": {
-    "ondas_total": 12,
+    "ondas_total": 13,
     "tool_calls_total": 19,
     "tempo_wallclock_total_segundos": 4757,
     "profundidade_max_atingida": 1,
     "subagentes_spawned": 0,
-    "decisoes_total": 58,
+    "decisoes_total": 59,
     "bloqueios_humanos_total": 1,
-    "sugestoes_skills_globais_total": 1,
+    "sugestoes_skills_globais_total": 2,
     "issues_toolkit_abertas": 0,
     "cache": {
       "tokens_cache_misses_disabled": 3
@@ -1436,6 +1467,16 @@
       "referencias": [],
       "issue_aberta": null,
       "criada_em": "2026-05-24T20:28:39Z"
+    },
+    {
+      "id": "sug-002",
+      "skill_afetada": "agente-00c-orchestrator",
+      "diagnostico": "Wave conduzido em modelo HAIKU (onda-013 review-task) nao executou o Loop passo 2 (start nova onda) nem o protocolo de encerramento: sobrescreveu o registro .ondas[-1] da onda ANTERIOR (onda-012 execute-task) com dados da etapa corrente, causando PERDA de registro no audit trail (variante mais grave que o gap sonnet das ondas 001/004/005, que apenas deixavam a onda incompleta). ondas_total nao foi incrementado. Modelos menos capazes (haiku << sonnet << opus) degradam progressivamente o cumprimento do protocolo de bookkeeping de onda.",
+      "severidade": "impeditiva",
+      "proposta": "O encerramento de onda deve ser à prova de modelos fracos: (1) /agente-00c-resume deve, no passo 6, ANEXAR um registro de onda novo ANTES de spawnar o orquestrador (em vez de confiar que o subagente faca via Loop passo 2), e validar no retorno que .ondas cresceu em 1 e ondas_total foi incrementado — reconciliando automaticamente se nao; (2) alternativamente, phase-model-map NAO deve rotear review-task/briefing/checklist para haiku enquanto o protocolo de bookkeeping depender do subagente; (3) mover a criacao/fechamento de onda inteiramente para o comando-pai (resume/agente-00c), deixando o subagente apenas executar a skill da etapa.",
+      "referencias": [],
+      "issue_aberta": null,
+      "criada_em": "2026-05-24T22:39:20Z"
     }
   ],
   "eventos": [
