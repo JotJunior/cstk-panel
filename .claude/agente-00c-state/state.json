@@ -15,7 +15,7 @@
     "terminada_em": null
   },
   "etapa_corrente": "execute-task",
-  "proxima_instrucao": "onda-010: execute-task. FASE 5 concluida (5.1-5.5, 18/22 subtarefas). Pendentes FASE 5: 5.2.4/5.2.5 (teste 4-cliques), 5.3.5 (teste ETag), 5.4.6 (teste estados), 5.5.7 (teste TextRaw). FASE 6: 6 telas (Overview real, ExecutionDetail, Search, Alerts, Metrics, DegradedStates). Comecar por FASE 6.1 (Overview com KPIs reais).",
+  "proxima_instrucao": "onda-011: execute-task FASE 7 (testes de integracao). 7.1: roundtrip E2E real (Vitest + servidor real + base real). 7.2: testes de degradacao. 7.3: read-only e FTS hostil. 7.4: paridade shared-types. 7.5: frescor. FASE 6 concluida: 35 subtarefas, 6 telas, typecheck+build green.",
   "ondas": [
     {
       "id": "onda-001",
@@ -206,6 +206,19 @@
       ],
       "tool_calls": 2,
       "wallclock_seconds": 566,
+      "motivo_termino": "etapa_concluida_avancando",
+      "proxima_onda_agendada_para": null,
+      "skills_invoked": []
+    },
+    {
+      "id": "onda-010",
+      "inicio": "2026-05-24T21:48:35Z",
+      "fim": "2026-05-24T22:03:43Z",
+      "etapas_executadas": [
+        "execute-task"
+      ],
+      "tool_calls": 14,
+      "wallclock_seconds": 908,
       "motivo_termino": "etapa_concluida_avancando",
       "proxima_onda_agendada_para": null,
       "skills_invoked": []
@@ -1080,6 +1093,64 @@
       "evidencia": "npm run typecheck --workspace=apps/web: exit 0 zero erros. npm run build --workspace=apps/web: 113 modules transformed, dist/assets/index-C7j7EKFn.js 324.33kB, built in 614ms",
       "referencias": [],
       "artefato_originador": null
+    },
+    {
+      "id": "dec-047",
+      "onda_id": "onda-009",
+      "timestamp": "2026-05-24T21:48:07Z",
+      "etapa": "model-routing",
+      "agente": "agente-00c-feature-orchestrator",
+      "contexto": "Selecao de modelo para onda 9 (fase execute-task)",
+      "opcoes_consideradas": [
+        "haiku",
+        "sonnet",
+        "opus",
+        "manter-atual"
+      ],
+      "escolha": "model:sonnet",
+      "justificativa": "sugerido=sonnet aplicado=sonnet origem=mapa | faixa=rasa fase=execute-task (mapa primario)",
+      "score_justificativa": 0,
+      "evidencia": null,
+      "referencias": [],
+      "artefato_originador": null
+    },
+    {
+      "id": "dec-048",
+      "onda_id": "onda-010",
+      "timestamp": "2026-05-24T22:02:40Z",
+      "etapa": "execute-task",
+      "agente": "agente-00c-orchestrator",
+      "contexto": "FASE 6: implementacao das 6 telas reais do cstk-panel",
+      "opcoes_consideradas": [
+        "implementar-todas-6-em-uma-onda",
+        "implementar-progressivamente-por-onda",
+        "usar-subagentes"
+      ],
+      "escolha": "implementar-todas-6-em-uma-onda",
+      "justificativa": "Telas sao interdependentes (helpers compartilhados, estados comuns); implementar em uma onda maximiza coerencia e evita retomadas multiplas",
+      "score_justificativa": 2,
+      "evidencia": null,
+      "referencias": [],
+      "artefato_originador": null
+    },
+    {
+      "id": "dec-049",
+      "onda_id": "onda-010",
+      "timestamp": "2026-05-24T22:02:48Z",
+      "etapa": "execute-task",
+      "agente": "agente-00c-orchestrator",
+      "contexto": "Validacao typecheck e build FASE 6 — todas as 6 telas",
+      "opcoes_consideradas": [
+        "corrigir-erros-ts",
+        "aceitar-com-suppressoes",
+        "abortar-onda"
+      ],
+      "escolha": "corrigir-erros-ts",
+      "justificativa": "exactOptionalPropertyTypes=true exige passar apenas tipos definidos, nao undefined; KpiCard.accent sem undefined; filtros via opts object",
+      "score_justificativa": 3,
+      "evidencia": "npm run typecheck --workspace=apps/web: saida vazia (exit 0). npm run build --workspace=apps/web: 125 modules, dist/assets/index-D4gUi3yS.js 391.16kB (gzip 110.28kB), built in 725ms",
+      "referencias": [],
+      "artefato_originador": null
     }
   ],
   "bloqueios_humanos": [
@@ -1108,16 +1179,16 @@
     "tool_calls_threshold_onda": 80,
     "wallclock_threshold_segundos": 5400,
     "estado_size_threshold_bytes": 1048576,
-    "tool_calls_onda_corrente": 2,
-    "inicio_onda_corrente": "2026-05-24T21:32:37Z"
+    "tool_calls_onda_corrente": 14,
+    "inicio_onda_corrente": "2026-05-24T21:48:35Z"
   },
   "metricas_acumuladas": {
-    "ondas_total": 9,
-    "tool_calls_total": 5,
-    "tempo_wallclock_total_segundos": 3398,
+    "ondas_total": 10,
+    "tool_calls_total": 19,
+    "tempo_wallclock_total_segundos": 4306,
     "profundidade_max_atingida": 1,
     "subagentes_spawned": 0,
-    "decisoes_total": 46,
+    "decisoes_total": 49,
     "bloqueios_humanos_total": 1,
     "sugestoes_skills_globais_total": 1,
     "issues_toolkit_abertas": 0,
