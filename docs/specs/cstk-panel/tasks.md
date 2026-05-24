@@ -112,7 +112,7 @@ Ref: plan.md §Project Structure `apps/server`; spec.md FR-017, FR-019
 - [x] 3.1.2 Criar `apps/server/src/config.ts` resolvendo path do DB: config explícita > `$CSTK_KNOWLEDGE_DB` > padrão `~/.claude/cstk/knowledge.db` — canonicalização via `path.resolve` (FR-018)
 - [x] 3.1.3 Registrar plugin CORS restrito à origem do front-end (`http://localhost:5173`) via `@fastify/cors` (FR-017)
 - [x] 3.1.4 Registrar hook `onSend` global injetando `Content-Type: application/json` + `X-Content-Type-Options: nosniff` (FR-019)
-- [ ] 3.1.5 Teste de integração: servidor sobe, responde `GET /api/v1/health` com `200` e os headers obrigatórios presentes
+- [x] 3.1.5 Teste de integração: servidor sobe, responde `GET /api/v1/health` com `200` e os headers obrigatórios presentes — onda-008: 7 testes em server-health.test.ts
 
 ### 3.2 Camada de abertura do banco — degradação de 1ª classe `[C]`
 
@@ -125,7 +125,7 @@ Ref: research.md §Decision 1, §Decision 8; spec.md FR-002, FR-005, FR-007
 - [x] 3.2.5 Tratar base ausente (`ENOENT`) → `{ ok: false, reason: 'db-missing' }` e tabela vazia por recurso → `reason: 'table-empty'`
 - [x] 3.2.6 Criar `apps/server/src/db/freshness.ts`: `mtime` do arquivo via `fs.statSync` + `SELECT max(ingested_at) FROM executions`; retornar `Freshness` do shared-types
 - [x] 3.2.7 Implementar ETag: `W/"<mtime_epoch>-<max_ingested_at>"` (research.md §Decision 7) em `apps/server/src/lib/etag.ts`
-- [ ] 3.2.8 Testes de integração para os 4 motivos de degradação: ausente, corrompida, schema-mismatch, tabela vazia
+- [x] 3.2.8 Testes de integração para os 4 motivos de degradação: ausente, corrompida, schema-mismatch, tabela vazia — onda-008: 8 testes em open.test.ts + caminho feliz read-only
 
 ### 3.3 Camada de queries SQL read-only `[A]`
 
@@ -135,8 +135,8 @@ Ref: data-model.md §Entities; contracts/api-read.md; spec.md FR-001, FR-003
 - [x] 3.3.2 Criar `apps/server/src/db/queries/waves.ts` com query por `execucao_id`
 - [x] 3.3.3 Criar `apps/server/src/db/queries/decisions.ts` com query paginada por `execucao_id` com filtros `wave`, `etapa`, `score` (binding parametrizado)
 - [x] 3.3.4 Criar `apps/server/src/db/queries/tasks.ts`, `events.ts`, `alerts.ts`, `bloqueios.ts`, `skills.ts` (queries por `execucao_id`)
-- [ ] 3.3.5 Criar `apps/server/src/db/queries/cross.ts` com queries cross-execução para `/alerts`, `/tasks`, `/events`
-- [ ] 3.3.6 Criar `apps/server/src/db/queries/metrics.ts` com 8 queries de métricas agregadas (GROUP BY, date(), etc.)
+- [x] 3.3.5 Criar `apps/server/src/db/queries/cross.ts` com queries cross-execução para `/alerts`, `/tasks`, `/events` — onda-008: listCrossAlerts, listCrossTasks, listCrossEvents com filtros parametrizados
+- [x] 3.3.6 Criar `apps/server/src/db/queries/metrics.ts` com 8 queries de métricas agregadas (GROUP BY, date(), etc.) — onda-008: cost-over-time, throughput-by-stage, test-pass-rate, human-latency, clarify-resolution, decisions-by-score, execution-duration, depth-subagents
 - [x] 3.3.7 Criar `apps/server/src/db/queries/overview.ts` com query de KPIs, alertas recentes, execuções em andamento, leaderboard, funil
 - [x] 3.3.8 Auditoria de mutação: rodar lint `npm run lint:readonly-check` e confirmar 0 verbos de mutação (SC-003) — onda-007: OK, 0 verbos
 
@@ -159,7 +159,7 @@ Ref: contracts/envelope.md; contracts/search-fts.md; spec.md FR-012, FR-020, FR-
 - [x] 3.5.1 Criar `apps/server/src/lib/envelope.ts`: `wrap<T>(data: T, meta: Partial<Meta>, db): ApiEnvelope<T>` computando `freshness` e `schemaVersion` automaticamente
 - [x] 3.5.2 Criar `apps/server/src/lib/pagination.ts`: parser Zod de `limit` (1..100) e `offset` (>=0) com defaults e teto (SC-008)
 - [x] 3.5.3 Criar `apps/server/src/lib/fts.ts`: tokenizar input por whitespace, envolver cada token em `"token"` (aspas duplicando internas), juntar com espaço → query FTS5 safe (research.md §Decision 6)
-- [ ] 3.5.4 Registrar `@fastify/rate-limit` apenas na rota `/search` — limite leve (ex: 30 req/min por IP) (FR-020)
+- [x] 3.5.4 Registrar `@fastify/rate-limit` apenas na rota `/search` — limite leve (ex: 30 req/min por IP) (FR-020) — onda-008: implementado em search.ts via scoped plugin
 - [x] 3.5.5 Testes unitários de `fts.ts`: `') OR 1=1 --'` → query FTS5 sem caracteres ativos; `'"aspas"'` → tokens quoted corretamente — onda-007: 13/13 testes
 
 ---
@@ -173,52 +173,52 @@ Ref: contracts/envelope.md; contracts/search-fts.md; spec.md FR-012, FR-020, FR-
 
 Ref: contracts/api-read.md §Saúde e visão geral; spec.md FR-005, FR-014; quickstart.md §Cenário 6
 
-- [ ] 4.1.1 Criar `apps/server/src/routes/health.ts`: `GET /health` sempre `200`, `{ ok, dbReachable, quickCheck, counts }`, com `meta.degraded` correto
-- [ ] 4.1.2 Criar `apps/server/src/routes/overview.ts`: `GET /overview?period=` com KPIs (`toolCallsTotal` rotulado, nunca `$`/tokens), alertas recentes, execuções em andamento, leaderboard, funil
-- [ ] 4.1.3 Hook `onRequest` global para If-None-Match/ETag → `304` quando ETag coincide (research.md §Decision 7)
-- [ ] 4.1.4 Testes de integração: `/health` com base ausente → `200 + meta.degraded=true + reason=db-missing`; `/overview` responde os campos de KPI esperados
+- [x] 4.1.1 Criar `apps/server/src/routes/health.ts`: `GET /health` sempre `200`, `{ ok, dbReachable, quickCheck, counts }`, com `meta.degraded` correto — onda-008
+- [x] 4.1.2 Criar `apps/server/src/routes/overview.ts`: `GET /overview?period=` com KPIs (`toolCallsTotal` rotulado, nunca `$`/tokens), alertas recentes, execuções em andamento, leaderboard, funil — onda-008
+- [x] 4.1.3 Hook `onRequest` global para If-None-Match/ETag → `304` quando ETag coincide (research.md §Decision 7) — onda-008: inline nas rotas via generateETag + etagMatches
+- [x] 4.1.4 Testes de integração: `/health` com base ausente → `200 + meta.degraded=true + reason=db-missing`; `/overview` responde os campos de KPI esperados — onda-008: routes.test.ts
 
 ### 4.2 Rotas de projetos e features `[A]`
 
 Ref: contracts/api-read.md §Projetos e features; spec.md FR-022 (drill-down)
 
-- [ ] 4.2.1 Criar `apps/server/src/routes/projects.ts`: `GET /projects` e `GET /projects/{project}` com rollup e features aninhadas
-- [ ] 4.2.2 Criar `apps/server/src/routes/features.ts`: `GET /features?project=&status=` e `GET /features/{project}/{feature}`
-- [ ] 4.2.3 Validar path params com Zod (string não-vazia, sem traversal — FR-018)
-- [ ] 4.2.4 Testes de integração: `/projects` com base real retorna lista; `/projects/unknown` retorna `200 + data: null + meta.degraded=false` (projeto inexistente ≠ degradação)
+- [x] 4.2.1 Criar `apps/server/src/routes/projects.ts`: `GET /projects` e `GET /projects/{project}` com rollup e features aninhadas — onda-008
+- [x] 4.2.2 Criar `apps/server/src/routes/features.ts`: `GET /features?project=&status=` e `GET /features/{project}/{feature}` — onda-008
+- [x] 4.2.3 Validar path params com Zod (string não-vazia, sem traversal — FR-018) — onda-008: regex /^[^/\\.<>]+$/ em todos os params
+- [x] 4.2.4 Testes de integração: `/projects` com base real retorna lista; `/projects/unknown` retorna `200 + data: null + meta.degraded=false` (projeto inexistente ≠ degradação) — onda-008: routes.test.ts
 
 ### 4.3 Rotas de detalhe de execução e sub-recursos `[A]`
 
 Ref: contracts/api-read.md §Execução; spec.md FR-004, FR-020; quickstart.md §Cenário 2
 
-- [ ] 4.3.1 Criar `apps/server/src/routes/executions.ts`: `GET /executions/{execucaoId}` (detalhe completo)
-- [ ] 4.3.2 Adicionar `GET /executions/{execucaoId}/waves` (WavesTimeline)
-- [ ] 4.3.3 Adicionar `GET /executions/{execucaoId}/decisions?wave=&etapa=&score=&limit=&offset=` paginado obrigatoriamente (FR-020, SC-008)
-- [ ] 4.3.4 Adicionar `GET /executions/{execucaoId}/tasks`, `/events`, `/alerts`, `/bloqueios`, `/skills`
-- [ ] 4.3.5 Validar query params com Zod (score ∈ 0..3, limit ≤ 100, period ∈ 24h/7d/30d/all)
-- [ ] 4.3.6 Testes de integração: decisões paginadas (`limit=5`) retornam exatamente 5 itens; `score=` filtra corretamente; campos UNTRUSTED chegam como string crua
+- [x] 4.3.1 Criar `apps/server/src/routes/executions.ts`: `GET /executions/{execucaoId}` (detalhe completo) — onda-008
+- [x] 4.3.2 Adicionar `GET /executions/{execucaoId}/waves` (WavesTimeline) — onda-008
+- [x] 4.3.3 Adicionar `GET /executions/{execucaoId}/decisions?wave=&etapa=&score=&limit=&offset=` paginado obrigatoriamente (FR-020, SC-008) — onda-008
+- [x] 4.3.4 Adicionar `GET /executions/{execucaoId}/tasks`, `/events`, `/alerts`, `/bloqueios`, `/skills` — onda-008: 5 sub-recursos implementados
+- [x] 4.3.5 Validar query params com Zod (score ∈ 0..3, limit ≤ 100, period ∈ 24h/7d/30d/all) — onda-008
+- [x] 4.3.6 Testes de integração: decisões paginadas (`limit=5`) retornam exatamente 5 itens; `score=` filtra corretamente; campos UNTRUSTED chegam como string crua — onda-008: routes.test.ts (limit=5 test)
 
 ### 4.4 Rotas cross-execução e métricas `[M]`
 
 Ref: contracts/api-read.md §Cross-execução e §Métricas; spec.md FR-008, FR-009; research.md §Decision 5
 
-- [ ] 4.4.1 Criar `apps/server/src/routes/alerts.ts`: `GET /alerts?tipo=&project=&feature=&period=`
-- [ ] 4.4.2 Criar `apps/server/src/routes/tasks.ts` (cross): `GET /tasks?project=&feature=&outcome=`
-- [ ] 4.4.3 Criar `apps/server/src/routes/events.ts` (cross): `GET /events?event_type=&project=&period=`
-- [ ] 4.4.4 Criar `apps/server/src/routes/metrics.ts` com 8 endpoints: `cost-over-time` (agregado por dia, D5), `throughput-by-stage`, `test-pass-rate`, `human-latency`, `clarify-resolution` (`meta.approximate=true`), `decisions-by-score`, `execution-duration`, `depth-subagents`
-- [ ] 4.4.5 Garantir que `cost-over-time` retorna `toolCalls` (nunca `$`/tokens) e que `clarify-resolution` tem `meta.approximate=true` (FR-009)
-- [ ] 4.4.6 Testes de integração: `/metrics/cost-over-time` sem período retorna `all`; `/metrics/clarify-resolution` tem `meta.approximate=true`
+- [x] 4.4.1 Criar `apps/server/src/routes/alerts.ts`: `GET /alerts?tipo=&project=&feature=&period=` — onda-008
+- [x] 4.4.2 Criar `apps/server/src/routes/tasks.ts` (cross): `GET /tasks?project=&feature=&outcome=` — onda-008
+- [x] 4.4.3 Criar `apps/server/src/routes/events.ts` (cross): `GET /events?event_type=&project=&period=` — onda-008
+- [x] 4.4.4 Criar `apps/server/src/routes/metrics.ts` com 8 endpoints: `cost-over-time` (agregado por dia, D5), `throughput-by-stage`, `test-pass-rate`, `human-latency`, `clarify-resolution` (`meta.approximate=true`), `decisions-by-score`, `execution-duration`, `depth-subagents` — onda-008
+- [x] 4.4.5 Garantir que `cost-over-time` retorna `toolCalls` (nunca `$`/tokens) e que `clarify-resolution` tem `meta.approximate=true` (FR-009) — onda-008: verificado no código de metrics.ts e metrics.ts queries
+- [x] 4.4.6 Testes de integração: `/metrics/cost-over-time` sem período retorna `all`; `/metrics/clarify-resolution` tem `meta.approximate=true` — onda-008: routes.test.ts
 
 ### 4.5 Rota de busca FTS5 `[A]`
 
 Ref: contracts/search-fts.md; spec.md FR-012, FR-020; research.md §Decision 6; quickstart.md §Cenário 5
 
-- [ ] 4.5.1 Criar `apps/server/src/routes/search.ts`: `GET /search?q=&type=&project=&feature=&limit=&offset=`
-- [ ] 4.5.2 Aplicar `lib/fts.ts` ao `q` antes de passar ao `MATCH ?` — binding parametrizado (nunca interpolação)
-- [ ] 4.5.3 Incluir `rank` (bm25) em cada `FtsHit`; ordenar por relevância
-- [ ] 4.5.4 Aplicar rate-limit `@fastify/rate-limit` nesta rota (FR-020)
-- [ ] 4.5.5 Testes de integração com payloads hostis: `") OR 1=1 --"`, `"NEAR/3 (a b)"`, aspas não balanceadas → todos retornam `200` com `results` vazio ou com resultados, nunca `5xx` (SC-005)
-- [ ] 4.5.6 Teste: `q` com tamanho máximo excedido retorna `400` com mensagem descritiva (não expõe stack trace)
+- [x] 4.5.1 Criar `apps/server/src/routes/search.ts`: `GET /search?q=&type=&project=&feature=&limit=&offset=` — onda-008
+- [x] 4.5.2 Aplicar `lib/fts.ts` ao `q` antes de passar ao `MATCH ?` — binding parametrizado (nunca interpolação) — onda-008
+- [x] 4.5.3 Incluir `rank` (bm25) em cada `FtsHit`; ordenar por relevância — onda-008: ORDER BY rank na query FTS5
+- [x] 4.5.4 Aplicar rate-limit `@fastify/rate-limit` nesta rota (FR-020) — onda-008: 30 req/min por IP via scoped plugin
+- [x] 4.5.5 Testes de integração com payloads hostis: `") OR 1=1 --"`, `"NEAR/3 (a b)"`, aspas não balanceadas → todos retornam `200` com `results` vazio ou com resultados, nunca `5xx` (SC-005) — onda-008: 6 casos hostis em routes.test.ts
+- [x] 4.5.6 Teste: `q` com tamanho máximo excedido retorna `400` com mensagem descritiva (não expõe stack trace) — onda-008: routes.test.ts q_vazio + q>200chars
 
 ---
 

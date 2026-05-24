@@ -9,8 +9,17 @@
  */
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
-import rateLimit from '@fastify/rate-limit';
 import { loadConfig } from './config.js';
+import { healthRoutes } from './routes/health.js';
+import { overviewRoutes } from './routes/overview.js';
+import { projectRoutes } from './routes/projects.js';
+import { featureRoutes } from './routes/features.js';
+import { executionRoutes } from './routes/executions.js';
+import { alertRoutes } from './routes/alerts.js';
+import { taskRoutes } from './routes/tasks.js';
+import { eventRoutes } from './routes/events.js';
+import { metricsRoutes } from './routes/metrics.js';
+import { searchRoutes } from './routes/search.js';
 
 async function main(): Promise<void> {
   const config = loadConfig();
@@ -27,13 +36,6 @@ async function main(): Promise<void> {
     methods: ['GET', 'OPTIONS'],
   });
 
-  // Rate limit para proteger FTS5 (spec.md FR-021, SC-005)
-  await server.register(rateLimit, {
-    max: 60,
-    timeWindow: '1 minute',
-    skipOnError: true,
-  });
-
   // Hook global: headers de seguranca obrigatorios em TODA resposta (FR-019)
   server.addHook('onSend', async (_request, reply, _payload) => {
     void reply.header('Content-Type', 'application/json; charset=utf-8');
@@ -42,14 +44,19 @@ async function main(): Promise<void> {
     void reply.header('Cache-Control', 'no-store');
   });
 
-  // Rotas — registradas via plugins (sera preenchido em FASE 3)
-  // Por enquanto: rota de health basica para confirmar que o servidor sobe
-  server.get('/api/v1/health', async (_request, _reply) => {
-    return {
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-    };
-  });
+  // Registrar todas as rotas sob /api/v1
+  await server.register(async (v1) => {
+    await v1.register(healthRoutes);
+    await v1.register(overviewRoutes);
+    await v1.register(projectRoutes);
+    await v1.register(featureRoutes);
+    await v1.register(executionRoutes);
+    await v1.register(alertRoutes);
+    await v1.register(taskRoutes);
+    await v1.register(eventRoutes);
+    await v1.register(metricsRoutes);
+    await v1.register(searchRoutes);
+  }, { prefix: '/api/v1' });
 
   // 404 handler — resposta JSON estruturada (nunca HTML)
   server.setNotFoundHandler((_request, reply) => {
