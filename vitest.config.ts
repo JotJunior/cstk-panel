@@ -10,6 +10,7 @@ export default defineConfig({
       'packages/**/*.spec.ts',
       'apps/server/test/**/*.test.ts',
       'apps/server/src/**/*.test.ts',
+      'apps/web/src/**/*.test.ts',
     ],
     // Timeout maior para testes de integracao com DB real
     testTimeout: 15000,

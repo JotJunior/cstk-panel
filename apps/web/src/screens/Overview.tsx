@@ -11,6 +11,7 @@ import { useOverview } from '@/lib/hooks.js';
 import { useApiState } from '@/hooks/useApiState.js';
 import { LoadingState, EmptyState, ErrorState, DegradedBanner } from '@/states/index.js';
 import { KpiCard, StatusBadge, Icon } from '@/components/index.js';
+import { selectOverview, type OverviewRaw } from '@/lib/overview-select.js';
 import type { PeriodParam } from '@cstk-panel/shared-types';
 
 interface OverviewProps {
@@ -25,14 +26,6 @@ function fmtNum(n: number | null | undefined): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
   return String(n);
-}
-
-function fmtDur(secs: number | null | undefined): string {
-  if (secs == null) return '—';
-  if (secs < 60) return `${secs}s`;
-  if (secs < 3600) return `${Math.floor(secs / 60)}m`;
-  if (secs < 86400) return `${Math.floor(secs / 3600)}h ${Math.floor((secs % 3600) / 60)}m`;
-  return `${Math.floor(secs / 86400)}d ${Math.floor((secs % 86400) / 3600)}h`;
 }
 
 function fmtRelative(iso: string | null | undefined): string {
@@ -135,30 +128,13 @@ export function Overview({ period }: OverviewProps) {
   const raw = query.data?.data as Record<string, unknown> | null;
   const meta = query.data?.meta;
 
-  const kpis = (raw?.kpis as Record<string, unknown> | null) ?? {};
-  const execucoes = (raw?.execucoes_em_andamento as unknown[]) ?? [];
-  const alertas = (raw?.alertas_recentes as unknown[]) ?? [];
-  const leaderboard = (raw?.leaderboard as unknown[]) ?? [];
-  const funnel = (raw?.funnel as unknown[]) ?? [];
-
-  const totalProjects  = (kpis.total_projetos as number | null) ?? 0;
-  const totalFeatures  = (kpis.total_features as number | null) ?? 0;
-  const emAndamento    = (kpis.em_andamento as number | null) ?? 0;
-  const aguardando     = (kpis.aguardando_humano as number | null) ?? 0;
-  const totalToolCalls = (kpis.total_tool_calls as number | null) ?? 0;
-  const totalWallclock = (kpis.total_wallclock_segundos as number | null) ?? 0;
-  const totalAlertas   = (kpis.alertas_abertos as number | null) ?? alertas.length;
-  const critAlertas    = (kpis.alertas_criticos as number | null) ?? 0;
-  const testPass       = (kpis.test_pass as number | null) ?? 0;
-  const testTotal      = (kpis.test_total as number | null) ?? 0;
-  const testRate       = testTotal > 0 ? `${((testPass / testTotal) * 100).toFixed(1)}%` : '—';
-
-  const maxToolCalls = (leaderboard as Record<string, unknown>[]).reduce(
-    (m, row) => Math.max(m, (row.tool_calls_total as number | null) ?? 0), 0
-  );
-  const maxFunnel = (funnel as Record<string, unknown>[]).reduce(
-    (m, row) => Math.max(m, (row.count as number | null) ?? 0), 0
-  );
+  // View-model normalizado (camelCase do /overview). Logica pura e testada
+  // em lib/overview-select.test.ts — trava o contrato de borda snake_case→camelCase.
+  const {
+    totalProjects, totalFeatures, emAndamento, aguardando, totalToolCalls,
+    totalWaves, totalDecisoes, totalExecucoes, concluidas, abortadas,
+    totalAlertas, execucoes, alertas, leaderboard, funnel, maxToolCalls, maxFunnel,
+  } = selectOverview(raw as OverviewRaw | null);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -178,24 +154,18 @@ export function Overview({ period }: OverviewProps) {
           trend={`${aguardando} aguard. humano`}
           accent="accent"
         />
-        {critAlertas > 0 ? (
-          <KpiCard label="Alertas abertos" value={totalAlertas} trend={`${critAlertas} critico${critAlertas !== 1 ? 's' : ''}`} accent="critical" />
-        ) : totalAlertas > 0 ? (
-          <KpiCard label="Alertas abertos" value={totalAlertas} trend={`${critAlertas} critico${critAlertas !== 1 ? 's' : ''}`} accent="warning" />
+        {totalAlertas > 0 ? (
+          <KpiCard label="Alertas abertos" value={totalAlertas} trend="sinais recentes" accent="warning" />
         ) : (
-          <KpiCard label="Alertas abertos" value={totalAlertas} trend={`${critAlertas} critico${critAlertas !== 1 ? 's' : ''}`} />
+          <KpiCard label="Alertas abertos" value={totalAlertas} trend="nenhum recente" />
         )}
         <KpiCard
           label="Custo · proxy"
           value={fmtNum(totalToolCalls)}
           trend="tool_calls (nao tokens)"
         />
-        <KpiCard label="Tempo de parede" value={fmtDur(totalWallclock)} trend="wallclock acumulado" />
-        {testTotal > 0 ? (
-          <KpiCard label="Test pass rate" value={testRate} trend={`${testPass} / ${testTotal} testes`} accent="success" />
-        ) : (
-          <KpiCard label="Test pass rate" value={testRate} trend={`${testPass} / ${testTotal} testes`} />
-        )}
+        <KpiCard label="Ondas" value={fmtNum(totalWaves)} trend="ondas executadas" />
+        <KpiCard label="Decisoes" value={fmtNum(totalDecisoes)} trend={`${fmtNum(totalExecucoes)} execucoes`} />
       </div>
 
       {/* Grid principal 2 colunas */}
@@ -230,9 +200,9 @@ export function Overview({ period }: OverviewProps) {
                 </div>
               ) : (
                 (execucoes as Record<string, unknown>[]).map((f, idx) => {
-                  const execId   = (f.execucao_id as string | null) ?? '';
+                  const execId   = (f.execucaoId as string | null) ?? '';
                   const status   = f.status as string | null;
-                  const etapa    = f.etapa_corrente as string | null;
+                  const etapa    = f.etapaCorrente as string | null;
                   const project  = f.project as string | null;
                   const feature  = f.feature as string | null;
                   const title    = feature ?? execId.slice(0, 24);
@@ -257,9 +227,7 @@ export function Overview({ period }: OverviewProps) {
                         </div>
                         <div className="row" style={{ gap: 16 }}>
                           {[
-                            { label: 'tool_calls', v: fmtNum(f.tool_calls_total as number | null) },
-                            { label: 'wallclock',  v: fmtDur(f.wallclock_total_segundos as number | null) },
-                            { label: 'ondas',      v: String(f.ondas_total ?? '—') },
+                            { label: 'ondas',      v: String(f.ondasTotal ?? '—') },
                           ].map(stat => (
                             <div key={stat.label} style={{ textAlign: 'right' }}>
                               <div style={{ fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 2 }}>{stat.label}</div>
@@ -274,7 +242,7 @@ export function Overview({ period }: OverviewProps) {
                           etapa · <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--inprogress)' }}>{etapa ?? '—'}</span>
                         </span>
                         <span style={{ fontSize: 11, color: 'var(--text-2)' }}>
-                          iniciada {fmtRelative(f.iniciada_em as string | null)}
+                          iniciada {fmtRelative(f.iniciadaEm as string | null)}
                         </span>
                       </div>
                     </div>
@@ -327,7 +295,7 @@ export function Overview({ period }: OverviewProps) {
                     (alertas as Record<string, unknown>[]).slice(0, 5).map((a, idx) => {
                       const tipo     = a.tipo as string | null;
                       const subtipo  = a.subtipo as string | null;
-                      const execId   = a.execucao_id as string | null;
+                      const execId   = a.execucaoId as string | null;
                       const wave     = a.wave as string | null;
                       const consumido  = a.valor_consumido as number | null;
                       const threshold  = a.valor_threshold as number | null;
@@ -423,8 +391,8 @@ export function Overview({ period }: OverviewProps) {
                 (leaderboard as Record<string, unknown>[]).slice(0, 8).map((row, idx) => (
                   <MiniBar
                     key={idx}
-                    label={(row.feature as string | null) ?? (row.execucao_id as string | null) ?? `#${idx + 1}`}
-                    value={(row.tool_calls_total as number | null) ?? 0}
+                    label={(row.feature as string | null) ?? (row.execucaoId as string | null) ?? `#${idx + 1}`}
+                    value={(row.toolCallsTotal as number | null) ?? 0}
                     max={maxToolCalls}
                   />
                 ))
@@ -442,8 +410,8 @@ export function Overview({ period }: OverviewProps) {
               {[
                 { key: 'em_andamento',     label: 'Em andamento',    color: 'var(--inprogress)', count: emAndamento },
                 { key: 'aguardando_humano', label: 'Aguard. humano', color: 'var(--warning)',    count: aguardando },
-                { key: 'concluida',        label: 'Concluidas',      color: 'var(--success)',    count: (kpis.concluidas as number | null) ?? 0 },
-                { key: 'abortada',         label: 'Abortadas',       color: 'var(--critical)',   count: (kpis.abortadas as number | null) ?? 0 },
+                { key: 'concluida',        label: 'Concluidas',      color: 'var(--success)',    count: concluidas },
+                { key: 'abortada',         label: 'Abortadas',       color: 'var(--critical)',   count: abortadas },
               ].map(item => (
                 <div key={item.key} className="row" style={{ justifyContent: 'space-between' }}>
                   <div className="row gap-2">
@@ -471,10 +439,10 @@ export function Overview({ period }: OverviewProps) {
             </div>
             <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
               {[
-                { label: 'Total decisoes',        value: fmtNum((kpis.total_decisoes as number | null) ?? null) },
-                { label: 'Bloqueios humanos',     value: fmtNum((kpis.total_bloqueios as number | null) ?? null) },
-                { label: 'Subagentes spawned',    value: fmtNum((kpis.total_subagentes as number | null) ?? null) },
-                { label: 'Issues toolkit abertas', value: String((kpis.issues_toolkit as number | null) ?? '—') },
+                { label: 'Total decisoes',  value: fmtNum(totalDecisoes) },
+                { label: 'Total ondas',     value: fmtNum(totalWaves) },
+                { label: 'Execucoes total', value: fmtNum(totalExecucoes) },
+                { label: 'Tool calls · proxy', value: fmtNum(totalToolCalls) },
               ].map(stat => (
                 <div key={stat.label} className="row" style={{ justifyContent: 'space-between' }}>
                   <span style={{ fontSize: 11.5, color: 'var(--text-2)' }}>{stat.label}</span>
