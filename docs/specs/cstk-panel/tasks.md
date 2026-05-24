@@ -94,7 +94,7 @@ Ref: plan.md §Convenções de Borda; spec.md FR-012; quickstart.md §Cenário 1
 - [x] 2.3.1 Criar `packages/shared-types/src/schemas/entities.ts` com schema Zod para cada DTO (parseando resposta real da API)
 - [x] 2.3.2 Criar `packages/shared-types/src/schemas/params.ts` com schemas Zod para `PaginationParams`, `PeriodParam`, `ScoreParam`, `SearchParams`
 - [x] 2.3.3 Criar `packages/shared-types/src/index.ts` reexportando todos os tipos e schemas
-- [ ] 2.3.4 **Paridade FE**: confirmar que `apps/web` importa tipos de `@cstk-panel/shared-types` diretamente — zero tipos redefinidos localmente em `apps/web/src/types/` — pendente (apps/web/src nao populado ainda)
+- [x] 2.3.4 **Paridade FE**: confirmar que `apps/web` importa tipos de `@cstk-panel/shared-types` diretamente — zero tipos redefinidos localmente em `apps/web/src/types/` — onda-009: confirmado, nenhuma pasta types/ criada, todos os DTOs importados de @cstk-panel/shared-types
 - [x] 2.3.5 Teste de paridade smoke: script `test:parity` que instancia cada schema Zod com fixture real — onda-007: 21 testes em parity.test.ts (payloads sinteticos, todos os schemas)
 
 ---
@@ -232,19 +232,19 @@ Ref: contracts/search-fts.md; spec.md FR-012, FR-020; research.md §Decision 6; 
 
 Ref: spec.md FR-021; plan.md §Project Structure `apps/web`; quickstart.md §Setup step 3
 
-- [ ] 5.1.1 Criar `apps/web/src/styles/tokens.css` recriando design tokens do protótipo (`docs/06-ui-ux-design/castk-panel/`) — cores, tipografia, espaçamentos, sidebar width 232px
-- [ ] 5.1.2 Criar `apps/web/src/App.tsx` com layout: sidebar fixo 232px + topbar + área de conteúdo, tema dark por padrão
-- [ ] 5.1.3 Criar componente `Sidebar` com itens de navegação: Visão Geral, Execuções, Busca, Alertas, Métricas
-- [ ] 5.1.4 Criar componente `Topbar` com breadcrumb navegável (FR-022) e seletor de período global
+- [x] 5.1.1 Criar `apps/web/src/styles/tokens.css` recriando design tokens do protótipo (`docs/06-ui-ux-design/castk-panel/`) — cores, tipografia, espaçamentos, sidebar width 232px — onda-009
+- [x] 5.1.2 Criar `apps/web/src/App.tsx` com layout: sidebar fixo 232px + topbar + área de conteúdo, tema dark por padrão — onda-009
+- [x] 5.1.3 Criar componente `Sidebar` com itens de navegação: Visão Geral, Execuções, Busca, Alertas, Métricas — onda-009
+- [x] 5.1.4 Criar componente `Topbar` com breadcrumb navegável (FR-022) e seletor de período global — onda-009
 - [ ] 5.1.5 Verificação visual lado a lado com protótipo de referência (`docs/06-ui-ux-design/castk-panel/`) — SC-006
 
 ### 5.2 Roteamento com React Router v6 (hash router) `[A]`
 
 Ref: plan.md §Technical Context; spec.md FR-022 (drill-down ≤ 4 cliques, SC-004)
 
-- [ ] 5.2.1 Configurar `HashRouter` em `apps/web/src/main.tsx` (paridade com protótipo)
-- [ ] 5.2.2 Definir rotas: `/` (Overview), `/projects/:project`, `/features/:project/:feature`, `/executions/:execucaoId`, `/executions/:execucaoId/decisions`, `/alerts`, `/search`, `/metrics`
-- [ ] 5.2.3 Criar componente `Breadcrumb` derivando da URL corrente e mostrando hierarquia navegável (FR-022)
+- [x] 5.2.1 Configurar `HashRouter` em `apps/web/src/main.tsx` (paridade com protótipo) — onda-009
+- [x] 5.2.2 Definir rotas: `/` (Overview), `/projects/:project`, `/features/:project/:feature`, `/executions/:execucaoId`, `/executions/:execucaoId/decisions`, `/alerts`, `/search`, `/metrics` — onda-009
+- [x] 5.2.3 Criar componente `Breadcrumb` derivando da URL corrente e mostrando hierarquia navegável (FR-022) — onda-009
 - [ ] 5.2.4 Garantir ≤ 4 cliques de Overview até nível mais granular (decisão/tarefa/evento/alerta) — validar com mapa de cliques (SC-004)
 - [ ] 5.2.5 Teste: navegar programaticamente Visão Geral → Projeto → Feature → Execução → Decisão em 4 cliques, confirmar breadcrumb reflete a hierarquia
 
@@ -252,35 +252,35 @@ Ref: plan.md §Technical Context; spec.md FR-022 (drill-down ≤ 4 cliques, SC-0
 
 Ref: plan.md §Technical Context; spec.md FR-014, FR-016; quickstart.md §Cenário 1 e §Cenário 7
 
-- [ ] 5.3.1 Criar `apps/web/src/lib/query.ts` configurando `QueryClient` com `staleTime`, `retry` e `gcTime` adequados ao painel de observabilidade
-- [ ] 5.3.2 Criar `apps/web/src/lib/api.ts` com função `fetchApi<T>(path, init?)` adicionando `If-None-Match` (armazenado via `ETag` da resposta anterior) e fazendo `safeParse` da resposta com schema Zod de `shared-types`
-- [ ] 5.3.3 Tratar `304 Not Modified` em `fetchApi`: retornar dados do cache sem chamada ao servidor
-- [ ] 5.3.4 Criar hooks `useOverview`, `useExecution`, `useWaves`, `useDecisions`, `useSearch`, `useAlerts`, `useMetrics` (um por recurso principal)
+- [x] 5.3.1 Criar `apps/web/src/lib/query.ts` configurando `QueryClient` com `staleTime`, `retry` e `gcTime` adequados ao painel de observabilidade — onda-009
+- [x] 5.3.2 Criar `apps/web/src/lib/api.ts` com função `fetchApi<T>(path, init?)` adicionando `If-None-Match` (armazenado via `ETag` da resposta anterior) e fazendo `safeParse` da resposta com schema Zod de `shared-types` — onda-009
+- [x] 5.3.3 Tratar `304 Not Modified` em `fetchApi`: retornar dados do cache sem chamada ao servidor — onda-009
+- [x] 5.3.4 Criar hooks `useOverview`, `useExecution`, `useWaves`, `useDecisions`, `useSearch`, `useAlerts`, `useMetrics` (um por recurso principal) — onda-009: lib/hooks.ts com 14 hooks
 - [ ] 5.3.5 Teste: `fetchApi` com ETag salvo retorna `304` e não re-parseia o body (cenário 7 do quickstart)
 
 ### 5.4 Estados transversais — 4 estados por tela `[C]`
 
 Ref: spec.md FR-006, FR-005; quickstart.md §Cenário 6
 
-- [ ] 5.4.1 Criar `apps/web/src/states/LoadingState.tsx` — skeleton animado por tela (FR-006)
-- [ ] 5.4.2 Criar `apps/web/src/states/EmptyState.tsx` — "Nenhum dado disponível" sem erro (FR-006)
-- [ ] 5.4.3 Criar `apps/web/src/states/ErrorState.tsx` — mensagem de erro amigável (nunca stack trace)
-- [ ] 5.4.4 Criar `apps/web/src/states/DegradedBanner.tsx` — banner de topo com `meta.reason` + `freshness` quando `meta.degraded=true` (US6, FR-006)
-- [ ] 5.4.5 Criar HOC / hook `useApiState` que resolve `{ isLoading, isEmpty, isError, isDegraded }` e retorna o estado correto
+- [x] 5.4.1 Criar `apps/web/src/states/LoadingState.tsx` — skeleton animado por tela (FR-006) — onda-009
+- [x] 5.4.2 Criar `apps/web/src/states/EmptyState.tsx` — "Nenhum dado disponível" sem erro (FR-006) — onda-009
+- [x] 5.4.3 Criar `apps/web/src/states/ErrorState.tsx` — mensagem de erro amigável (nunca stack trace) — onda-009
+- [x] 5.4.4 Criar `apps/web/src/states/DegradedBanner.tsx` — banner de topo com `meta.reason` + `freshness` quando `meta.degraded=true` (US6, FR-006) — onda-009
+- [x] 5.4.5 Criar HOC / hook `useApiState` que resolve `{ isLoading, isEmpty, isError, isDegraded }` e retorna o estado correto — onda-009: hooks/useApiState.ts
 - [ ] 5.4.6 Testes de renderização: cada estado renderiza sem crash; `DegradedBanner` aparece com `meta.degraded=true` e não aparece com `false`
 
 ### 5.5 Componentes atômicos reutilizáveis `[A]`
 
 Ref: spec.md FR-021; data-model.md §Entities
 
-- [ ] 5.5.1 Criar `KpiCard` (valor, label, tendência opcional)
-- [ ] 5.5.2 Criar `StatusBadge` (enum `status` de execução com cor)
-- [ ] 5.5.3 Criar `ScoreChip` (score 0..3 com cor semântica: 0=vermelho, 3=verde)
-- [ ] 5.5.4 Criar `OutcomePill` (`pass`/`fail` de Task)
-- [ ] 5.5.5 Criar `FreshnessLabel` (exibe `mtime`/`maxIngestedAt` formatado como "há Xm")
-- [ ] 5.5.6 Criar `TextRaw` — wrapper que renderiza campo UNTRUSTED como `textContent` puro (nunca `dangerouslySetInnerHTML`) (FR-011)
+- [x] 5.5.1 Criar `KpiCard` (valor, label, tendência opcional) — onda-009
+- [x] 5.5.2 Criar `StatusBadge` (enum `status` de execução com cor) — onda-009
+- [x] 5.5.3 Criar `ScoreChip` (score 0..3 com cor semântica: 0=vermelho, 3=verde) — onda-009
+- [x] 5.5.4 Criar `OutcomePill` (`pass`/`fail` de Task) — onda-009
+- [x] 5.5.5 Criar `FreshnessLabel` (exibe `mtime`/`maxIngestedAt` formatado como "há Xm") — onda-009
+- [x] 5.5.6 Criar `TextRaw` — wrapper que renderiza campo UNTRUSTED como `textContent` puro (nunca `dangerouslySetInnerHTML`) (FR-011) — onda-009
 - [ ] 5.5.7 Testes de snapshot: `TextRaw` com `<script>alert(1)</script>` renderiza como texto literal visível, não executa (quickstart §Cenário 4)
-- [ ] 5.5.8 **Paridade de tipos FE**: confirmar que todos os componentes usam tipos importados de `@cstk-panel/shared-types` — zero tipos locais em `web/src/types/` que reproduzam DTOs
+- [x] 5.5.8 **Paridade de tipos FE**: confirmar que todos os componentes usam tipos importados de `@cstk-panel/shared-types` — zero tipos locais em `web/src/types/` que reproduzam DTOs — onda-009: confirmado, nenhum DTO local criado
 
 ---
 

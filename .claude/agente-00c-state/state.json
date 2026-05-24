@@ -196,6 +196,17 @@
       "motivo_termino": "etapa_concluida_avancando",
       "proxima_onda_agendada_para": "2026-05-24T21:30:00Z",
       "skills_invoked": []
+    },
+    {
+      "id": "onda-009",
+      "inicio": "2026-05-24T21:32:37Z",
+      "fim": null,
+      "etapas_executadas": [],
+      "tool_calls": 0,
+      "wallclock_seconds": 0,
+      "motivo_termino": null,
+      "proxima_onda_agendada_para": null,
+      "skills_invoked": []
     }
   ],
   "decisoes": [
@@ -1011,6 +1022,62 @@
       "evidencia": "npm test --workspace=apps/server: 5 test files, 61 tests passed. npm run typecheck --workspace=apps/server: exit 0. grep mutation verbs: 0 resultados.",
       "referencias": [],
       "artefato_originador": null
+    },
+    {
+      "id": "dec-044",
+      "onda_id": "onda-008",
+      "timestamp": "2026-05-24T21:32:08Z",
+      "etapa": "model-routing",
+      "agente": "agente-00c-feature-orchestrator",
+      "contexto": "Selecao de modelo para onda 8 (fase execute-task)",
+      "opcoes_consideradas": [
+        "haiku",
+        "sonnet",
+        "opus",
+        "manter-atual"
+      ],
+      "escolha": "model:sonnet",
+      "justificativa": "sugerido=sonnet aplicado=sonnet origem=mapa | faixa=rasa fase=execute-task (mapa primario)",
+      "score_justificativa": 0,
+      "evidencia": null,
+      "referencias": [],
+      "artefato_originador": null
+    },
+    {
+      "id": "dec-045",
+      "onda_id": "onda-009",
+      "timestamp": "2026-05-24T21:33:29Z",
+      "etapa": "execute-task",
+      "agente": "agente-00c-orchestrator",
+      "contexto": "FASE 5: construir FE shell React 19 + Vite. apps/web/src/ esta vazio. Necessario criar: vite.config.ts, main.tsx, App.tsx, styles/tokens.css, componentes (Sidebar, Topbar, Breadcrumb), lib (api.ts, query.ts), states (Loading/Empty/Error/DegradedBanner), atomicos (KpiCard, StatusBadge, ScoreChip, OutcomePill, FreshnessLabel, TextRaw). Prototipo em docs/06-ui-ux-design/castk-panel/project/ e a fonte visual de verdade.",
+      "opcoes_consideradas": [
+        "criar-tudo-em-onda-unica",
+        "criar-shell+routing+estados-agora-telas-depois"
+      ],
+      "escolha": "criar-shell+routing+estados-agora-telas-depois",
+      "justificativa": "FASE 5 (shell+infra) e FASE 6 (telas) sao separadas no tasks.md. Onda atual cobre 5.1-5.5 (shell, roteamento, TanStack Query, estados transversais, atomicos). FASE 6 sera proxima onda.",
+      "score_justificativa": 2,
+      "evidencia": null,
+      "referencias": [],
+      "artefato_originador": null
+    },
+    {
+      "id": "dec-046",
+      "onda_id": "onda-009",
+      "timestamp": "2026-05-24T21:40:10Z",
+      "etapa": "execute-task",
+      "agente": "agente-00c-orchestrator",
+      "contexto": "FASE 5 implementada: vite.config.ts, main.tsx (HashRouter+QueryClient), App.tsx (React Router v6 Routes), Sidebar 232px pixel-perfect, Topbar 52px sticky, Breadcrumb, tokens.css (todos os CSS tokens do prototipo), lib/query.ts, lib/api.ts (ETag/304), lib/hooks.ts (14 hooks), states/ (DegradedBanner, LoadingState, EmptyState, ErrorState), hooks/useApiState.ts, components/ (Icon, KpiCard, StatusBadge, ScoreChip, OutcomePill, FreshnessLabel, TextRaw), screens/Overview.tsx placeholder.",
+      "opcoes_consideradas": [
+        "typecheck-passed",
+        "typecheck-falhou"
+      ],
+      "escolha": "typecheck-passed",
+      "justificativa": "tsc --noEmit exit 0, vite build 114 modules, 324kB bundle",
+      "score_justificativa": 3,
+      "evidencia": "npm run typecheck --workspace=apps/web: exit 0 zero erros. npm run build --workspace=apps/web: 113 modules transformed, dist/assets/index-C7j7EKFn.js 324.33kB, built in 614ms",
+      "referencias": [],
+      "artefato_originador": null
     }
   ],
   "bloqueios_humanos": [
@@ -1039,8 +1106,8 @@
     "tool_calls_threshold_onda": 80,
     "wallclock_threshold_segundos": 5400,
     "estado_size_threshold_bytes": 1048576,
-    "tool_calls_onda_corrente": 1,
-    "inicio_onda_corrente": "2026-05-24T21:14:05Z"
+    "tool_calls_onda_corrente": 2,
+    "inicio_onda_corrente": "2026-05-24T21:32:37Z"
   },
   "metricas_acumuladas": {
     "ondas_total": 8,
@@ -1048,7 +1115,7 @@
     "tempo_wallclock_total_segundos": 2832,
     "profundidade_max_atingida": 1,
     "subagentes_spawned": 0,
-    "decisoes_total": 43,
+    "decisoes_total": 46,
     "bloqueios_humanos_total": 1,
     "sugestoes_skills_globais_total": 1,
     "issues_toolkit_abertas": 0,
