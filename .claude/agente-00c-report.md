@@ -1,6 +1,6 @@
 # Relatorio do Agente-00C — exec-2026-05-24T19-13-59Z-agente-00c-cstk-panel
 
-**Gerado em**: 2026-05-24T21:08:01Z
+**Gerado em**: 2026-05-24T22:29:31Z
 **Status no momento**: em_andamento
 **Versao do schema**: 1.0.0
 
@@ -18,15 +18,15 @@
 | Motivo termino | (em andamento) |
 | Iniciada em | 2026-05-24T19:13:59Z |
 | Terminada em | ainda em andamento |
-| Ondas executadas | 7 |
-| Tool calls totais | 2 |
-| Decisoes registradas | 40 |
+| Ondas executadas | 12 |
+| Tool calls totais | 19 |
+| Decisoes registradas | 57 |
 | Bloqueios humanos | 1 |
 | Sugestoes para skills globais | 1 |
 | Issues abertas no toolkit | 0 |
 | Profundidade max de subagentes | 1 |
 
-Onda 007 concluida: FASE 1+2 desbloqueadas, FASE 3 BE Fundacao implementada. 58 testes passando.
+Onda 012: FASE 8 (qualidade, build, docs) concluida. Build de producao funciona na ordem correta (shared-types->server->web). Auditoria completa dos 6 invariantes constitucionais: todos conformes. 161 testes Vitest passando (0 falhas). README, CONTRIBUTING.md e quickstart.md atualizados. execute-task concluido; avancando para review-task.
 
 ## 2. Linha do Tempo
 
@@ -39,17 +39,22 @@ Onda 007 concluida: FASE 1+2 desbloqueadas, FASE 3 BE Fundacao implementada. 58 
 | onda-005 | 2026-05-24T20:33:59Z | 2026-05-24T20:40:12Z | create-tasks | 0 | 0s | marco-etapa: create-tasks (tasks.md 8 fases/35 tarefas/196 subtarefas). Bookkeeping reconciliado pelo comando-pai — 3a falha de encerramento em onda sonnet (001/004/005); sug-001 proposta a (box imperativo) testada e sem efeito. |
 | onda-006 | 2026-05-24T20:44:44Z | 2026-05-24T20:51:12Z |  | 1 | 388s | bloqueio_humano |
 | onda-007 | 2026-05-24T20:56:11Z | 2026-05-24T21:07:17Z | execute-task | 1 | 666s | etapa_concluida_avancando |
+| onda-008 | 2026-05-24T21:14:05Z | 2026-05-24T21:27:00Z | execute-task | 1 | 775s | etapa_concluida_avancando |
+| onda-009 | 2026-05-24T21:32:37Z | 2026-05-24T21:42:03Z | execute-task | 2 | 566s | etapa_concluida_avancando |
+| onda-010 | 2026-05-24T21:48:35Z | 2026-05-24T22:03:43Z | execute-task | 14 | 908s | etapa_concluida_avancando |
+| onda-011 | 2026-05-24T22:16:10Z | 2026-05-24T22:17:20Z | execute-task | 0 | 70s | etapa_concluida_avancando |
+| onda-012 | 2026-05-24T22:22:32Z | 2026-05-24T22:28:53Z | execute-task | 0 | 381s | etapa_concluida_avancando |
 
 ## 3. Decisoes
 
-Total: 40 decisoes registradas.
+Total: 57 decisoes registradas.
 
 ### 3.1 Por agente
 
 | Agente | Quantidade |
 |--------|------------|
-| agente-00c-feature-orchestrator | 7 |
-| agente-00c-orchestrator | 13 |
+| agente-00c-feature-orchestrator | 12 |
+| agente-00c-orchestrator | 25 |
 | clarify-answerer | 1 |
 | orquestrador-00c | 19 |
 
@@ -690,6 +695,278 @@ Total: 40 decisoes registradas.
 **Justificativa**: Todos os arquivos da FASE 3 (3.2-3.5) criados. typecheck server: exit 0. lint:readonly-check: OK (0 verbos mutacao). Testes mappers: 15/15. Testes FTS: 13/13.
 
 **Score**: 3
+
+**Referencias**: (nenhuma)
+
+**Artefato originador**: (nenhum)
+
+#### dec-041 — model-routing — agente-00c-feature-orchestrator — 2026-05-24T21:13:08Z
+
+**Contexto**: Selecao de modelo para onda 7 (fase execute-task)
+
+**Opcoes consideradas**: haiku / sonnet / opus / manter-atual
+
+**Escolha**: model:sonnet
+
+**Justificativa**: sugerido=sonnet aplicado=sonnet origem=mapa | faixa=rasa fase=execute-task (mapa primario)
+
+**Score**: 0
+
+**Referencias**: (nenhuma)
+
+**Artefato originador**: (nenhum)
+
+#### dec-042 — execute-task — agente-00c-orchestrator — 2026-05-24T21:22:53Z
+
+**Contexto**: @fastify/cors@9.0.1 instalado tem constraint 'fastify: 4.x' — incompativel com Fastify 5.8.5 instalado. Afeta testes de integracao do servidor.
+
+**Opcoes consideradas**: upgrade-para-cors-11.x-rate-limit-10.x / implementar-cors-manual-sem-plugin / pular-teste-cors
+
+**Escolha**: upgrade-para-cors-11.x-rate-limit-10.x
+
+**Justificativa**: cors@11 e rate-limit@10 suportam Fastify 5. Verificado: npm view @fastify/cors versions mostra 11.x. Upgrade minimal impacto — apenas mudar versao no package.json e reinstalar.
+
+**Score**: 2
+
+**Referencias**: (nenhuma)
+
+**Artefato originador**: (nenhum)
+
+#### dec-043 — execute-task — agente-00c-orchestrator — 2026-05-24T21:26:40Z
+
+**Contexto**: FASE 3 completa + FASE 4 rotas implementadas: 29 endpoints GET, typecheck zero erros, 61 testes passando, zero verbos de mutacao
+
+**Opcoes consideradas**: continuar-para-FASE-5-frontend / adicionar-mais-testes-BE / marcar-FASE-4-concluida
+
+**Escolha**: marcar-FASE-4-concluida
+
+**Justificativa**: Todos os endpoints da FASE 4 implementados conforme api-read.md: health, overview, projects, features, executions+7sub-recursos, alerts, tasks, events, 8 metricas, search. Typecheck limpo. 61 testes passando incluindo degradacao, ETag, payloads hostis.
+
+**Score**: 3
+
+**Referencias**: (nenhuma)
+
+**Artefato originador**: (nenhum)
+
+#### dec-044 — model-routing — agente-00c-feature-orchestrator — 2026-05-24T21:32:08Z
+
+**Contexto**: Selecao de modelo para onda 8 (fase execute-task)
+
+**Opcoes consideradas**: haiku / sonnet / opus / manter-atual
+
+**Escolha**: model:sonnet
+
+**Justificativa**: sugerido=sonnet aplicado=sonnet origem=mapa | faixa=rasa fase=execute-task (mapa primario)
+
+**Score**: 0
+
+**Referencias**: (nenhuma)
+
+**Artefato originador**: (nenhum)
+
+#### dec-045 — execute-task — agente-00c-orchestrator — 2026-05-24T21:33:29Z
+
+**Contexto**: FASE 5: construir FE shell React 19 + Vite. apps/web/src/ esta vazio. Necessario criar: vite.config.ts, main.tsx, App.tsx, styles/tokens.css, componentes (Sidebar, Topbar, Breadcrumb), lib (api.ts, query.ts), states (Loading/Empty/Error/DegradedBanner), atomicos (KpiCard, StatusBadge, ScoreChip, OutcomePill, FreshnessLabel, TextRaw). Prototipo em docs/06-ui-ux-design/castk-panel/project/ e a fonte visual de verdade.
+
+**Opcoes consideradas**: criar-tudo-em-onda-unica / criar-shell+routing+estados-agora-telas-depois
+
+**Escolha**: criar-shell+routing+estados-agora-telas-depois
+
+**Justificativa**: FASE 5 (shell+infra) e FASE 6 (telas) sao separadas no tasks.md. Onda atual cobre 5.1-5.5 (shell, roteamento, TanStack Query, estados transversais, atomicos). FASE 6 sera proxima onda.
+
+**Score**: 2
+
+**Referencias**: (nenhuma)
+
+**Artefato originador**: (nenhum)
+
+#### dec-046 — execute-task — agente-00c-orchestrator — 2026-05-24T21:40:10Z
+
+**Contexto**: FASE 5 implementada: vite.config.ts, main.tsx (HashRouter+QueryClient), App.tsx (React Router v6 Routes), Sidebar 232px pixel-perfect, Topbar 52px sticky, Breadcrumb, tokens.css (todos os CSS tokens do prototipo), lib/query.ts, lib/api.ts (ETag/304), lib/hooks.ts (14 hooks), states/ (DegradedBanner, LoadingState, EmptyState, ErrorState), hooks/useApiState.ts, components/ (Icon, KpiCard, StatusBadge, ScoreChip, OutcomePill, FreshnessLabel, TextRaw), screens/Overview.tsx placeholder.
+
+**Opcoes consideradas**: typecheck-passed / typecheck-falhou
+
+**Escolha**: typecheck-passed
+
+**Justificativa**: tsc --noEmit exit 0, vite build 114 modules, 324kB bundle
+
+**Score**: 3
+
+**Referencias**: (nenhuma)
+
+**Artefato originador**: (nenhum)
+
+#### dec-047 — model-routing — agente-00c-feature-orchestrator — 2026-05-24T21:48:07Z
+
+**Contexto**: Selecao de modelo para onda 9 (fase execute-task)
+
+**Opcoes consideradas**: haiku / sonnet / opus / manter-atual
+
+**Escolha**: model:sonnet
+
+**Justificativa**: sugerido=sonnet aplicado=sonnet origem=mapa | faixa=rasa fase=execute-task (mapa primario)
+
+**Score**: 0
+
+**Referencias**: (nenhuma)
+
+**Artefato originador**: (nenhum)
+
+#### dec-048 — execute-task — agente-00c-orchestrator — 2026-05-24T22:02:40Z
+
+**Contexto**: FASE 6: implementacao das 6 telas reais do cstk-panel
+
+**Opcoes consideradas**: implementar-todas-6-em-uma-onda / implementar-progressivamente-por-onda / usar-subagentes
+
+**Escolha**: implementar-todas-6-em-uma-onda
+
+**Justificativa**: Telas sao interdependentes (helpers compartilhados, estados comuns); implementar em uma onda maximiza coerencia e evita retomadas multiplas
+
+**Score**: 2
+
+**Referencias**: (nenhuma)
+
+**Artefato originador**: (nenhum)
+
+#### dec-049 — execute-task — agente-00c-orchestrator — 2026-05-24T22:02:48Z
+
+**Contexto**: Validacao typecheck e build FASE 6 — todas as 6 telas
+
+**Opcoes consideradas**: corrigir-erros-ts / aceitar-com-suppressoes / abortar-onda
+
+**Escolha**: corrigir-erros-ts
+
+**Justificativa**: exactOptionalPropertyTypes=true exige passar apenas tipos definidos, nao undefined; KpiCard.accent sem undefined; filtros via opts object
+
+**Score**: 3
+
+**Referencias**: (nenhuma)
+
+**Artefato originador**: (nenhum)
+
+#### dec-050 — model-routing — agente-00c-feature-orchestrator — 2026-05-24T22:08:06Z
+
+**Contexto**: Selecao de modelo para onda 10 (fase execute-task)
+
+**Opcoes consideradas**: haiku / sonnet / opus / manter-atual
+
+**Escolha**: model:sonnet
+
+**Justificativa**: sugerido=sonnet aplicado=sonnet origem=mapa | faixa=rasa fase=execute-task (mapa primario)
+
+**Score**: 0
+
+**Referencias**: (nenhuma)
+
+**Artefato originador**: (nenhum)
+
+#### dec-051 — execute-task — agente-00c-orchestrator — 2026-05-24T22:16:24Z
+
+**Contexto**: FASE 7 testes de integracao: abordagem para roundtrip E2E real, degradacao, read-only, paridade shared-types e frescor
+
+**Opcoes consideradas**: criar-testes-vitest-reais-sem-mock / usar-mocks-sqlite / pular-testes-integracao
+
+**Escolha**: criar-testes-vitest-reais-sem-mock
+
+**Justificativa**: Spec SC-003 e Constitution Principio I exigem validacao real sem mock do DB. Fixture knowledge-fixture.db real disponivel com 14 execucoes e 1079 registros FTS. Vitest inject() evita bind de porta.
+
+**Score**: 3
+
+**Referencias**: (nenhuma)
+
+**Artefato originador**: (nenhum)
+
+#### dec-052 — execute-task — agente-00c-orchestrator — 2026-05-24T22:16:33Z
+
+**Contexto**: Bug detectado em freshness.test.ts: INSERT em executions sem campo 'wave' causa NOT NULL constraint. Confirmado schema real do fixture DB
+
+**Opcoes consideradas**: corrigir-insert-adicionando-campos-nao-nulos / usar-INSERT-OR-IGNORE-sem-wave / pular-teste-7.5.3
+
+**Escolha**: corrigir-insert-adicionando-campos-nao-nulos
+
+**Justificativa**: Schema real da tabela executions tem NOT NULL em: project, feature, wave, execucao_id, source_ts, source_id, ingested_at. INSERT foi corrigido incluindo todos os campos obrigatorios com OR IGNORE para idempotencia.
+
+**Score**: 3
+
+**Referencias**: (nenhuma)
+
+**Artefato originador**: (nenhum)
+
+#### dec-053 — execute-task — agente-00c-orchestrator — 2026-05-24T22:16:42Z
+
+**Contexto**: 7.1.2 Verificacao de convencao de borda camelCase: todas as chaves de kpis do /overview e resultados do /search estao em camelCase na base fixture real
+
+**Opcoes consideradas**: confirmar-camelcase-ok / detectar-drift-e-corrigir / registrar-warning
+
+**Escolha**: confirmar-camelcase-ok
+
+**Justificativa**: Teste roundtrip.test.ts valida explicitamente ausencia de snake_case em kpis (toolCallsTotal presente, tool_calls_total ausente) e em FtsHitDTO (sourceId/sourceTs presentes, source_id/source_ts ausentes). Todos 8 testes do roundtrip passando.
+
+**Score**: 3
+
+**Referencias**: (nenhuma)
+
+**Artefato originador**: (nenhum)
+
+#### dec-054 — model-routing — agente-00c-feature-orchestrator — 2026-05-24T22:22:06Z
+
+**Contexto**: Selecao de modelo para onda 11 (fase execute-task)
+
+**Opcoes consideradas**: haiku / sonnet / opus / manter-atual
+
+**Escolha**: model:sonnet
+
+**Justificativa**: sugerido=sonnet aplicado=sonnet origem=mapa | faixa=rasa fase=execute-task (mapa primario)
+
+**Score**: 0
+
+**Referencias**: (nenhuma)
+
+**Artefato originador**: (nenhum)
+
+#### dec-055 — execute-task — agente-00c-orchestrator — 2026-05-24T22:24:17Z
+
+**Contexto**: FASE 8: build de producao funciona (tsc+vite), 161 testes passando (109 server + 52 shared-types). Auditoria de invariantes: 0 verbos mutacao, 0 endpoints non-GET, 0 dangerouslySetInnerHTML, tokens/USD apenas em comentarios/nomes-tecn. Ordem de build correta precisa de script explicito: shared-types->server->web.
+
+**Opcoes consideradas**: script-build-explicito-com-dependencias / manter-workspaces-order-implicita / add-concurrently-para-dev-paralelo
+
+**Escolha**: script-build-explicito-com-dependencias
+
+**Justificativa**: npm workspaces --workspaces nao garante ordem topologica; build manual shared-types->server->web e necessario para CI/CD correto. concurrently instalado para dev paralelo.
+
+**Score**: 2
+
+**Referencias**: (nenhuma)
+
+**Artefato originador**: (nenhum)
+
+#### dec-056 — execute-task — agente-00c-orchestrator — 2026-05-24T22:25:42Z
+
+**Contexto**: 8.2 Auditoria dos 6 invariantes constitucionais: I=OK(readonly:true+query_only), II=OK(open.ts nao lanca,4 motivos ok:false), III=OK(sem USD/), IV=OK(0 endpoints POST/PUT/DELETE/PATCH), V=OK(dangerouslySetInnerHTML=... ausente, TextRaw em todos os campos UNTRUSTED), VI=OK(freshness.ts+etag.ts presentes). 161 testes passando (109+52).
+
+**Opcoes consideradas**: marcar-conformidade / escalar-bloqueio
+
+**Escolha**: marcar-conformidade
+
+**Justificativa**: Todos os 6 invariantes passam nas verificacoes empiricas.
+
+**Score**: 3
+
+**Referencias**: (nenhuma)
+
+**Artefato originador**: (nenhum)
+
+#### dec-057 — execute-task — agente-00c-orchestrator — 2026-05-24T22:28:19Z
+
+**Contexto**: FASE 8 concluida: 8.1 build prod OK (shared-types->server->web, concurrently para dev); 8.2 auditoria OK (I/II/III/IV/V/VI conformes, 161 testes 0 falhas); 8.3 docs OK (README+CONTRIBUTING+quickstart atualizados). Unico pendente: 8.2.6 revisao visual pixel-perfect (requer humano).
+
+**Opcoes consideradas**: avancar-review-task / marcar-pendencia-visual / bloqueio-humano
+
+**Escolha**: avancar-review-task
+
+**Justificativa**: 8.2.6 e revisao visual SC-006 que requer o operador. Todas as subtarefas programaticas estao completas. execute-task pode avancar para review-task.
+
+**Score**: 2
 
 **Referencias**: (nenhuma)
 
