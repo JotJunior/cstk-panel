@@ -12,13 +12,38 @@ roundtrip real) sobre a `knowledge.db` schema v2.
 
 ## Setup
 
-1. `npm install` (raiz — workspaces).
-2. Iniciar o back-end apontando para a base real:
-   `CSTK_KNOWLEDGE_DB=~/.claude/cstk/knowledge.db npm run dev -w apps/server`
-   → **Expected**: servidor sobe em `http://127.0.0.1:<porta>`, log de
-   `quick_check: ok` e `schema_version: 2`.
-3. (UI) `npm run dev -w apps/web` → **Expected**: SPA em `http://localhost:5173`,
-   sidebar 232px + topbar, tema dark.
+### Desenvolvimento (hot-reload)
+
+```bash
+# 1. Instalar dependencias
+npm install
+
+# 2. Iniciar server + web em paralelo (ambos com hot-reload)
+npm run dev
+# server: http://127.0.0.1:3001
+# web:    http://localhost:5173
+```
+
+Para apontar para uma base alternativa:
+```bash
+CSTK_KNOWLEDGE_DB=~/.claude/cstk/knowledge.db npm run dev
+```
+
+### Producao (build + start)
+
+```bash
+# Build em ordem correta de dependencias: shared-types -> server -> web
+npm run build
+
+# Iniciar o servidor de API
+npm start
+# Equivalent a: node apps/server/dist/index.js
+
+# Servir o front-end buildado (qualquer static server)
+npx serve apps/web/dist -p 4000
+```
+
+Variaveis de ambiente disponiveis: `CSTK_KNOWLEDGE_DB`, `PORT` (padrao 3001), `CORS_ORIGIN`, `LOG_LEVEL`.
 
 ---
 

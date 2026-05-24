@@ -8,8 +8,9 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev --workspaces --if-present",
-    "build": "npm run build --workspaces --if-present",
+    "dev": "concurrently --names \"server,web\" --prefix-colors \"cyan,magenta\" \"npm run dev -w @cstk-panel/server\" \"npm run dev -w @cstk-panel/web\"",
+    "build": "npm run build -w @cstk-panel/shared-types && npm run build -w @cstk-panel/server && npm run build -w @cstk-panel/web",
+    "start": "node apps/server/dist/index.js",
     "test": "vitest run",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:readonly-check": "grep -rniE '\\b(INSERT|UPDATE|DELETE|CREATE|DROP|ALTER)\\b' apps/server/src && echo 'FAIL: mutation verbs found' && exit 1 || echo 'OK: no mutation verbs'",
@@ -18,6 +19,7 @@
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
+    "concurrently": "^9.2.1",
     "eslint": "^8.57.0",
     "typescript": "^5.4.0",
     "vitest": "^1.6.0"

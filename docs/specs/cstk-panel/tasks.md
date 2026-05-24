@@ -416,30 +416,30 @@ Ref: quickstart.md §Cenário 7; spec.md FR-014, FR-016, SC-007
 
 Ref: plan.md §Project Structure; research.md §Decision 4; quickstart.md §Setup
 
-- [ ] 8.1.1 Configurar `apps/server` build com `tsc` (saída em `dist/`) e script `start` lendo `CSTK_KNOWLEDGE_DB`
-- [ ] 8.1.2 Configurar `apps/web` build com Vite (`npm run build` → `dist/`)
-- [ ] 8.1.3 Criar script raiz `npm run dev` que inicia ambos em paralelo (ex: `concurrently`)
-- [ ] 8.1.4 Verificar que `npm run build` na raiz compila `shared-types` → `server` → `web` em ordem correta de dependências
-- [ ] 8.1.5 Documentar em `quickstart.md` os dois comandos de arranque: dev e produção
+- [x] 8.1.1 Configurar `apps/server` build com `tsc` (saída em `dist/`) e script `start` lendo `CSTK_KNOWLEDGE_DB` — onda-012: apps/server/package.json já tinha build+start; confirmado
+- [x] 8.1.2 Configurar `apps/web` build com Vite (`npm run build` → `dist/`) — onda-012: tsc --noEmit + vite build; dist/ gerado OK
+- [x] 8.1.3 Criar script raiz `npm run dev` que inicia ambos em paralelo — onda-012: concurrently instalado; script usa --names server,web
+- [x] 8.1.4 Verificar que `npm run build` na raiz compila `shared-types` → `server` → `web` em ordem correta — onda-012: script explícito substituiu --workspaces; saída confirma ordem
+- [x] 8.1.5 Documentar em `quickstart.md` os dois comandos de arranque: dev e produção — onda-012: seção Setup atualizada
 
 ### 8.2 Auditoria final de invariantes constitucionais `[C]`
 
 Ref: spec.md §Constitution Check; plan.md §Re-check; spec.md SC-001..SC-008
 
-- [ ] 8.2.1 Executar `npm run lint:readonly-check` → 0 verbos de mutação em `apps/server/src` (SC-003)
-- [ ] 8.2.2 Confirmar que nenhum endpoint não-`GET` existe: `grep -rn 'router\.\(post\|put\|patch\|delete\)' apps/server/src` → 0 resultados
-- [ ] 8.2.3 Confirmar que nenhum `$`/`USD`/`token` aparece em DTOs ou componentes FE: `grep -rni '\b(USD|tokens\b|\$[0-9])' apps/` → 0 resultados (SC-002)
-- [ ] 8.2.4 Confirmar `dangerouslySetInnerHTML` ausente: `grep -rn 'dangerouslySetInnerHTML' apps/web/src` → 0 resultados (FR-011)
-- [ ] 8.2.5 Rodada completa de testes Vitest (`npm test`) com 0 falhas
-- [ ] 8.2.6 Revisão visual lado a lado: cada tela vs protótipo de referência em `docs/06-ui-ux-design/castk-panel/` — pixel-perfect nas telas principais (SC-006)
+- [x] 8.2.1 Executar `npm run lint:readonly-check` → 0 verbos de mutação em `apps/server/src` — onda-012: OK: no mutation verbs
+- [x] 8.2.2 Confirmar que nenhum endpoint não-`GET` existe — onda-012: grep retornou 0 resultados
+- [x] 8.2.3 Confirmar que nenhum `$`/`USD`/`token` monetário em DTOs ou FE — onda-012: apenas tokens.css (nome de arquivo CSS) e comentários doc "nao usar tokens"
+- [x] 8.2.4 Confirmar `dangerouslySetInnerHTML=...` ausente em apps/web/src — onda-012: grep retornou 0 (apenas comentários "NUNCA usa")
+- [x] 8.2.5 Rodada completa de testes Vitest (`npm test`) com 0 falhas — onda-012: 161 testes, 12 arquivos, 0 falhas
+- [ ] 8.2.6 Revisão visual lado a lado: cada tela vs protótipo de referência em `docs/06-ui-ux-design/castk-panel/` — SC-006 (requer operador humano para validação visual pixel-perfect)
 
 ### 8.3 Documentação final e gancho futuro `[M]`
 
 Ref: research.md §Decision 4; plan.md §Próximos Passos
 
-- [ ] 8.3.1 Atualizar `README.md` raiz com pré-requisitos, variáveis de ambiente (`CSTK_KNOWLEDGE_DB`, `PORT`) e instrução de uso com base real
-- [ ] 8.3.2 Documentar no `README.md` o gancho futuro `cstk panel serve` (D4 — aditivo, não bloqueante)
-- [ ] 8.3.3 Criar `CONTRIBUTING.md` mínimo com: como rodar testes, como checar read-only, como verificar paridade de tipos
+- [x] 8.3.1 Atualizar `README.md` raiz com pré-requisitos, variáveis de ambiente (`CSTK_KNOWLEDGE_DB`, `PORT`) e instrução de uso com base real — onda-012: README reescrito com setup dev+prod, env vars, testes
+- [x] 8.3.2 Documentar no `README.md` o gancho futuro `cstk panel serve` (D4 — aditivo, não bloqueante) — onda-012: seção "Gancho futuro" adicionada
+- [x] 8.3.3 Criar `CONTRIBUTING.md` mínimo com: como rodar testes, como checar read-only, como verificar paridade de tipos — onda-012: CONTRIBUTING.md criado
 
 ---
 
