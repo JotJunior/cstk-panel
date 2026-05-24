@@ -15,7 +15,7 @@
     "terminada_em": null
   },
   "etapa_corrente": "execute-task",
-  "proxima_instrucao": "onda-008: continuar execute-task. Pendentes FASE 3: 3.1.5 (teste integracao servidor health), 3.2.8 (testes degradacao), 3.3.5 (cross.ts), 3.3.6 (metrics.ts), 3.5.4 (rate-limit). Depois FASE 4: rotas (29 endpoints GET, health, overview, projects, features, executions/sub-recursos, alertas, metricas, search FTS5).",
+  "proxima_instrucao": "onda-009: execute-task. FASE 3+4 concluidas (61 testes, 29 endpoints). Pendentes: FASE 5 (FE: tokens.css, App.tsx, Sidebar, Topbar, HashRouter, QueryClient, fetchApi, estados transversais, componentes atomicos), FASE 6 (6 telas), FASE 7 (testes E2E). Iniciar por FASE 5.1-5.5.",
   "ondas": [
     {
       "id": "onda-001",
@@ -183,6 +183,19 @@
         "mappers",
         "queries"
       ]
+    },
+    {
+      "id": "onda-008",
+      "inicio": "2026-05-24T21:14:05Z",
+      "fim": "2026-05-24T21:27:00Z",
+      "etapas_executadas": [
+        "execute-task"
+      ],
+      "tool_calls": 1,
+      "wallclock_seconds": 775,
+      "motivo_termino": "etapa_concluida_avancando",
+      "proxima_onda_agendada_para": "2026-05-24T21:30:00Z",
+      "skills_invoked": []
     }
   ],
   "decisoes": [
@@ -940,6 +953,64 @@
       "evidencia": "npm run typecheck --workspace=apps/server: exit 0 sem erros. npm run lint:readonly-check: OK: no mutation verbs. vitest run test/mappers/: 15 passed. vitest run test/lib/fts.test.ts: 13 passed.",
       "referencias": [],
       "artefato_originador": null
+    },
+    {
+      "id": "dec-041",
+      "onda_id": "onda-007",
+      "timestamp": "2026-05-24T21:13:08Z",
+      "etapa": "model-routing",
+      "agente": "agente-00c-feature-orchestrator",
+      "contexto": "Selecao de modelo para onda 7 (fase execute-task)",
+      "opcoes_consideradas": [
+        "haiku",
+        "sonnet",
+        "opus",
+        "manter-atual"
+      ],
+      "escolha": "model:sonnet",
+      "justificativa": "sugerido=sonnet aplicado=sonnet origem=mapa | faixa=rasa fase=execute-task (mapa primario)",
+      "score_justificativa": 0,
+      "evidencia": null,
+      "referencias": [],
+      "artefato_originador": null
+    },
+    {
+      "id": "dec-042",
+      "onda_id": "onda-008",
+      "timestamp": "2026-05-24T21:22:53Z",
+      "etapa": "execute-task",
+      "agente": "agente-00c-orchestrator",
+      "contexto": "@fastify/cors@9.0.1 instalado tem constraint 'fastify: 4.x' — incompativel com Fastify 5.8.5 instalado. Afeta testes de integracao do servidor.",
+      "opcoes_consideradas": [
+        "upgrade-para-cors-11.x-rate-limit-10.x",
+        "implementar-cors-manual-sem-plugin",
+        "pular-teste-cors"
+      ],
+      "escolha": "upgrade-para-cors-11.x-rate-limit-10.x",
+      "justificativa": "cors@11 e rate-limit@10 suportam Fastify 5. Verificado: npm view @fastify/cors versions mostra 11.x. Upgrade minimal impacto — apenas mudar versao no package.json e reinstalar.",
+      "score_justificativa": 2,
+      "evidencia": null,
+      "referencias": [],
+      "artefato_originador": null
+    },
+    {
+      "id": "dec-043",
+      "onda_id": "onda-008",
+      "timestamp": "2026-05-24T21:26:40Z",
+      "etapa": "execute-task",
+      "agente": "agente-00c-orchestrator",
+      "contexto": "FASE 3 completa + FASE 4 rotas implementadas: 29 endpoints GET, typecheck zero erros, 61 testes passando, zero verbos de mutacao",
+      "opcoes_consideradas": [
+        "continuar-para-FASE-5-frontend",
+        "adicionar-mais-testes-BE",
+        "marcar-FASE-4-concluida"
+      ],
+      "escolha": "marcar-FASE-4-concluida",
+      "justificativa": "Todos os endpoints da FASE 4 implementados conforme api-read.md: health, overview, projects, features, executions+7sub-recursos, alerts, tasks, events, 8 metricas, search. Typecheck limpo. 61 testes passando incluindo degradacao, ETag, payloads hostis.",
+      "score_justificativa": 3,
+      "evidencia": "npm test --workspace=apps/server: 5 test files, 61 tests passed. npm run typecheck --workspace=apps/server: exit 0. grep mutation verbs: 0 resultados.",
+      "referencias": [],
+      "artefato_originador": null
     }
   ],
   "bloqueios_humanos": [
@@ -969,15 +1040,15 @@
     "wallclock_threshold_segundos": 5400,
     "estado_size_threshold_bytes": 1048576,
     "tool_calls_onda_corrente": 1,
-    "inicio_onda_corrente": "2026-05-24T20:56:11Z"
+    "inicio_onda_corrente": "2026-05-24T21:14:05Z"
   },
   "metricas_acumuladas": {
-    "ondas_total": 7,
-    "tool_calls_total": 2,
-    "tempo_wallclock_total_segundos": 2057,
+    "ondas_total": 8,
+    "tool_calls_total": 3,
+    "tempo_wallclock_total_segundos": 2832,
     "profundidade_max_atingida": 1,
     "subagentes_spawned": 0,
-    "decisoes_total": 40,
+    "decisoes_total": 43,
     "bloqueios_humanos_total": 1,
     "sugestoes_skills_globais_total": 1,
     "issues_toolkit_abertas": 0,
