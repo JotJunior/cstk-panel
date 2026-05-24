@@ -1,7 +1,7 @@
 # Relatorio do Agente-00C — exec-2026-05-24T19-13-59Z-agente-00c-cstk-panel
 
-**Gerado em**: 2026-05-24T20:51:51Z
-**Status no momento**: aguardando_humano
+**Gerado em**: 2026-05-24T21:08:01Z
+**Status no momento**: em_andamento
 **Versao do schema**: 1.0.0
 
 ---
@@ -14,19 +14,19 @@
 | Projeto-Alvo | /Users/jot/Projects/_lab/Jot/misc/cstk-panel |
 | Descricao | faça a leitura dos documentos de briefing em docs/01-briefing-discovery/ e use o protótipo já pronto em docs/06-ui-ux-design para o front-end |
 | Stack final | ["react 19","vite","nodejs"] |
-| Status | aguardando_humano |
+| Status | em_andamento |
 | Motivo termino | (em andamento) |
 | Iniciada em | 2026-05-24T19:13:59Z |
 | Terminada em | ainda em andamento |
-| Ondas executadas | 6 |
-| Tool calls totais | 1 |
-| Decisoes registradas | 36 |
+| Ondas executadas | 7 |
+| Tool calls totais | 2 |
+| Decisoes registradas | 40 |
 | Bloqueios humanos | 1 |
 | Sugestoes para skills globais | 1 |
 | Issues abertas no toolkit | 0 |
 | Profundidade max de subagentes | 1 |
 
-Onda-006 executou scaffold do monorepo (FASE 1) e shared-types (FASE 2). Bloqueio block-001 para npm install.
+Onda 007 concluida: FASE 1+2 desbloqueadas, FASE 3 BE Fundacao implementada. 58 testes passando.
 
 ## 2. Linha do Tempo
 
@@ -38,17 +38,18 @@ Onda-006 executou scaffold do monorepo (FASE 1) e shared-types (FASE 2). Bloquei
 | onda-004 | 2026-05-24T20:24:30Z | 2026-05-24T20:28:19Z | checklist | 0 | 0s | marco-etapa: checklist parcial (api.md, 35 itens). Bookkeeping reconciliado pelo comando-pai; subagente sonnet nao fechou onda nem emitiu Schedule intent (recorrente c/ onda-001). dec-026 decidiu 4 dominios; security/ux/requirements DEFERIDOS (nao bloqueante). |
 | onda-005 | 2026-05-24T20:33:59Z | 2026-05-24T20:40:12Z | create-tasks | 0 | 0s | marco-etapa: create-tasks (tasks.md 8 fases/35 tarefas/196 subtarefas). Bookkeeping reconciliado pelo comando-pai — 3a falha de encerramento em onda sonnet (001/004/005); sug-001 proposta a (box imperativo) testada e sem efeito. |
 | onda-006 | 2026-05-24T20:44:44Z | 2026-05-24T20:51:12Z |  | 1 | 388s | bloqueio_humano |
+| onda-007 | 2026-05-24T20:56:11Z | 2026-05-24T21:07:17Z | execute-task | 1 | 666s | etapa_concluida_avancando |
 
 ## 3. Decisoes
 
-Total: 36 decisoes registradas.
+Total: 40 decisoes registradas.
 
 ### 3.1 Por agente
 
 | Agente | Quantidade |
 |--------|------------|
-| agente-00c-feature-orchestrator | 6 |
-| agente-00c-orchestrator | 10 |
+| agente-00c-feature-orchestrator | 7 |
+| agente-00c-orchestrator | 13 |
 | clarify-answerer | 1 |
 | orquestrador-00c | 19 |
 
@@ -630,6 +631,70 @@ Total: 36 decisoes registradas.
 
 **Artefato originador**: (nenhum)
 
+#### dec-037 — model-routing — agente-00c-feature-orchestrator — 2026-05-24T20:55:42Z
+
+**Contexto**: Selecao de modelo para onda 6 (fase execute-task)
+
+**Opcoes consideradas**: haiku / sonnet / opus / manter-atual
+
+**Escolha**: model:sonnet
+
+**Justificativa**: sugerido=sonnet aplicado=sonnet origem=mapa | faixa=rasa fase=execute-task (mapa primario)
+
+**Score**: 0
+
+**Referencias**: (nenhuma)
+
+**Artefato originador**: (nenhum)
+
+#### dec-038 — execute-task — agente-00c-orchestrator — 2026-05-24T20:56:50Z
+
+**Contexto**: Verificar npm install (1.1.6) e tsc --noEmit em shared-types (1.2.4)
+
+**Opcoes consideradas**: confirmar-ok / reportar-falha
+
+**Escolha**: confirmar-ok
+
+**Justificativa**: npm install: node_modules presente (314 pkgs). tsc --noEmit em packages/shared-types: exit 0, zero erros. fixture.db criada (14 execucoes, 237 ondas, 927 decisoes).
+
+**Score**: 3
+
+**Referencias**: (nenhuma)
+
+**Artefato originador**: (nenhum)
+
+#### dec-039 — execute-task — agente-00c-orchestrator — 2026-05-24T20:59:13Z
+
+**Contexto**: Testes unitarios shared-types (2.1.5, 2.3.5): envelope + paridade Zod
+
+**Opcoes consideradas**: criar-testes / pular-testes
+
+**Escolha**: criar-testes
+
+**Justificativa**: 30 testes passaram em 2 arquivos (envelope.test.ts + parity.test.ts). Cobrem: parse valido/invalido, ZodError obrigatorio, score union, lintOk boolean, arquivosTocadosCount number, etapas string, campos nullable.
+
+**Score**: 3
+
+**Referencias**: (nenhuma)
+
+**Artefato originador**: (nenhum)
+
+#### dec-040 — execute-task — agente-00c-orchestrator — 2026-05-24T21:04:54Z
+
+**Contexto**: FASE 3 BE Fundacao: db/open.ts, freshness.ts, lib/etag.ts, envelope.ts, pagination.ts, fts.ts, queries (executions/waves/decisions/tasks/events/alerts/bloqueios/skills/overview), mappers (8 entidades), testes mappers+fts
+
+**Opcoes consideradas**: implementar-completo / implementar-parcial
+
+**Escolha**: implementar-completo
+
+**Justificativa**: Todos os arquivos da FASE 3 (3.2-3.5) criados. typecheck server: exit 0. lint:readonly-check: OK (0 verbos mutacao). Testes mappers: 15/15. Testes FTS: 13/13.
+
+**Score**: 3
+
+**Referencias**: (nenhuma)
+
+**Artefato originador**: (nenhum)
+
 
 ## 4. Bloqueios Humanos
 
@@ -637,22 +702,18 @@ Total: 1 bloqueios.
 
 ### 4.1 Pendentes (aguardando resposta)
 
+(Nenhum bloqueio pendente neste momento.)
+
+### 4.2 Respondidos
+
 #### block-001 — disparado em 2026-05-24T20:49:38Z
 
 **Pergunta**: Rodar 'npm install' no monorepo cstk-panel para instalar dependencias de todos os workspaces?
 
-**Contexto para resposta**: Todos os package.json ja foram criados (raiz + apps/server, apps/web, packages/shared-types). O npm install instala: fastify, better-sqlite3, zod, @fastify/cors, @fastify/rate-limit, react 19, vite 5, tanstack-query, typescript, vitest, eslint, tsx, e @cstk-panel/shared-types via workspace. Sem isso, as tarefas 1.2.4 (tsc --noEmit), 1.3.1-1.3.4 (vitest/eslint) e qualquer teste de compilacao ficam bloqueadas. Comando exato: npm install
+**Resposta humana**: sim-rodar-npm-install
 
-**Opcoes recomendadas**:
-- sim-rodar-npm-install
-- nao-pular-install-por-agora
+**Respondido em**: 2026-05-24T20:54:51Z
 
-**Status**: aguardando
-
-
-### 4.2 Respondidos
-
-(Nenhum bloqueio respondido nesta execucao.)
 
 ### 4.3 Sem bloqueios
 

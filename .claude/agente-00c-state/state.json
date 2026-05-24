@@ -15,7 +15,7 @@
     "terminada_em": null
   },
   "etapa_corrente": "execute-task",
-  "proxima_instrucao": "block-001 respondido. Proxima onda: apos npm install — (1) verificar que workspaces resolvem (task 1.1.6), (2) tsc --noEmit em shared-types (1.2.4), (3) vitest run em packages/shared-types (2.1.5, 2.3.5), (4) criar apps/server/src/db/open.ts (FASE 3.2), (5) criar apps/server/src/db/freshness.ts + etag.ts (3.2.6-3.2.7), (6) queries SQL (FASE 3.3), (7) mappers (FASE 3.4).",
+  "proxima_instrucao": "onda-008: continuar execute-task. Pendentes FASE 3: 3.1.5 (teste integracao servidor health), 3.2.8 (testes degradacao), 3.3.5 (cross.ts), 3.3.6 (metrics.ts), 3.5.4 (rate-limit). Depois FASE 4: rotas (29 endpoints GET, health, overview, projects, features, executions/sub-recursos, alertas, metricas, search FTS5).",
   "ondas": [
     {
       "id": "onda-001",
@@ -164,13 +164,25 @@
     {
       "id": "onda-007",
       "inicio": "2026-05-24T20:56:11Z",
-      "fim": null,
-      "etapas_executadas": [],
-      "tool_calls": 0,
-      "wallclock_seconds": 0,
-      "motivo_termino": null,
+      "fim": "2026-05-24T21:07:17Z",
+      "etapas_executadas": [
+        "execute-task"
+      ],
+      "tool_calls": 1,
+      "wallclock_seconds": 666,
+      "motivo_termino": "etapa_concluida_avancando",
       "proxima_onda_agendada_para": null,
-      "skills_invoked": []
+      "skills_invoked": [],
+      "aspectos_chave_tocados": [
+        "cstk-panel",
+        "read-only",
+        "node-ts",
+        "shared-types",
+        "fastify",
+        "sqlite",
+        "mappers",
+        "queries"
+      ]
     }
   ],
   "decisoes": [
@@ -960,9 +972,9 @@
     "inicio_onda_corrente": "2026-05-24T20:56:11Z"
   },
   "metricas_acumuladas": {
-    "ondas_total": 6,
-    "tool_calls_total": 1,
-    "tempo_wallclock_total_segundos": 1391,
+    "ondas_total": 7,
+    "tool_calls_total": 2,
+    "tempo_wallclock_total_segundos": 2057,
     "profundidade_max_atingida": 1,
     "subagentes_spawned": 0,
     "decisoes_total": 40,
