@@ -14,8 +14,8 @@
     "iniciada_em": "2026-05-24T19:13:59Z",
     "terminada_em": null
   },
-  "etapa_corrente": "execute-task",
-  "proxima_instrucao": "onda-012: execute-task FASE 8 (qualidade, build e documentacao final). 8.1: build producao tsc+vite, script start. 8.2: auditoria final invariantes. 8.3: documentacao README+CONTRIBUTING.",
+  "etapa_corrente": "review-task",
+  "proxima_instrucao": "Revisar todas as 8 fases do tasks.md: verificar subtarefas marcadas [x], identificar pendencias (8.2.6 revisao visual), gerar relatorio final de qualidade.",
   "ondas": [
     {
       "id": "onda-001",
@@ -245,11 +245,13 @@
     {
       "id": "onda-012",
       "inicio": "2026-05-24T22:22:32Z",
-      "fim": null,
-      "etapas_executadas": [],
+      "fim": "2026-05-24T22:28:53Z",
+      "etapas_executadas": [
+        "execute-task"
+      ],
       "tool_calls": 0,
-      "wallclock_seconds": 0,
-      "motivo_termino": null,
+      "wallclock_seconds": 381,
+      "motivo_termino": "etapa_concluida_avancando",
       "proxima_onda_agendada_para": null,
       "skills_invoked": []
     }
@@ -1366,9 +1368,9 @@
     "inicio_onda_corrente": "2026-05-24T22:22:32Z"
   },
   "metricas_acumuladas": {
-    "ondas_total": 11,
+    "ondas_total": 12,
     "tool_calls_total": 19,
-    "tempo_wallclock_total_segundos": 4376,
+    "tempo_wallclock_total_segundos": 4757,
     "profundidade_max_atingida": 1,
     "subagentes_spawned": 0,
     "decisoes_total": 57,
