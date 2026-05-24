@@ -9,10 +9,10 @@
       "vite",
       "nodejs"
     ],
-    "status": "em_andamento",
-    "motivo_termino": null,
+    "status": "concluida",
+    "motivo_termino": "execucao_concluida_missao_primaria_completada",
     "iniciada_em": "2026-05-24T19:13:59Z",
-    "terminada_em": null
+    "terminada_em": "2026-05-24T22:35:53Z"
   },
   "etapa_corrente": "review-task",
   "proxima_instrucao": "Revisar todas as 8 fases do tasks.md: verificar subtarefas marcadas [x], identificar pendencias (8.2.6 revisao visual), gerar relatorio final de qualidade.",
@@ -245,15 +245,18 @@
     {
       "id": "onda-012",
       "inicio": "2026-05-24T22:22:32Z",
-      "fim": "2026-05-24T22:28:53Z",
+      "fim": "2026-05-24T22:35:47Z",
       "etapas_executadas": [
-        "execute-task"
+        "review-task"
       ],
       "tool_calls": 0,
       "wallclock_seconds": 381,
-      "motivo_termino": "etapa_concluida_avancando",
+      "motivo_termino": "etapa_concluida_execucao_completada",
       "proxima_onda_agendada_para": null,
-      "skills_invoked": []
+      "skills_invoked": [
+        "review-task"
+      ],
+      "aspectos_chave_tocados": []
     }
   ],
   "decisoes": [
@@ -1336,6 +1339,26 @@
       "evidencia": null,
       "referencias": [],
       "artefato_originador": null
+    },
+    {
+      "id": "dec-058",
+      "onda_id": "onda-012",
+      "timestamp": "2026-05-24T22:34:06Z",
+      "etapa": "model-routing",
+      "agente": "agente-00c-feature-orchestrator",
+      "contexto": "Selecao de modelo para onda 12 (fase review-task)",
+      "opcoes_consideradas": [
+        "haiku",
+        "sonnet",
+        "opus",
+        "manter-atual"
+      ],
+      "escolha": "model:haiku",
+      "justificativa": "sugerido=haiku aplicado=haiku origem=mapa | faixa=rasa fase=review-task (mapa primario)",
+      "score_justificativa": 0,
+      "evidencia": null,
+      "referencias": [],
+      "artefato_originador": null
     }
   ],
   "bloqueios_humanos": [
@@ -1373,7 +1396,7 @@
     "tempo_wallclock_total_segundos": 4757,
     "profundidade_max_atingida": 1,
     "subagentes_spawned": 0,
-    "decisoes_total": 57,
+    "decisoes_total": 58,
     "bloqueios_humanos_total": 1,
     "sugestoes_skills_globais_total": 1,
     "issues_toolkit_abertas": 0,
