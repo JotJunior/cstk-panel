@@ -365,45 +365,45 @@ Ref: spec.md §User Story 6, FR-005, FR-006; quickstart.md §Cenário 6
 
 Ref: quickstart.md §Cenário 1; plan.md §Convenções de Borda; spec.md SC-003
 
-- [ ] 7.1.1 Criar `apps/server/test/roundtrip.test.ts`: servidor real + base real, `GET /overview?period=7d`, parse com `ApiEnvelopeSchema` de `shared-types` — sem mock de DB
-- [ ] 7.1.2 Confirmar que todas as chaves retornadas estão em camelCase (`toolCallsTotal`, não `tool_calls_total`) — teste de paridade de convenção de borda
-- [ ] 7.1.3 Confirmar `meta.schemaVersion === "2"` e `meta.degraded === false` na base real
-- [ ] 7.1.4 Fazer `GET /search?q=plan&limit=5` com base real, confirmar shape de `FtsHitDTO` com `safeParse`
-- [ ] 7.1.5 Testar ETag/304: segunda chamada com `If-None-Match` retorna `304` sem body
+- [x] 7.1.1 Criar `apps/server/test/roundtrip.test.ts`: servidor real + base real, `GET /overview?period=7d`, parse com `ApiEnvelopeSchema` de `shared-types` — sem mock de DB
+- [x] 7.1.2 Confirmar que todas as chaves retornadas estão em camelCase (`toolCallsTotal`, não `tool_calls_total`) — teste de paridade de convenção de borda
+- [x] 7.1.3 Confirmar `meta.schemaVersion === "2"` e `meta.degraded === false` na base real
+- [x] 7.1.4 Fazer `GET /search?q=plan&limit=5` com base real, confirmar shape de `FtsHitDTO` com `safeParse`
+- [x] 7.1.5 Testar ETag/304: segunda chamada com `If-None-Match` retorna `304` sem body
 
 ### 7.2 Testes de degradação `[C]`
 
 Ref: quickstart.md §Cenário 6; spec.md SC-001, FR-005
 
-- [ ] 7.2.1 Criar `apps/server/test/degradation.test.ts` com helpers para apontar para base inexistente, corrompida e com schema v1
-- [ ] 7.2.2 Todos os 5 endpoints principais (`/health`, `/overview`, `/decisions`, `/search`, `/alerts`) respondem `200` com `meta.degraded=true` e shape válido para cada motivo de degradação
-- [ ] 7.2.3 Confirmar que nenhum `5xx` é emitido por condição de dado
+- [x] 7.2.1 Criar `apps/server/test/degradation.test.ts` com helpers para apontar para base inexistente, corrompida e com schema v1
+- [x] 7.2.2 Todos os 5 endpoints principais (`/health`, `/overview`, `/decisions`, `/search`, `/alerts`) respondem `200` com `meta.degraded=true` e shape válido para cada motivo de degradação
+- [x] 7.2.3 Confirmar que nenhum `5xx` é emitido por condição de dado
 
 ### 7.3 Testes de segurança e read-only `[C]`
 
 Ref: quickstart.md §Cenário 5 e §Cenário 8; spec.md SC-003, SC-005
 
-- [ ] 7.3.1 `apps/server/test/readonly.test.ts`: `grep -rniE` em `apps/server/src` — 0 verbos de mutação (SC-003); teste falha se encontrar algum
-- [ ] 7.3.2 Confirmar abertura da conexão com `readonly: true` + `PRAGMA query_only` (inspecionar `open.ts`)
-- [ ] 7.3.3 `apps/server/test/fts-hostile.test.ts`: payloads `") OR 1=1 --"`, `"'single"`, `"NEAR/3(a b)"`, `"; DROP TABLE"` — todos retornam `200`, nunca `5xx`
-- [ ] 7.3.4 Payload de tamanho máximo excedido na busca → `400` sem stack trace
+- [x] 7.3.1 `apps/server/test/readonly.test.ts`: `grep -rniE` em `apps/server/src` — 0 verbos de mutação (SC-003); teste falha se encontrar algum
+- [x] 7.3.2 Confirmar abertura da conexão com `readonly: true` + `PRAGMA query_only` (inspecionar `open.ts`)
+- [x] 7.3.3 `apps/server/test/fts-hostile.test.ts`: payloads `") OR 1=1 --"`, `"'single"`, `"NEAR/3(a b)"`, `"; DROP TABLE"` — todos retornam `200`, nunca `5xx`
+- [x] 7.3.4 Payload de tamanho máximo excedido na busca → `400` sem stack trace
 
 ### 7.4 Testes de paridade de tipos (shared-types ↔ payload real) `[C]`
 
 Ref: plan.md §Convenções de Borda; quickstart.md §Cenário 1
 
-- [ ] 7.4.1 Criar `packages/shared-types/test/parity.test.ts`: para cada DTO, criar fixture de payload real (cópia direta de resposta da API) e confirmar `safeParse(...).success === true`
-- [ ] 7.4.2 Testar `TaskDTO`: `arquivosTocadosCount` é `number` (não array), `lintOk` é `boolean`
-- [ ] 7.4.3 Testar `WaveDTO`: `etapas` é `string` (não array)
-- [ ] 7.4.4 Teste de regressão: modificar um campo para `snake_case` no fixture → `safeParse` deve falhar (garante que o teste não é trivial)
+- [x] 7.4.1 Criar `packages/shared-types/test/parity.test.ts`: para cada DTO, criar fixture de payload real (cópia direta de resposta da API) e confirmar `safeParse(...).success === true`
+- [x] 7.4.2 Testar `TaskDTO`: `arquivosTocadosCount` é `number` (não array), `lintOk` é `boolean`
+- [x] 7.4.3 Testar `WaveDTO`: `etapas` é `string` (não array)
+- [x] 7.4.4 Teste de regressão: modificar um campo para `snake_case` no fixture → `safeParse` deve falhar (garante que o teste não é trivial)
 
 ### 7.5 Testes de snapshot que muda (frescor) `[A]`
 
 Ref: quickstart.md §Cenário 7; spec.md FR-014, FR-016, SC-007
 
-- [ ] 7.5.1 `apps/server/test/freshness.test.ts`: `touch` na base fixture → nova requisição retorna `mtime` avançado
-- [ ] 7.5.2 ETag antigo não retorna `304` após `touch` na base
-- [ ] 7.5.3 Confirmar que `maxIngestedAt` avança quando `ingested_at` mais recente é inserido na fixture (cenário simulado)
+- [x] 7.5.1 `apps/server/test/freshness.test.ts`: `touch` na base fixture → nova requisição retorna `mtime` avançado
+- [x] 7.5.2 ETag antigo não retorna `304` após `touch` na base
+- [x] 7.5.3 Confirmar que `maxIngestedAt` avança quando `ingested_at` mais recente é inserido na fixture (cenário simulado)
 
 ---
 
