@@ -1,0 +1,62 @@
+/**
+ * @cstk-panel/shared-types — ponto de entrada unico.
+ * Reexporta todos os tipos e schemas Zod.
+ *
+ * Principio V: campos UNTRUSTED marcados com @untrusted nos DTOs.
+ * Principio III: `toolCallsTotal` / `toolCalls` sao proxies — rotular na UI.
+ */
+
+// Tipos de envelope
+export type { Freshness, Meta, ApiEnvelope, DegradedReason } from './envelope.js';
+
+// DTOs de dominio
+export type {
+  ExecutionDTO,
+  WaveDTO,
+  DecisionDTO,
+  TaskDTO,
+  EventDTO,
+  AlertSignalDTO,
+  BloqueioDTO,
+  SkillDTO,
+  RetroDTO,
+  FtsHitDTO,
+  ProjectRollup,
+  FeatureRollup,
+  PaginationParams,
+  PeriodParam,
+  ScoreParam,
+  SearchParams,
+} from './entities.js';
+
+// Schemas Zod — envelope
+export {
+  FreshnessSchema,
+  MetaSchema,
+  ApiEnvelopeSchema,
+  RawApiEnvelopeSchema,
+} from './schemas/envelope.js';
+
+// Schemas Zod — entidades
+export {
+  ExecutionDTOSchema,
+  WaveDTOSchema,
+  DecisionDTOSchema,
+  TaskDTOSchema,
+  EventDTOSchema,
+  AlertSignalDTOSchema,
+  BloqueioDTOSchema,
+  SkillDTOSchema,
+  RetroDTOSchema,
+  FtsHitDTOSchema,
+  ProjectRollupSchema,
+  FeatureRollupSchema,
+} from './schemas/entities.js';
+
+// Schemas Zod — params
+export {
+  PaginationParamsSchema,
+  PeriodParamSchema,
+  ScoreParamSchema,
+  SearchParamsSchema,
+} from './schemas/params.js';

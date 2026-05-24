@@ -1,0 +1,21 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+build/
+*.tsbuildinfo
+
+# test fixtures / generated db
+test/fixtures/*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# logs / os
+*.log
+.DS_Store
+
+# agente-00c runtime churn (state.json/report sao versionados; locks e history nao)
+.claude/agente-00c-state/.lock/
+.claude/agente-00c-state/state-history/
