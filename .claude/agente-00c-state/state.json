@@ -15,7 +15,7 @@
     "terminada_em": null
   },
   "etapa_corrente": "execute-task",
-  "proxima_instrucao": "onda-009: execute-task. FASE 3+4 concluidas (61 testes, 29 endpoints). Pendentes: FASE 5 (FE: tokens.css, App.tsx, Sidebar, Topbar, HashRouter, QueryClient, fetchApi, estados transversais, componentes atomicos), FASE 6 (6 telas), FASE 7 (testes E2E). Iniciar por FASE 5.1-5.5.",
+  "proxima_instrucao": "onda-010: execute-task. FASE 5 concluida (5.1-5.5, 18/22 subtarefas). Pendentes FASE 5: 5.2.4/5.2.5 (teste 4-cliques), 5.3.5 (teste ETag), 5.4.6 (teste estados), 5.5.7 (teste TextRaw). FASE 6: 6 telas (Overview real, ExecutionDetail, Search, Alerts, Metrics, DegradedStates). Comecar por FASE 6.1 (Overview com KPIs reais).",
   "ondas": [
     {
       "id": "onda-001",
@@ -200,11 +200,13 @@
     {
       "id": "onda-009",
       "inicio": "2026-05-24T21:32:37Z",
-      "fim": null,
-      "etapas_executadas": [],
-      "tool_calls": 0,
-      "wallclock_seconds": 0,
-      "motivo_termino": null,
+      "fim": "2026-05-24T21:42:03Z",
+      "etapas_executadas": [
+        "execute-task"
+      ],
+      "tool_calls": 2,
+      "wallclock_seconds": 566,
+      "motivo_termino": "etapa_concluida_avancando",
       "proxima_onda_agendada_para": null,
       "skills_invoked": []
     }
@@ -1110,9 +1112,9 @@
     "inicio_onda_corrente": "2026-05-24T21:32:37Z"
   },
   "metricas_acumuladas": {
-    "ondas_total": 8,
-    "tool_calls_total": 3,
-    "tempo_wallclock_total_segundos": 2832,
+    "ondas_total": 9,
+    "tool_calls_total": 5,
+    "tempo_wallclock_total_segundos": 3398,
     "profundidade_max_atingida": 1,
     "subagentes_spawned": 0,
     "decisoes_total": 46,
