@@ -293,66 +293,66 @@ Ref: spec.md FR-021; data-model.md §Entities
 
 Ref: spec.md §User Story 1, FR-008, FR-022; quickstart.md §Cenário 2, §Cenário 3
 
-- [ ] 6.1.1 Criar `apps/web/src/screens/Overview.tsx` usando hook `useOverview(period)`
-- [ ] 6.1.2 Exibir grid de KPIs: execuções em andamento, alertas críticos, custo ("proxy: tool calls"), taxa de conclusão
-- [ ] 6.1.3 Exibir lista de alertas recentes com drill-down para a execução/onda de origem
-- [ ] 6.1.4 Exibir leaderboard de execuções e funil de etapas
-- [ ] 6.1.5 Seletor de período (24h / 7d / 30d / tudo) que refaz queries ao mudar
-- [ ] 6.1.6 Confirmar que nenhum rótulo de custo usa `$`/`USD`/`tokens` (SC-002)
-- [ ] 6.1.7 Aplicar 4 estados (loading/empty/error/degraded) — skeleton enquanto carrega, `DegradedBanner` se `meta.degraded`
+- [x] 6.1.1 Criar `apps/web/src/screens/Overview.tsx` usando hook `useOverview(period)`
+- [x] 6.1.2 Exibir grid de KPIs: execuções em andamento, alertas críticos, custo ("proxy: tool calls"), taxa de conclusão
+- [x] 6.1.3 Exibir lista de alertas recentes com drill-down para a execução/onda de origem
+- [x] 6.1.4 Exibir leaderboard de execuções e funil de etapas
+- [x] 6.1.5 Seletor de período (24h / 7d / 30d / tudo) que refaz queries ao mudar
+- [x] 6.1.6 Confirmar que nenhum rótulo de custo usa `$`/`USD`/`tokens` (SC-002)
+- [x] 6.1.7 Aplicar 4 estados (loading/empty/error/degraded) — skeleton enquanto carrega, `DegradedBanner` se `meta.degraded`
 
 ### 6.2 Tela Detalhe de Execução e WavesTimeline (US2) `[A]`
 
 Ref: spec.md §User Story 2, FR-011; quickstart.md §Cenário 4
 
-- [ ] 6.2.1 Criar `apps/web/src/screens/ExecutionDetail.tsx` com detalhe da execução + tabs (Ondas, Decisões, Tarefas, Eventos, Alertas, Bloqueios, Skills)
-- [ ] 6.2.2 Implementar `WavesTimeline`: cada onda como card com etapa, duração, `tool_calls`, `motivo_termino`
-- [ ] 6.2.3 Implementar lista de Decisões paginada e filtrável por onda/etapa/score (FR-020, SC-008)
-- [ ] 6.2.4 Renderizar campos UNTRUSTED (`contexto`, `justificativa`, `evidência`) via `TextRaw` — nunca `dangerouslySetInnerHTML` (FR-011)
-- [ ] 6.2.5 Evidência renderizada em fonte mono (campo UNTRUSTED de fonte técnica)
-- [ ] 6.2.6 Aplicar 4 estados por tab
-- [ ] 6.2.7 Teste: campo `justificativa` com `<b>bold</b>` aparece como texto literal, não como HTML formatado (quickstart §Cenário 4)
+- [x] 6.2.1 Criar `apps/web/src/screens/ExecutionDetail.tsx` com detalhe da execução + tabs (Ondas, Decisões, Tarefas, Eventos, Alertas, Bloqueios, Skills)
+- [x] 6.2.2 Implementar `WavesTimeline`: cada onda como card com etapa, duração, `tool_calls`, `motivo_termino`
+- [x] 6.2.3 Implementar lista de Decisões paginada e filtrável por onda/etapa/score (FR-020, SC-008)
+- [x] 6.2.4 Renderizar campos UNTRUSTED (`contexto`, `justificativa`, `evidência`) via `TextRaw` — nunca `dangerouslySetInnerHTML` (FR-011)
+- [x] 6.2.5 Evidência renderizada em fonte mono (campo UNTRUSTED de fonte técnica)
+- [x] 6.2.6 Aplicar 4 estados por tab
+- [x] 6.2.7 Teste: campo `justificativa` com `<b>bold</b>` aparece como texto literal, não como HTML formatado (quickstart §Cenário 4)
 
 ### 6.3 Tela Busca de Conhecimento FTS5 (US3) `[A]`
 
 Ref: spec.md §User Story 3, FR-012; quickstart.md §Cenário 5
 
-- [ ] 6.3.1 Criar `apps/web/src/screens/Search.tsx` com campo de busca, filtros (type, project, feature) e lista de resultados paginada
-- [ ] 6.3.2 Resultados ordenados por `rank` (bm25); cada resultado com `body` via `TextRaw` + link para fonte (decisão/onda/execução)
-- [ ] 6.3.3 Debounce de entrada (300ms) para não disparar rate-limit por keystroke
-- [ ] 6.3.4 Estado de "Nenhum resultado" distinto de erro (Empty vs Error)
-- [ ] 6.3.5 Teste de UI: query com parênteses/aspas não exibe erro de UI; estado empty aparece para query sem resultados
+- [x] 6.3.1 Criar `apps/web/src/screens/Search.tsx` com campo de busca, filtros (type, project, feature) e lista de resultados paginada
+- [x] 6.3.2 Resultados ordenados por `rank` (bm25); cada resultado com `body` via `TextRaw` + link para fonte (decisão/onda/execução)
+- [x] 6.3.3 Debounce de entrada (300ms) para não disparar rate-limit por keystroke
+- [x] 6.3.4 Estado de "Nenhum resultado" distinto de erro (Empty vs Error)
+- [x] 6.3.5 Teste de UI: query com parênteses/aspas não exibe erro de UI; estado empty aparece para query sem resultados
 
 ### 6.4 Tela Central de Alertas (US4) `[M]`
 
 Ref: spec.md §User Story 4; contracts/api-read.md §Cross-execução
 
-- [ ] 6.4.1 Criar `apps/web/src/screens/Alerts.tsx` com lista de alertas filtráveis por tipo, project, feature, período
-- [ ] 6.4.2 Exibir severidade derivada de `valorConsumido/valorThreshold` com rótulo "derivada" (FR-009)
-- [ ] 6.4.3 Componente `BudgetGauge` (mini-gráfico de gauge para progresso threshold)
-- [ ] 6.4.4 Drill-down: clique num alerta navega para a execução/onda de origem (FR-022)
-- [ ] 6.4.5 Aplicar 4 estados
+- [x] 6.4.1 Criar `apps/web/src/screens/Alerts.tsx` com lista de alertas filtráveis por tipo, project, feature, período
+- [x] 6.4.2 Exibir severidade derivada de `valorConsumido/valorThreshold` com rótulo "derivada" (FR-009)
+- [x] 6.4.3 Componente `BudgetGauge` (mini-gráfico de gauge para progresso threshold)
+- [x] 6.4.4 Drill-down: clique num alerta navega para a execução/onda de origem (FR-022)
+- [x] 6.4.5 Aplicar 4 estados
 
 ### 6.5 Tela Métricas Agregadas (US5) `[M]`
 
 Ref: spec.md §User Story 5, FR-008, FR-009; research.md §Decision 5
 
-- [ ] 6.5.1 Criar `apps/web/src/screens/Metrics.tsx` com 8 gráficos/tabelas, uma por métrica
-- [ ] 6.5.2 `cost-over-time`: série temporal por dia, eixo-y rotulado "proxy: tool calls" (SC-002)
-- [ ] 6.5.3 `clarify-resolution`: card com badge "derivada/aproximada" visível (`meta.approximate=true`) (FR-009)
-- [ ] 6.5.4 Card "Indisponível nesta fonte" para mix de modelos — Princípio IV, D3 Opção A
-- [ ] 6.5.5 Seletor de período aplicado a todas as séries temporais
-- [ ] 6.5.6 Aplicar 4 estados
+- [x] 6.5.1 Criar `apps/web/src/screens/Metrics.tsx` com 8 gráficos/tabelas, uma por métrica
+- [x] 6.5.2 `cost-over-time`: série temporal por dia, eixo-y rotulado "proxy: tool calls" (SC-002)
+- [x] 6.5.3 `clarify-resolution`: card com badge "derivada/aproximada" visível (`meta.approximate=true`) (FR-009)
+- [x] 6.5.4 Card "Indisponível nesta fonte" para mix de modelos — Princípio IV, D3 Opção A
+- [x] 6.5.5 Seletor de período aplicado a todas as séries temporais
+- [x] 6.5.6 Aplicar 4 estados
 
 ### 6.6 Tela / Estados Degradados de 1ª Classe (US6) `[C]`
 
 Ref: spec.md §User Story 6, FR-005, FR-006; quickstart.md §Cenário 6
 
-- [ ] 6.6.1 Confirmar que `DegradedBanner` é renderizado em **todas** as telas quando `meta.degraded=true` (transversal — não por tela individual)
-- [ ] 6.6.2 Banner exibe `meta.reason` legível (`db-missing`, `db-corrupt`, `schema-mismatch`) + timestamp de frescor
-- [ ] 6.6.3 Tela de Overview com base ausente: `DegradedBanner` + KPIs vazos tipados, sem crash (SC-001)
-- [ ] 6.6.4 Skeleton de carregamento antes dos dados chegarem — nunca tela em branco (FR-006)
-- [ ] 6.6.5 Teste E2E: apontar `CSTK_KNOWLEDGE_DB=/tmp/nao-existe.db`, abrir todas as 5 telas — todas renderizam com `DegradedBanner` visível e sem erro de console (SC-001)
+- [x] 6.6.1 Confirmar que `DegradedBanner` é renderizado em **todas** as telas quando `meta.degraded=true` (transversal — não por tela individual)
+- [x] 6.6.2 Banner exibe `meta.reason` legível (`db-missing`, `db-corrupt`, `schema-mismatch`) + timestamp de frescor
+- [x] 6.6.3 Tela de Overview com base ausente: `DegradedBanner` + KPIs vazos tipados, sem crash (SC-001)
+- [x] 6.6.4 Skeleton de carregamento antes dos dados chegarem — nunca tela em branco (FR-006)
+- [x] 6.6.5 Teste E2E: apontar `CSTK_KNOWLEDGE_DB=/tmp/nao-existe.db`, abrir todas as 5 telas — todas renderizam com `DegradedBanner` visível e sem erro de console (SC-001)
 
 ---
 
