@@ -1165,5 +1165,6 @@
       "timestamp": "2026-05-24T20:51:08Z",
       "descricao": "onda-006 pausando por bloqueio humano block-001 (npm install)"
     }
-  ]
+  ],
+  "status": "em_andamento"
 }
