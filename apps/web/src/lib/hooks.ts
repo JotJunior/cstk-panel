@@ -59,6 +59,16 @@ export const ExecutionsPageSchema = z.object({
   executions: z.array(ExecutionDTOSchema),
   pagination: PaginationMetaSchema,
 });
+// Listas cross-execucao (tasks/events globais) carregam project/feature alem
+// do DTO base — passthrough para nao descartar a proveniencia.
+const TasksListPageSchema = z.object({
+  tasks: z.array(z.object({}).passthrough()),
+  pagination: z.object({}).passthrough(),
+});
+const EventsListPageSchema = z.object({
+  events: z.array(z.object({}).passthrough()),
+  pagination: z.object({}).passthrough(),
+});
 
 // Overview KPI — schema livre (endpoint retorna objeto ad-hoc)
 const OverviewDataSchema = z.object({}).passthrough();
@@ -219,6 +229,32 @@ export function useAlerts(opts?: { tipo?: string; project?: string; feature?: st
   return useQuery({
     queryKey: ['alerts', opts],
     queryFn: () => fetchApi(`/alerts${qs}`, AlertsPageSchema),
+  });
+}
+
+/** Tasks cross-execucao (tela Tarefas) */
+export function useTasksList(opts?: { project?: string; feature?: string; outcome?: 'pass' | 'fail' }) {
+  const params = new URLSearchParams();
+  if (opts?.project) params.set('project', opts.project);
+  if (opts?.feature) params.set('feature', opts.feature);
+  if (opts?.outcome) params.set('outcome', opts.outcome);
+  params.set('limit', '200');
+  return useQuery({
+    queryKey: ['tasks-list', opts],
+    queryFn: () => fetchApi(`/tasks?${params.toString()}`, TasksListPageSchema),
+  });
+}
+
+/** Eventos cross-execucao (tela Incidentes) */
+export function useEventsList(opts?: { eventType?: string; project?: string; period?: PeriodParam }) {
+  const params = new URLSearchParams();
+  if (opts?.eventType) params.set('event_type', opts.eventType);
+  if (opts?.project) params.set('project', opts.project);
+  if (opts?.period) params.set('period', opts.period);
+  params.set('limit', '200');
+  return useQuery({
+    queryKey: ['events-list', opts],
+    queryFn: () => fetchApi(`/events?${params.toString()}`, EventsListPageSchema),
   });
 }
 

@@ -26,6 +26,8 @@ function buildCrumbs(pathname: string): Crumb[] {
     executions: 'Execuções',
     alerts: 'Alertas',
     metrics: 'Métricas',
+    tasks: 'Tarefas',
+    incidents: 'Incidentes',
     search: 'Busca de Conhecimento',
   };
 

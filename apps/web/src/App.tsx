@@ -22,6 +22,8 @@ import { Projects } from '@/screens/Projects.js';
 import { ProjectDetail } from '@/screens/ProjectDetail.js';
 import { Features } from '@/screens/Features.js';
 import { FeatureDetail } from '@/screens/FeatureDetail.js';
+import { Tasks } from '@/screens/Tasks.js';
+import { Incidents } from '@/screens/Incidents.js';
 import { Placeholder } from '@/screens/Placeholder.js';
 import type { PeriodParam } from '@cstk-panel/shared-types';
 
@@ -64,6 +66,10 @@ export default function App() {
 
             {/* Metricas (US5) */}
             <Route path="/metrics" element={<Metrics period={period} />} />
+
+            {/* Tarefas e Incidentes (cross-execucao) */}
+            <Route path="/tasks" element={<Tasks />} />
+            <Route path="/incidents" element={<Incidents />} />
 
             {/* Busca FTS5 (US3) */}
             <Route path="/search" element={<Search />} />

@@ -20,6 +20,8 @@ const ROUTES: NavRoute[] = [
   { id: 'executions', label: 'Execuções', icon: 'activity', path: '/executions' },
   { id: 'alerts', label: 'Alertas', icon: 'alert', path: '/alerts' },
   { id: 'metrics', label: 'Métricas', icon: 'bar', path: '/metrics' },
+  { id: 'tasks', label: 'Tarefas', icon: 'check', path: '/tasks' },
+  { id: 'incidents', label: 'Incidentes', icon: 'zap', path: '/incidents' },
   { id: 'search', label: 'Busca de Conhecimento', icon: 'search', path: '/search' },
 ];
 
