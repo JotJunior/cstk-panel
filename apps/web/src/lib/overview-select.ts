@@ -4,12 +4,11 @@
  *
  * Funcao PURA (sem React/DOM) para ser testavel em node-env. Existe para
  * travar o CONTRATO de borda: o backend entrega kpis/arrays em camelCase
- * ingles (ver apps/server/src/db/queries/overview.ts); qualquer regressao
+ * ingles (ver apps/server/src/routes/overview.ts); qualquer regressao
  * para snake_case/portugues zera o dashboard e e pega pelo teste irmao.
  *
  * Ref: bug pos-entrega (KPIs zerados) — drift snake_case vs camelCase no
- * consumo do payload, nao detectado por testes de API (que validavam o
- * backend, correto). Spec §User Story 1.
+ * consumo do payload. Spec §User Story 1.
  */
 
 export interface OverviewKpisRaw {
@@ -22,6 +21,20 @@ export interface OverviewKpisRaw {
   totalWaves?: number | null;
   totalDecisions?: number | null;
   toolCallsTotal?: number | null;
+  wallclockTotal?: number | null;
+  testsPassed?: number | null;
+  testsTotal?: number | null;
+}
+
+export interface ModelMixRaw { modelo?: string | null; n?: number | null; }
+export interface ActivityRaw {
+  execucaoId?: string | null;
+  project?: string | null;
+  feature?: string | null;
+  wave?: string | null;
+  eventType?: string | null;
+  timestamp?: string | null;
+  descricao?: string | null;
 }
 
 export interface OverviewRaw {
@@ -30,6 +43,9 @@ export interface OverviewRaw {
   recentAlerts?: Array<Record<string, unknown>> | null;
   leaderboard?: Array<Record<string, unknown>> | null;
   funnel?: Array<{ etapa?: string | null; count?: number | null }> | null;
+  modelMix?: ModelMixRaw[] | null;
+  recentActivity?: ActivityRaw[] | null;
+  costSeries?: number[] | null;
 }
 
 export interface OverviewVM {
@@ -38,6 +54,9 @@ export interface OverviewVM {
   emAndamento: number;
   aguardando: number;
   totalToolCalls: number;
+  totalWallclock: number | null;
+  testsPassed: number | null;
+  testsTotal: number | null;
   totalWaves: number | null;
   totalDecisoes: number | null;
   totalExecucoes: number | null;
@@ -48,6 +67,9 @@ export interface OverviewVM {
   alertas: Array<Record<string, unknown>>;
   leaderboard: Array<Record<string, unknown>>;
   funnel: Array<{ etapa?: string | null; count?: number | null }>;
+  modelMix: ModelMixRaw[];
+  recentActivity: ActivityRaw[];
+  costSeries: number[];
   maxToolCalls: number;
   maxFunnel: number;
 }
@@ -58,6 +80,9 @@ export function selectOverview(raw: OverviewRaw | null | undefined): OverviewVM 
   const alertas = raw?.recentAlerts ?? [];
   const leaderboard = raw?.leaderboard ?? [];
   const funnel = raw?.funnel ?? [];
+  const modelMix = raw?.modelMix ?? [];
+  const recentActivity = raw?.recentActivity ?? [];
+  const costSeries = raw?.costSeries ?? [];
 
   return {
     totalProjects: kpis.totalProjects ?? 0,
@@ -66,6 +91,9 @@ export function selectOverview(raw: OverviewRaw | null | undefined): OverviewVM 
     // 'aguardando humano' nao vem em kpis — derivar das execucoes em andamento.
     aguardando: execucoes.filter(e => e['status'] === 'aguardando_humano').length,
     totalToolCalls: kpis.toolCallsTotal ?? 0,
+    totalWallclock: kpis.wallclockTotal ?? null,
+    testsPassed: kpis.testsPassed ?? null,
+    testsTotal: kpis.testsTotal ?? null,
     totalWaves: kpis.totalWaves ?? null,
     totalDecisoes: kpis.totalDecisions ?? null,
     totalExecucoes: kpis.totalExecutions ?? null,
@@ -76,6 +104,9 @@ export function selectOverview(raw: OverviewRaw | null | undefined): OverviewVM 
     alertas,
     leaderboard,
     funnel,
+    modelMix,
+    recentActivity,
+    costSeries,
     maxToolCalls: leaderboard.reduce(
       (m, row) => Math.max(m, (row['toolCallsTotal'] as number | null) ?? 0), 0,
     ),

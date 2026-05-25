@@ -40,6 +40,8 @@ export async function projectRoutes(server: FastifyInstance): Promise<void> {
         abortedExecutions: r.aborted_executions,
         totalDecisions: r.total_decisions,
         totalToolCalls: r.total_tool_calls,
+        totalWallclock: r.total_wallclock,
+        openAlerts: r.open_alerts,
         latestExecutionAt: r.latest_execution_at,
       }));
 
@@ -92,6 +94,13 @@ export async function projectRoutes(server: FastifyInstance): Promise<void> {
         activeExecutions: r.active_executions,
         completedExecutions: r.completed_executions,
         abortedExecutions: r.aborted_executions,
+        totalToolCalls: r.total_tool_calls,
+        totalWallclock: r.total_wallclock,
+        totalDecisions: r.total_decisions,
+        totalOndas: r.total_ondas,
+        totalBloqueios: r.total_bloqueios,
+        etapaCorrente: r.etapa_corrente,
+        openAlerts: r.open_alerts,
         latestStatus: r.latest_status,
         latestExecutionAt: r.latest_execution_at,
       }));
@@ -109,6 +118,8 @@ export async function projectRoutes(server: FastifyInstance): Promise<void> {
           abortedExecutions: projectRollup.aborted_executions,
           totalDecisions: projectRollup.total_decisions,
           totalToolCalls: projectRollup.total_tool_calls,
+          totalWallclock: projectRollup.total_wallclock,
+          openAlerts: projectRollup.open_alerts,
           latestExecutionAt: projectRollup.latest_execution_at,
         },
         features,

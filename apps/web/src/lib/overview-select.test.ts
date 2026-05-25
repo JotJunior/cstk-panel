@@ -14,12 +14,15 @@ const realPayload: OverviewRaw = {
     totalWaves: 246,
     totalDecisions: 964,
     toolCallsTotal: 194,
+    wallclockTotal: 38340,
+    testsPassed: 1337,
+    testsTotal: 1340,
   },
   inProgress: [
-    { execucaoId: 'exec-a', status: 'em_andamento', etapaCorrente: 'plan', ondasTotal: 12 },
-    { execucaoId: 'exec-b', status: 'aguardando_humano', etapaCorrente: 'execute-task', ondasTotal: 3 },
+    { execucaoId: 'exec-a', status: 'em_andamento', etapaCorrente: 'plan', ondasTotal: 12, toolCallsTotal: 88, wallclockSegundos: 2740 },
+    { execucaoId: 'exec-b', status: 'aguardando_humano', etapaCorrente: 'execute-task', ondasTotal: 3, toolCallsTotal: 12, wallclockSegundos: 980 },
   ],
-  recentAlerts: [{ execucaoId: 'exec-a', tipo: 'circular', descricao: 'x', wave: '-' }],
+  recentAlerts: [{ execucaoId: 'exec-a', tipo: 'circular', descricao: 'x', wave: '-', valorConsumido: null, valorThreshold: null }],
   leaderboard: [
     { feature: 'swagger-codegen', toolCallsTotal: 24 },
     { feature: 'knowledge-db', toolCallsTotal: 6 },
@@ -28,6 +31,15 @@ const realPayload: OverviewRaw = {
     { etapa: 'execute-task', count: 9 },
     { etapa: 'review-task', count: 4 },
   ],
+  modelMix: [
+    { modelo: 'sonnet', n: 11 },
+    { modelo: 'opus', n: 3 },
+    { modelo: 'haiku', n: 1 },
+  ],
+  recentActivity: [
+    { execucaoId: 'exec-a', eventType: 'schedule_wait', timestamp: '2026-05-24T20:00:00Z', descricao: 'pausando' },
+  ],
+  costSeries: [10, 40, 120, 24],
 };
 
 describe('selectOverview', () => {
@@ -73,6 +85,26 @@ describe('selectOverview', () => {
     expect(vm.totalToolCalls).toBe(0);
     expect(vm.execucoes.length).toBe(0);
     expect(vm.totalAlertas).toBe(0);
+  });
+
+  it('mapeia os campos enriquecidos (wallclock, test pass, mix, atividade, serie)', () => {
+    const vm = selectOverview(realPayload);
+    expect(vm.totalWallclock).toBe(38340);
+    expect(vm.testsPassed).toBe(1337);
+    expect(vm.testsTotal).toBe(1340);
+    expect(vm.modelMix.length).toBe(3);
+    expect(vm.modelMix[0]).toEqual({ modelo: 'sonnet', n: 11 });
+    expect(vm.recentActivity.length).toBe(1);
+    expect(vm.costSeries).toEqual([10, 40, 120, 24]);
+  });
+
+  it('campos enriquecidos ausentes caem para null/[] (sem quebrar telas antigas)', () => {
+    const vm = selectOverview({ kpis: { totalProjects: 1 } });
+    expect(vm.totalWallclock).toBeNull();
+    expect(vm.testsPassed).toBeNull();
+    expect(vm.modelMix).toEqual([]);
+    expect(vm.recentActivity).toEqual([]);
+    expect(vm.costSeries).toEqual([]);
   });
 
   it('tolera payload vazio/null sem quebrar', () => {

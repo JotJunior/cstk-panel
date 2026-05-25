@@ -18,6 +18,10 @@ import { Executions } from '@/screens/Executions.js';
 import { Search } from '@/screens/Search.js';
 import { Alerts } from '@/screens/Alerts.js';
 import { Metrics } from '@/screens/Metrics.js';
+import { Projects } from '@/screens/Projects.js';
+import { ProjectDetail } from '@/screens/ProjectDetail.js';
+import { Features } from '@/screens/Features.js';
+import { FeatureDetail } from '@/screens/FeatureDetail.js';
 import { Placeholder } from '@/screens/Placeholder.js';
 import type { PeriodParam } from '@cstk-panel/shared-types';
 
@@ -43,13 +47,13 @@ export default function App() {
             {/* Rota raiz — Visao Geral (US1) */}
             <Route path="/" element={<Overview period={period} />} />
 
-            {/* Projetos — FASE 6 nao cobre telas de projeto/feature individuais */}
-            <Route path="/projects" element={<Placeholder title="Projetos" description="Lista de projetos com rollup de execucoes." />} />
-            <Route path="/projects/:project" element={<Placeholder title="Detalhe do Projeto" description="Rollup de features, execucoes e custo." />} />
+            {/* Projetos */}
+            <Route path="/projects" element={<Projects />} />
+            <Route path="/projects/:project" element={<ProjectDetail />} />
 
             {/* Features */}
-            <Route path="/features" element={<Placeholder title="Features" description="Todas as features cross-project." />} />
-            <Route path="/features/:project/:feature" element={<Placeholder title="Detalhe da Feature" description="Execucoes, retros e metricas da feature." />} />
+            <Route path="/features" element={<Features />} />
+            <Route path="/features/:project/:feature" element={<FeatureDetail />} />
 
             {/* Execucoes (US2) */}
             <Route path="/executions" element={<Executions />} />

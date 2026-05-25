@@ -38,6 +38,8 @@ export interface ExecutionRollupRow {
   aborted_executions: number;
   total_decisions: number;
   total_tool_calls: number | null;
+  total_wallclock: number | null;
+  open_alerts: number;
   latest_execution_at: string | null;
 }
 
@@ -48,6 +50,13 @@ export interface FeatureRollupRow {
   active_executions: number;
   completed_executions: number;
   aborted_executions: number;
+  total_tool_calls: number | null;
+  total_wallclock: number | null;
+  total_decisions: number;
+  total_ondas: number | null;
+  total_bloqueios: number;
+  etapa_corrente: string | null;
+  open_alerts: number;
   latest_status: string | null;
   latest_execution_at: string | null;
 }
@@ -119,8 +128,10 @@ export function getRollupByProject(db: Database.Database): ExecutionRollupRow[] 
         sum(CASE WHEN status = 'abortada' THEN 1 ELSE 0 END) as aborted_executions,
         sum(coalesce(decisoes_total, 0)) as total_decisions,
         sum(tool_calls_total) as total_tool_calls,
+        sum(wallclock_total_segundos) as total_wallclock,
+        (SELECT count(*) FROM alert_signals a WHERE a.project = e.project) as open_alerts,
         max(iniciada_em) as latest_execution_at
-      FROM executions
+      FROM executions e
       GROUP BY project
       ORDER BY project
     `)
@@ -138,9 +149,19 @@ export function getRollupByFeature(db: Database.Database): FeatureRollupRow[] {
         sum(CASE WHEN status IN ('em_andamento','aguardando_humano') THEN 1 ELSE 0 END) as active_executions,
         sum(CASE WHEN status = 'concluida' THEN 1 ELSE 0 END) as completed_executions,
         sum(CASE WHEN status = 'abortada' THEN 1 ELSE 0 END) as aborted_executions,
+        sum(tool_calls_total) as total_tool_calls,
+        sum(wallclock_total_segundos) as total_wallclock,
+        sum(coalesce(decisoes_total, 0)) as total_decisions,
+        sum(coalesce(ondas_total, 0)) as total_ondas,
+        sum(coalesce(bloqueios_humanos_total, 0)) as total_bloqueios,
+        (SELECT etapa_corrente FROM executions e2
+         WHERE e2.project = e.project AND e2.feature = e.feature
+         ORDER BY iniciada_em DESC LIMIT 1) as etapa_corrente,
         (SELECT status FROM executions e2
          WHERE e2.project = e.project AND e2.feature = e.feature
          ORDER BY iniciada_em DESC LIMIT 1) as latest_status,
+        (SELECT count(*) FROM alert_signals a
+         WHERE a.project = e.project AND a.feature = e.feature) as open_alerts,
         max(iniciada_em) as latest_execution_at
       FROM executions e
       GROUP BY project, feature

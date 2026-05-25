@@ -1,17 +1,28 @@
 /**
- * Overview — tela Visao Geral (US1).
+ * Overview — tela Visao Geral (US1). Layout pixel-perfect do prototipo
+ * (docs/06-ui-ux-design/castk-panel/project/screens_main.jsx · OverviewScreen).
+ *
  * Consome useOverview(period) — dados reais da knowledge.db.
  * 4 estados: loading/empty/error/degraded (US6, FR-006).
  *
- * Principio III: nenhum rotulo usa "$"/USD/tokens — apenas "proxy: tool calls".
- * Ref: spec.md §User Story 1; tasks.md §6.1
+ * Principio III (Honestidade de Metrica): custo = proxy "tool calls",
+ * nunca "$"/tokens. Mix de modelos e DERIVADO de decisoes de roteamento
+ * logadas (FR-010) — rotulado como tal, nao e o relatorio canonico.
+ *
+ * Ref: spec.md §User Story 1; constitution §III, §IV
  */
 import { useNavigate } from 'react-router-dom';
 import { useOverview } from '@/lib/hooks.js';
 import { useApiState } from '@/hooks/useApiState.js';
 import { LoadingState, EmptyState, ErrorState, DegradedBanner } from '@/states/index.js';
-import { KpiCard, StatusBadge, Icon } from '@/components/index.js';
+import {
+  KpiCard, StatusBadge, SeverityBadge, BudgetMini, PipelineProgress,
+  Donut, BarH, FunnelChart, Icon, MiniStat,
+} from '@/components/index.js';
+import type { DonutDatum, FunnelDatum } from '@/components/index.js';
 import { selectOverview, type OverviewRaw } from '@/lib/overview-select.js';
+import { fmtNum, fmtDur, fmtPct, fmtRelative } from '@/lib/format.js';
+import { SDD_STAGES } from '@/lib/constants.js';
 import type { PeriodParam } from '@cstk-panel/shared-types';
 
 interface OverviewProps {
@@ -19,102 +30,42 @@ interface OverviewProps {
 }
 
 // ---------------------------------------------------------------------------
-// Helpers de formatacao
+// Helpers locais
 // ---------------------------------------------------------------------------
-function fmtNum(n: number | null | undefined): string {
-  if (n == null) return '—';
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
-  return String(n);
+/** Rotulo de feature; cai para id curto da execucao quando 'unknown'/ausente. */
+function featureLabel(feature: unknown, execId: unknown): string {
+  const f = feature as string | null;
+  if (f && f !== 'unknown') return f;
+  const e = execId as string | null;
+  return e ? e.slice(0, 22) + '…' : '—';
 }
 
-function fmtRelative(iso: string | null | undefined): string {
-  if (!iso) return '?';
-  const diff = (Date.now() - new Date(iso).getTime()) / 1000;
-  if (diff < 60) return 'agora';
-  if (diff < 3600) return `ha ${Math.floor(diff / 60)}m`;
-  if (diff < 86400) return `ha ${Math.floor(diff / 3600)}h`;
-  return `ha ${Math.floor(diff / 86400)}d`;
+const MODEL_COLOR: Record<string, string> = {
+  haiku: 'var(--model-haiku)',
+  sonnet: 'var(--model-sonnet)',
+  opus: 'var(--model-opus)',
+};
+function modelColor(m: string): string {
+  return MODEL_COLOR[m] ?? 'var(--model-fallback)';
 }
 
-// ---------------------------------------------------------------------------
-// Sub-componentes locais
-// ---------------------------------------------------------------------------
-const SDD_STAGES = [
-  'briefing','constitution','specify','clarify','plan',
-  'checklist','create-tasks','execute-task','review-task',
-];
-
-function PipelineProgress({ etapa, status }: { etapa: string | null; status: string | null }) {
-  const idx = etapa ? SDD_STAGES.indexOf(etapa) : -1;
-  const color =
-    status === 'concluida' ? 'var(--success)' :
-    status === 'abortada' ? 'var(--critical)' :
-    status === 'aguardando_humano' ? 'var(--warning)' :
-    'var(--inprogress)';
-
-  return (
-    <div style={{ display: 'flex', gap: 2, height: 3, borderRadius: 2, overflow: 'hidden' }}>
-      {SDD_STAGES.map((s, i) => (
-        <div
-          key={s}
-          style={{
-            flex: 1,
-            background: i <= idx ? color : 'var(--bg-4)',
-            borderRadius: 2,
-          }}
-        />
-      ))}
-    </div>
-  );
+/** Severidade derivada (rotulada): breach acima do teto = critico; senao atencao. */
+function deriveSeverity(a: Record<string, unknown>): 'critical' | 'warning' {
+  const consumido = a.valorConsumido as number | null;
+  const threshold = a.valorThreshold as number | null;
+  if (a.tipo === 'budget_breach' && consumido != null && threshold != null && consumido > threshold) {
+    return 'critical';
+  }
+  return 'warning';
 }
 
-function MiniBar({ label, value, max }: { label: string; value: number; max: number }) {
-  const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-      <div style={{
-        width: 110, fontSize: 11, color: 'var(--text-2)',
-        fontFamily: 'var(--font-mono)', overflow: 'hidden',
-        textOverflow: 'ellipsis', whiteSpace: 'nowrap', flexShrink: 0,
-      }}>
-        {label}
-      </div>
-      <div style={{ flex: 1, height: 6, background: 'var(--bg-3)', borderRadius: 3, overflow: 'hidden' }}>
-        <div style={{ width: `${pct}%`, height: '100%', background: 'var(--accent)', borderRadius: 3 }} />
-      </div>
-      <div style={{ width: 40, fontSize: 11, color: 'var(--text-1)', fontFamily: 'var(--font-mono)', textAlign: 'right', flexShrink: 0 }}>
-        {fmtNum(value)}
-      </div>
-    </div>
-  );
-}
+const EVENT_COLOR: Record<string, string> = {
+  lock_contention: 'var(--critical)',
+  validation_failed: 'var(--warning)',
+  wave_retry: 'var(--info)',
+  schedule_wait: 'var(--inprogress)',
+};
 
-function FunnelRow({ label, count, maxCount }: { label: string; count: number; maxCount: number }) {
-  const pct = maxCount > 0 ? Math.min(100, (count / maxCount) * 100) : 0;
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-      <div style={{
-        width: 96, fontSize: 10.5, color: 'var(--text-2)',
-        fontFamily: 'var(--font-mono)', textAlign: 'right', flexShrink: 0,
-      }}>
-        {label.length > 13 ? label.slice(0, 12) + '…' : label}
-      </div>
-      <div style={{ flex: 1, height: 14, background: 'var(--bg-3)', borderRadius: 3, overflow: 'hidden' }}>
-        <div style={{ width: `${pct}%`, height: '100%', background: 'rgba(34,211,238,0.4)', borderRadius: 3 }} />
-      </div>
-      <div style={{
-        width: 24, fontSize: 11, color: 'var(--text-1)',
-        fontFamily: 'var(--font-mono)', textAlign: 'right', flexShrink: 0,
-      }}>
-        {count}
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Overview principal
 // ---------------------------------------------------------------------------
 export function Overview({ period }: OverviewProps) {
   const navigate = useNavigate();
@@ -128,122 +79,148 @@ export function Overview({ period }: OverviewProps) {
   const raw = query.data?.data as Record<string, unknown> | null;
   const meta = query.data?.meta;
 
-  // View-model normalizado (camelCase do /overview). Logica pura e testada
-  // em lib/overview-select.test.ts — trava o contrato de borda snake_case→camelCase.
+  const vm = selectOverview(raw as OverviewRaw | null);
   const {
     totalProjects, totalFeatures, emAndamento, aguardando, totalToolCalls,
-    totalWaves, totalDecisoes, totalExecucoes, concluidas, abortadas,
-    totalAlertas, execucoes, alertas, leaderboard, funnel, maxToolCalls, maxFunnel,
-  } = selectOverview(raw as OverviewRaw | null);
+    totalWallclock, testsPassed, testsTotal, totalAlertas,
+    execucoes, alertas, leaderboard, funnel, modelMix, recentActivity,
+    costSeries, maxToolCalls,
+  } = vm;
+
+  // KPIs derivados
+  const nCriticos = (alertas as Record<string, unknown>[]).filter(a => deriveSeverity(a) === 'critical').length;
+  const passRate = testsTotal && testsTotal > 0 ? (testsPassed ?? 0) / testsTotal : null;
+
+  // Funil — sempre as 9 etapas SDD, na ordem canonica, mesmo se zeradas
+  const funnelByStage = new Map<string, number>();
+  for (const row of funnel as { etapa?: string | null; count?: number | null }[]) {
+    if (row.etapa) funnelByStage.set(row.etapa, row.count ?? 0);
+  }
+  const funnelData: FunnelDatum[] = SDD_STAGES.map(s => ({ label: s, count: funnelByStage.get(s) ?? 0 }));
+
+  // Mix de modelos (derivado)
+  const mixTotal = modelMix.reduce((a, m) => a + (m.n ?? 0), 0);
+  const donutData: DonutDatum[] = modelMix.map(m => ({
+    label: m.modelo ?? '?', value: m.n ?? 0, color: modelColor(m.modelo ?? ''),
+  }));
+
+  // Leaderboard de custo por feature
+  const barData = (leaderboard as Record<string, unknown>[]).slice(0, 8).map(row => ({
+    label: featureLabel(row.feature, row.execucaoId),
+    value: (row.toolCallsTotal as number | null) ?? 0,
+    color: 'var(--accent)',
+  }));
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {/* Banner degradado transversal */}
+    <div className="col gap-4">
       {isDegraded && meta && <DegradedBanner meta={meta} />}
 
+      {/* Cabecalho da pagina */}
+      <div className="page-head">
+        <div>
+          <h1>Visão Geral</h1>
+          <div className="sub">panorama do orquestrador · execuções, custo, alertas e qualidade</div>
+        </div>
+      </div>
+
       {/* KPI row — 6 cards */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))',
-        gap: 12,
-      }}>
-        <KpiCard label="Projetos" value={totalProjects} trend={`${totalFeatures} features`} />
+      <div className="grid-6">
+        <KpiCard label="Projetos ativos" value={totalProjects} icon="folder" footnote={`${totalFeatures} features`} />
         <KpiCard
           label="Em andamento"
           value={emAndamento}
-          trend={`${aguardando} aguard. humano`}
+          icon="activity"
+          footnote={`${aguardando} aguardando humano`}
           accent="accent"
         />
-        {totalAlertas > 0 ? (
-          <KpiCard label="Alertas abertos" value={totalAlertas} trend="sinais recentes" accent="warning" />
-        ) : (
-          <KpiCard label="Alertas abertos" value={totalAlertas} trend="nenhum recente" />
-        )}
+        <KpiCard
+          label="Alertas críticos"
+          value={totalAlertas}
+          icon="alert"
+          footnote={`${nCriticos} crítico${nCriticos !== 1 ? 's' : ''}`}
+          accent={nCriticos > 0 ? 'critical' : totalAlertas > 0 ? 'warning' : undefined}
+        />
         <KpiCard
           label="Custo · proxy"
           value={fmtNum(totalToolCalls)}
-          trend="tool_calls (nao tokens)"
+          icon="bolt"
+          footnote="tool_calls totais"
+          tip="O harness não expõe tokens — usamos tool_calls como proxy auditável."
+          spark={costSeries}
+          sparkColor="var(--accent)"
         />
-        <KpiCard label="Ondas" value={fmtNum(totalWaves)} trend="ondas executadas" />
-        <KpiCard label="Decisoes" value={fmtNum(totalDecisoes)} trend={`${fmtNum(totalExecucoes)} execucoes`} />
+        <KpiCard
+          label="Tempo de parede"
+          value={fmtDur(totalWallclock)}
+          icon="clock"
+          footnote="wallclock acumulado"
+        />
+        <KpiCard
+          label="Test pass rate"
+          value={passRate != null ? fmtPct(passRate, 1) : '—'}
+          icon="check"
+          footnote={testsTotal != null ? `${fmtNum(testsPassed)} / ${fmtNum(testsTotal)} testes` : 'sem testes'}
+          accent={passRate != null && passRate >= 0.99 ? 'success' : passRate != null && passRate < 0.9 ? 'warning' : undefined}
+        />
       </div>
 
-      {/* Grid principal 2 colunas */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 16 }}>
+      {/* Grid principal 2fr / 1fr */}
+      <div className="grid-overview">
         {/* Coluna esquerda */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 0 }}>
+        <div className="col gap-4" style={{ minWidth: 0 }}>
 
           {/* Execucoes em andamento */}
           <div className="card">
             <div className="card-head">
               <div className="row gap-2">
-                <h3>Execucoes em andamento</h3>
-                <span style={{
-                  background: 'var(--bg-3)', color: 'var(--text-1)', fontSize: 10,
-                  fontWeight: 600, fontFamily: 'var(--font-mono)',
-                  padding: '1px 7px', borderRadius: 10,
-                }}>
-                  {execucoes.length}
-                </span>
+                <h3>Execuções em andamento</h3>
+                <span className="tag">{execucoes.length}</span>
               </div>
-              <span
-                style={{ cursor: 'pointer', fontSize: 11.5, color: 'var(--text-2)' }}
-                onClick={() => navigate('/executions')}
-              >
-                ver todas →
-              </span>
+              <span className="muted hover-link" style={{ cursor: 'pointer', fontSize: 11.5 }} onClick={() => navigate('/executions')}>ver todas →</span>
             </div>
-            <div style={{ padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div className="col" style={{ padding: 12, gap: 10 }}>
               {execucoes.length === 0 ? (
                 <div style={{ padding: '16px 0', textAlign: 'center', color: 'var(--text-3)', fontSize: 12 }}>
-                  O orquestrador esta ocioso.
+                  O orquestrador está ocioso.
                 </div>
               ) : (
                 (execucoes as Record<string, unknown>[]).map((f, idx) => {
-                  const execId   = (f.execucaoId as string | null) ?? '';
-                  const status   = f.status as string | null;
-                  const etapa    = f.etapaCorrente as string | null;
-                  const project  = f.project as string | null;
-                  const feature  = f.feature as string | null;
-                  const title    = feature ?? execId.slice(0, 24);
+                  const execId = (f.execucaoId as string | null) ?? '';
+                  const status = f.status as 'em_andamento' | 'aguardando_humano' | 'concluida' | 'abortada' | null;
+                  const etapa = f.etapaCorrente as string | null;
+                  const project = f.project as string | null;
+                  const feature = f.feature as string | null;
+                  const title = featureLabel(feature, execId);
                   return (
                     <div
                       key={execId || idx}
-                      style={{
-                        background: 'var(--bg-2)', borderRadius: 'var(--r-sm)',
-                        border: '1px solid var(--border)', padding: '10px 12px', cursor: 'pointer',
-                      }}
+                      style={{ background: 'var(--bg-2)', borderRadius: 'var(--r-sm)', border: '1px solid var(--border)', padding: '10px 12px', cursor: 'pointer' }}
                       onClick={() => navigate(`/executions/${encodeURIComponent(execId)}`)}
                     >
                       <div className="row" style={{ justifyContent: 'space-between', marginBottom: 8 }}>
-                        <div>
+                        <div style={{ minWidth: 0 }}>
                           <div className="row gap-2" style={{ marginBottom: 2 }}>
-                            <StatusBadge status={status as 'em_andamento' | 'aguardando_humano' | 'concluida' | 'abortada' | null} />
+                            <StatusBadge status={status} />
                             <span style={{ fontWeight: 600, fontSize: 13 }}>{title}</span>
                           </div>
-                          <div style={{ fontSize: 11, color: 'var(--text-2)', fontFamily: 'var(--font-mono)' }}>
-                            {project}{project && feature ? ' / ' : ''}{feature}
+                          <div className="prov">
+                            <span>{project ?? '—'}</span>
+                            <span className="sep">·</span>
+                            <span>{execId.slice(0, 38)}…</span>
                           </div>
                         </div>
-                        <div className="row" style={{ gap: 16 }}>
-                          {[
-                            { label: 'ondas',      v: String(f.ondasTotal ?? '—') },
-                          ].map(stat => (
-                            <div key={stat.label} style={{ textAlign: 'right' }}>
-                              <div style={{ fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 2 }}>{stat.label}</div>
-                              <div style={{ fontSize: 13, fontWeight: 600, fontFamily: 'var(--font-mono)', color: 'var(--text-0)' }}>{stat.v}</div>
-                            </div>
-                          ))}
+                        <div className="row gap-3" style={{ flexShrink: 0 }}>
+                          <MiniStat label="tool_calls" value={fmtNum(f.toolCallsTotal as number | null)} align="end" />
+                          <MiniStat label="wallclock" value={fmtDur(f.wallclockSegundos as number | null)} align="end" />
+                          <MiniStat label="ondas" value={String(f.ondasTotal ?? '—')} align="end" />
                         </div>
                       </div>
                       <PipelineProgress etapa={etapa} status={status} />
                       <div className="row" style={{ justifyContent: 'space-between', marginTop: 6 }}>
-                        <span style={{ fontSize: 11, color: 'var(--text-2)' }}>
-                          etapa · <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--inprogress)' }}>{etapa ?? '—'}</span>
+                        <span className="muted" style={{ fontSize: 11 }}>
+                          etapa corrente · <span className="mono" style={{ color: 'var(--inprogress)' }}>{etapa ?? '—'}</span>
                         </span>
-                        <span style={{ fontSize: 11, color: 'var(--text-2)' }}>
-                          iniciada {fmtRelative(f.iniciadaEm as string | null)}
-                        </span>
+                        <span className="muted" style={{ fontSize: 11 }}>iniciada {fmtRelative(f.iniciadaEm as string | null)}</span>
                       </div>
                     </div>
                   );
@@ -256,94 +233,56 @@ export function Overview({ period }: OverviewProps) {
           <div className="card">
             <div className="card-head">
               <div className="row gap-2">
-                <h3>Alertas criticos recentes</h3>
+                <h3>Alertas críticos recentes</h3>
                 {alertas.length > 0 && (
-                  <span style={{
-                    background: 'var(--critical-soft)', color: 'var(--critical)', fontSize: 10,
-                    fontWeight: 600, fontFamily: 'var(--font-mono)',
-                    padding: '1px 7px', borderRadius: 10,
-                  }}>
-                    {alertas.length}
-                  </span>
+                  <span className="tag" style={{ background: 'var(--critical-soft)', color: 'var(--critical)', borderColor: 'transparent' }}>{alertas.length}</span>
                 )}
               </div>
-              <span
-                style={{ cursor: 'pointer', fontSize: 11.5, color: 'var(--text-2)' }}
-                onClick={() => navigate('/alerts')}
-              >
-                ver todos →
-              </span>
+              <span className="muted hover-link" style={{ cursor: 'pointer', fontSize: 11.5 }} onClick={() => navigate('/alerts')}>ver todos →</span>
             </div>
             <div style={{ overflowX: 'auto' }}>
               <table className="tbl">
                 <thead>
                   <tr>
                     <th>Tipo</th>
-                    <th>Proveniencia</th>
+                    <th>Proveniência</th>
+                    <th>Onda</th>
                     <th>Consumido / Threshold</th>
                     <th>Severidade</th>
                   </tr>
                 </thead>
                 <tbody>
                   {alertas.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-3)', padding: 24 }}>
-                        Nenhum alerta recente.
-                      </td>
-                    </tr>
+                    <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-3)', padding: 24 }}>Nenhum alerta recente.</td></tr>
                   ) : (
                     (alertas as Record<string, unknown>[]).slice(0, 5).map((a, idx) => {
-                      const tipo     = a.tipo as string | null;
-                      const subtipo  = a.subtipo as string | null;
-                      const execId   = a.execucaoId as string | null;
-                      const wave     = a.wave as string | null;
-                      const consumido  = a.valor_consumido as number | null;
-                      const threshold  = a.valor_threshold as number | null;
-                      const severity = a.severity as string | null;
-                      const pct = consumido != null && threshold != null && threshold > 0
-                        ? Math.min(999, Math.round((consumido / threshold) * 100))
-                        : null;
-                      const sevColor = severity === 'critical' ? 'var(--critical)' : 'var(--warning)';
+                      const tipo = a.tipo as string | null;
+                      const subtipo = a.subtipo as string | null;
+                      const execId = a.execucaoId as string | null;
+                      const wave = a.wave as string | null;
+                      const consumido = a.valorConsumido as number | null;
+                      const threshold = a.valorThreshold as number | null;
+                      const severity = deriveSeverity(a);
+                      const isCircular = tipo === 'circular';
+                      const validWave = wave && wave !== '-' ? wave : null;
                       return (
-                        <tr
-                          key={idx}
-                          className="clickable"
-                          onClick={() => navigate(`/executions/${encodeURIComponent(execId ?? '')}?tab=alerts`)}
-                        >
+                        <tr key={idx} className="clickable" onClick={() => navigate(`/executions/${encodeURIComponent(execId ?? '')}?tab=alerts`)}>
                           <td>
                             <div className="row gap-2">
-                              <Icon name={tipo === 'circular' ? 'activity' : 'alert'} size={13} style={{ color: sevColor }} />
-                              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-0)' }}>
-                                {tipo === 'circular' ? 'circular' : `breach·${subtipo ?? '?'}`}
+                              <Icon name={isCircular ? 'retry' : 'flame'} size={13} style={{ color: severity === 'critical' ? 'var(--critical)' : 'var(--warning)' }} />
+                              <span className="mono" style={{ fontSize: 12, color: 'var(--text-0)' }}>
+                                {isCircular ? 'movimento circular' : `breach · ${subtipo ?? '?'}`}
                               </span>
                             </div>
                           </td>
                           <td>
-                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-2)' }}>
-                              {execId?.slice(0, 28) ?? '—'}
-                              {wave ? <span> / <span style={{ color: 'var(--inprogress)' }}>{wave}</span></span> : null}
+                            <span className="prov">
+                              <span>{execId?.slice(0, 24) ?? '—'}…</span>
                             </span>
                           </td>
-                          <td>
-                            {pct != null ? (
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <div style={{ width: 60, height: 5, background: 'var(--bg-3)', borderRadius: 3, overflow: 'hidden' }}>
-                                  <div style={{ width: `${Math.min(100, pct)}%`, height: '100%', background: sevColor, borderRadius: 3 }} />
-                                </div>
-                                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-1)' }}>{pct}%</span>
-                              </div>
-                            ) : <span style={{ color: 'var(--text-3)' }}>—</span>}
-                          </td>
-                          <td>
-                            <span style={{
-                              display: 'inline-block', padding: '2px 7px', borderRadius: 10,
-                              fontSize: 11, fontWeight: 600,
-                              background: severity === 'critical' ? 'var(--critical-soft)' : 'var(--warning-soft)',
-                              color: sevColor,
-                            }}>
-                              {severity ?? '—'}
-                            </span>
-                          </td>
+                          <td className="mono" style={{ fontSize: 11.5, color: validWave ? 'var(--inprogress)' : 'var(--text-3)' }}>{validWave ?? '—'}</td>
+                          <td><BudgetMini value={consumido} threshold={threshold} unit={subtipo === 'wallclock' ? 's' : ''} /></td>
+                          <td><SeverityBadge severity={severity} /></td>
                         </tr>
                       );
                     })
@@ -357,100 +296,85 @@ export function Overview({ period }: OverviewProps) {
           <div className="card">
             <div className="card-head">
               <h3>Funil do pipeline · features por etapa corrente</h3>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-2)' }}>SDD · 9 etapas</span>
+              <span className="mono muted" style={{ fontSize: 11 }}>SDD · 9 etapas</span>
             </div>
-            <div style={{ padding: '14px 18px' }}>
-              {funnel.length === 0
-                ? SDD_STAGES.map(s => <FunnelRow key={s} label={s} count={0} maxCount={1} />)
-                : (funnel as Record<string, unknown>[]).map(row => (
-                    <FunnelRow
-                      key={row.etapa as string}
-                      label={(row.etapa as string | null) ?? '?'}
-                      count={(row.count as number | null) ?? 0}
-                      maxCount={maxFunnel}
-                    />
-                  ))}
+            <div className="card-pad">
+              <FunnelChart data={funnelData} />
             </div>
           </div>
         </div>
 
         {/* Coluna direita */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {/* Leaderboard */}
+        <div className="col gap-4">
+          {/* Mix de modelos (derivado) */}
           <div className="card">
             <div className="card-head">
-              <h3>Custo por feature · proxy</h3>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-2)' }}>tool_calls</span>
+              <h3>Mix de modelos</h3>
+              <span className="mono muted" style={{ fontSize: 11 }}>derivado · decisões</span>
             </div>
-            <div style={{ padding: '14px 18px' }}>
-              {leaderboard.length === 0 ? (
-                <div style={{ color: 'var(--text-3)', fontSize: 12, textAlign: 'center', padding: '16px 0' }}>
-                  Sem dados de leaderboard.
+            <div className="card-pad">
+              {mixTotal === 0 ? (
+                <div style={{ color: 'var(--text-3)', fontSize: 12, textAlign: 'center', padding: '12px 0' }}>
+                  indisponível nesta fonte · ver <span className="mono">model-routing-report.sh</span>
                 </div>
               ) : (
-                (leaderboard as Record<string, unknown>[]).slice(0, 8).map((row, idx) => (
-                  <MiniBar
-                    key={idx}
-                    label={(row.feature as string | null) ?? (row.execucaoId as string | null) ?? `#${idx + 1}`}
-                    value={(row.toolCallsTotal as number | null) ?? 0}
-                    max={maxToolCalls}
-                  />
-                ))
+                <div className="row" style={{ gap: 18 }}>
+                  <Donut data={donutData} size={132} thickness={20} centerLabel="decisões" centerValue={String(mixTotal)} />
+                  <div className="col" style={{ flex: 1, gap: 6 }}>
+                    {donutData.map(m => (
+                      <div key={m.label} className="row" style={{ justifyContent: 'space-between' }}>
+                        <div className="row gap-2">
+                          <span style={{ width: 8, height: 8, borderRadius: 2, background: m.color }} />
+                          <span className="mono" style={{ fontSize: 11.5 }}>{m.label}</span>
+                        </div>
+                        <span className="mono" style={{ fontSize: 12, color: 'var(--text-0)' }}>{fmtPct(m.value / mixTotal)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           </div>
 
-          {/* Status das features */}
+          {/* Custo por feature */}
           <div className="card">
             <div className="card-head">
-              <h3>Status das features</h3>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-2)' }}>{totalFeatures} total</span>
+              <h3>Custo por feature · proxy</h3>
+              <span className="mono muted" style={{ fontSize: 11 }}>tool_calls</span>
             </div>
-            <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {[
-                { key: 'em_andamento',     label: 'Em andamento',    color: 'var(--inprogress)', count: emAndamento },
-                { key: 'aguardando_humano', label: 'Aguard. humano', color: 'var(--warning)',    count: aguardando },
-                { key: 'concluida',        label: 'Concluidas',      color: 'var(--success)',    count: concluidas },
-                { key: 'abortada',         label: 'Abortadas',       color: 'var(--critical)',   count: abortadas },
-              ].map(item => (
-                <div key={item.key} className="row" style={{ justifyContent: 'space-between' }}>
-                  <div className="row gap-2">
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: item.color, flexShrink: 0 }} />
-                    <span style={{ fontSize: 12, color: 'var(--text-1)' }}>{item.label}</span>
-                  </div>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 600, color: 'var(--text-0)' }}>
-                    {item.count}
-                  </span>
-                </div>
-              ))}
+            <div className="card-pad">
+              {barData.length === 0 ? (
+                <div style={{ color: 'var(--text-3)', fontSize: 12, textAlign: 'center', padding: '12px 0' }}>Sem dados de leaderboard.</div>
+              ) : (
+                <BarH data={barData} maxLabel={150} max={maxToolCalls} />
+              )}
             </div>
           </div>
 
-          {/* Sumario de metricas */}
+          {/* Atividade recente */}
           <div className="card">
             <div className="card-head">
-              <h3>Sumario de metricas</h3>
-              <span
-                style={{ cursor: 'pointer', fontSize: 11.5, color: 'var(--text-2)' }}
-                onClick={() => navigate('/metrics')}
-              >
-                metricas →
-              </span>
+              <h3>Atividade recente</h3>
+              <span className="muted" style={{ fontSize: 11 }}>eventos</span>
             </div>
-            <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {[
-                { label: 'Total decisoes',  value: fmtNum(totalDecisoes) },
-                { label: 'Total ondas',     value: fmtNum(totalWaves) },
-                { label: 'Execucoes total', value: fmtNum(totalExecucoes) },
-                { label: 'Tool calls · proxy', value: fmtNum(totalToolCalls) },
-              ].map(stat => (
-                <div key={stat.label} className="row" style={{ justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 11.5, color: 'var(--text-2)' }}>{stat.label}</span>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--text-0)', fontWeight: 600 }}>
-                    {stat.value}
-                  </span>
-                </div>
-              ))}
+            <div className="card-pad col" style={{ gap: 10 }}>
+              {recentActivity.length === 0 ? (
+                <div style={{ color: 'var(--text-3)', fontSize: 12, textAlign: 'center', padding: '12px 0' }}>Sem eventos recentes.</div>
+              ) : (
+                recentActivity.slice(0, 8).map((a, i) => (
+                  <div key={i} className="row" style={{ alignItems: 'flex-start', gap: 10 }}>
+                    <div className="feed-dot" style={{ background: EVENT_COLOR[a.eventType ?? ''] ?? 'var(--text-3)' }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ color: 'var(--text-1)', fontSize: 12.5, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {a.descricao ?? a.eventType ?? '—'}
+                      </div>
+                      <div className="mono" style={{ color: 'var(--text-3)', fontSize: 10.5 }}>
+                        {a.eventType} · {fmtRelative(a.timestamp)}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>

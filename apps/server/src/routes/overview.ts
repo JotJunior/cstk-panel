@@ -12,7 +12,10 @@ import { openDb } from '../db/open.js';
 import { wrap, wrapDegraded } from '../lib/envelope.js';
 import { generateETag, etagMatches } from '../lib/etag.js';
 import { loadConfig } from '../config.js';
-import { getOverviewKPIs, getRecentAlerts, getActiveExecutions } from '../db/queries/overview.js';
+import {
+  getOverviewKPIs, getRecentAlerts, getActiveExecutions,
+  getModelMix, getRecentActivity, getCostSeries,
+} from '../db/queries/overview.js';
 import { getRollupByProject, getRollupByFeature } from '../db/queries/executions.js';
 
 const PeriodSchema = z.enum(['24h', '7d', '30d', 'all']).optional().default('7d');
@@ -54,6 +57,9 @@ export async function overviewRoutes(server: FastifyInstance): Promise<void> {
       const activeExecutions = getActiveExecutions(db);
       const projectRollups = getRollupByProject(db);
       const featureRollups = getRollupByFeature(db);
+      const modelMix = getModelMix(db);
+      const recentActivity = getRecentActivity(db);
+      const costSeries = getCostSeries(db);
 
       // Filtrar por periodo para leaderboard
       const allExecs = db
@@ -88,6 +94,9 @@ export async function overviewRoutes(server: FastifyInstance): Promise<void> {
           totalDecisions: kpis.total_decisions,
           /** proxy de custo — rotular como "proxy: tool calls" na UI */
           toolCallsTotal: kpis.total_tool_calls,
+          wallclockTotal: kpis.total_wallclock,
+          testsPassed: kpis.tests_passed,
+          testsTotal: kpis.tests_total,
           totalProjects: kpis.total_projects,
           totalFeatures: kpis.total_features,
         },
@@ -97,6 +106,8 @@ export async function overviewRoutes(server: FastifyInstance): Promise<void> {
           subtipo: a.subtipo,
           descricao: a.descricao,
           wave: a.wave,
+          valorConsumido: a.valor_consumido,
+          valorThreshold: a.valor_threshold,
         })),
         inProgress: activeExecutions.map(e => ({
           execucaoId: e.execucao_id,
@@ -106,7 +117,22 @@ export async function overviewRoutes(server: FastifyInstance): Promise<void> {
           etapaCorrente: e.etapa_corrente,
           iniciadaEm: e.iniciada_em,
           ondasTotal: e.ondas_total,
+          toolCallsTotal: e.tool_calls_total,
+          wallclockSegundos: e.wallclock_total_segundos,
         })),
+        /** mix derivado de decisoes de roteamento logadas (FR-010: nao e o
+         *  relatorio canonico; UI rotula como derivado). */
+        modelMix: modelMix.map(m => ({ modelo: m.modelo, n: m.n })),
+        recentActivity: recentActivity.map(a => ({
+          execucaoId: a.execucao_id,
+          project: a.project,
+          feature: a.feature,
+          wave: a.wave,
+          eventType: a.event_type,
+          timestamp: a.timestamp,
+          descricao: a.descricao,
+        })),
+        costSeries,
         leaderboard: filtered.slice(0, 10).map(e => ({
           execucaoId: e.execucao_id,
           project: e.project,

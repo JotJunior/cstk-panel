@@ -14,12 +14,12 @@ interface NavRoute {
 }
 
 const ROUTES: NavRoute[] = [
-  { id: 'overview', label: 'Visao Geral', icon: 'home', path: '/' },
+  { id: 'overview', label: 'Visão Geral', icon: 'home', path: '/' },
   { id: 'projects', label: 'Projetos', icon: 'folder', path: '/projects' },
   { id: 'features', label: 'Features', icon: 'git-branch', path: '/features' },
-  { id: 'executions', label: 'Execucoes', icon: 'activity', path: '/executions' },
+  { id: 'executions', label: 'Execuções', icon: 'activity', path: '/executions' },
   { id: 'alerts', label: 'Alertas', icon: 'alert', path: '/alerts' },
-  { id: 'metrics', label: 'Metricas', icon: 'bar', path: '/metrics' },
+  { id: 'metrics', label: 'Métricas', icon: 'bar', path: '/metrics' },
   { id: 'search', label: 'Busca de Conhecimento', icon: 'search', path: '/search' },
 ];
 

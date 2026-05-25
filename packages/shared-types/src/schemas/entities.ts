@@ -155,6 +155,8 @@ export const ProjectRollupSchema = z.object({
   abortedExecutions: z.number(),
   totalDecisions: z.number(),
   totalToolCalls: z.number().nullable(),
+  totalWallclock: z.number().nullable().optional(),
+  openAlerts: z.number().optional(),
   latestExecutionAt: z.string().nullable(),
 });
 
@@ -165,6 +167,13 @@ export const FeatureRollupSchema = z.object({
   activeExecutions: z.number(),
   completedExecutions: z.number(),
   abortedExecutions: z.number(),
+  totalToolCalls: z.number().nullable().optional(),
+  totalWallclock: z.number().nullable().optional(),
+  totalDecisions: z.number().optional(),
+  totalOndas: z.number().nullable().optional(),
+  totalBloqueios: z.number().optional(),
+  etapaCorrente: z.string().nullable().optional(),
+  openAlerts: z.number().optional(),
   latestStatus: z.enum(['em_andamento', 'aguardando_humano', 'concluida', 'abortada']).nullable(),
   latestExecutionAt: z.string().nullable(),
 });

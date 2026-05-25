@@ -63,6 +63,12 @@ export const ExecutionsPageSchema = z.object({
 // Overview KPI — schema livre (endpoint retorna objeto ad-hoc)
 const OverviewDataSchema = z.object({}).passthrough();
 
+// Detalhe de projeto/feature — objetos compostos (rollup + listas aninhadas).
+// Passthrough: o shape e validado nas bordas de cada sub-recurso; aqui so
+// garantimos objeto (ou null quando inexistente).
+const ProjectDetailSchema = z.object({}).passthrough().nullable();
+const FeatureDetailSchema = z.object({}).passthrough().nullable();
+
 // Metrics — schema livre por endpoint
 const MetricDataSchema = z.unknown();
 
@@ -86,7 +92,7 @@ export function useProjects() {
 export function useProject(project: string) {
   return useQuery({
     queryKey: ['projects', project],
-    queryFn: () => fetchApi(`/projects/${encodeURIComponent(project)}`, ProjectRollupSchema.nullable()),
+    queryFn: () => fetchApi(`/projects/${encodeURIComponent(project)}`, ProjectDetailSchema),
     enabled: Boolean(project),
   });
 }
@@ -107,7 +113,7 @@ export function useFeatures(project?: string, status?: string) {
 export function useFeature(project: string, feature: string) {
   return useQuery({
     queryKey: ['features', project, feature],
-    queryFn: () => fetchApi(`/features/${encodeURIComponent(project)}/${encodeURIComponent(feature)}`, FeatureRollupSchema.nullable()),
+    queryFn: () => fetchApi(`/features/${encodeURIComponent(project)}/${encodeURIComponent(feature)}`, FeatureDetailSchema),
     enabled: Boolean(project) && Boolean(feature),
   });
 }

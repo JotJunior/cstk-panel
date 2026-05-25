@@ -79,6 +79,36 @@ export function Icon({ name, size = 16, className, style, 'aria-hidden': ariaHid
       return <svg {...props}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
     case 'eye':
       return <svg {...props}><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>;
+    case 'bolt':
+      return <svg {...props}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>;
+    case 'help':
+      return <svg {...props}><circle cx="12" cy="12" r="9"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>;
+    case 'retry':
+      return <svg {...props}><polyline points="23 4 23 10 17 10"/><path d="M20.49 15A9 9 0 1 1 18 5.3L23 10"/></svg>;
+    case 'flame':
+      return <svg {...props}><path d="M8.5 14.5A2.5 2.5 0 0 0 11 17h2a4 4 0 0 0 4-4 6 6 0 0 0-6-6c-3.31 0-6 2.69-6 6 0 1.66.67 3.16 1.76 4.24"/><path d="M12 2c1 3 4 5 4 9"/></svg>;
+    case 'wait':
+      return <svg {...props}><circle cx="12" cy="12" r="9"/><polyline points="12 6 12 12 16 14"/></svg>;
+    case 'lock':
+      return <svg {...props}><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>;
+    case 'cancel':
+      return <svg {...props}><circle cx="12" cy="12" r="9"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>;
+    case 'pause':
+      return <svg {...props}><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>;
+    case 'tree':
+      return <svg {...props}><circle cx="12" cy="4" r="2"/><circle cx="5" cy="20" r="2"/><circle cx="19" cy="20" r="2"/><circle cx="12" cy="12" r="2"/><path d="M12 6v4M12 14l-6 4M12 14l6 4"/></svg>;
+    case 'doc':
+      return <svg {...props}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>;
+    case 'cpu':
+      return <svg {...props}><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>;
+    case 'spark':
+      return <svg {...props}><path d="M3 12c3 0 3-6 6-6s3 6 6 6 3-4 6-4"/></svg>;
+    case 'package':
+      return <svg {...props}><path d="m12 2 8 4v12l-8 4-8-4V6z"/><path d="M4 6l8 4 8-4"/><line x1="12" y1="10" x2="12" y2="22"/></svg>;
+    case 'sort':
+      return <svg {...props}><polyline points="8 4 8 20"/><polyline points="5 17 8 20 11 17"/><polyline points="16 20 16 4"/><polyline points="13 7 16 4 19 7"/></svg>;
+    case 'globe':
+      return <svg {...props}><circle cx="12" cy="12" r="9"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>;
     default:
       return <svg {...props}><circle cx="12" cy="12" r="9"/></svg>;
   }

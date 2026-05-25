@@ -181,6 +181,8 @@ export interface ProjectRollup {
   totalDecisions: number;
   /** custo proxy */
   totalToolCalls: number | null;
+  totalWallclock?: number | null;
+  openAlerts?: number;
   latestExecutionAt: string | null;
 }
 
@@ -191,6 +193,14 @@ export interface FeatureRollup {
   activeExecutions: number;
   completedExecutions: number;
   abortedExecutions: number;
+  /** custo proxy */
+  totalToolCalls?: number | null;
+  totalWallclock?: number | null;
+  totalDecisions?: number;
+  totalOndas?: number | null;
+  totalBloqueios?: number;
+  etapaCorrente?: string | null;
+  openAlerts?: number;
   latestStatus: 'em_andamento' | 'aguardando_humano' | 'concluida' | 'abortada' | null;
   latestExecutionAt: string | null;
 }

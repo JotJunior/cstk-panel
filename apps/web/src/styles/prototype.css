@@ -1,0 +1,211 @@
+/* cstk-panel — classes portadas do prototipo (fonte de verdade visual:
+ * docs/06-ui-ux-design/castk-panel/project/styles.css).
+ *
+ * Aditivo a tokens.css; importado DEPOIS dele em main.tsx para vencer em
+ * especificidade igual. Reproduz layout/charts do prototipo que tokens.css
+ * ainda nao cobria (kpi rico, grids, mstat, funil, prov, feed, eventos,
+ * waves, tabs, pipeline rotulado, tooltip, sparkline). */
+
+/* ---------- Utilitarios extra ---------- */
+.gap-3 { gap: 12px; }
+.gap-4 { gap: 16px; }
+.grow { flex: 1; min-width: 0; }
+.text-right { text-align: right; }
+.text-mono { font-family: var(--font-mono); }
+.muted { color: var(--text-2); }
+
+/* ---------- Grids do prototipo ---------- */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+.grid-6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+.grid-overview { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+@media (max-width: 1200px) {
+  .grid-5, .grid-6 { grid-template-columns: repeat(3, 1fr); }
+  .grid-overview { grid-template-columns: 1fr; }
+}
+
+/* ---------- KPI rico (prototipo .kpi) ---------- */
+.kpi {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 14px 14px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  overflow: hidden;
+  min-height: 96px;
+}
+.kpi .label {
+  font-size: 11px; color: var(--text-2);
+  text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;
+  display: flex; align-items: center; gap: 6px;
+}
+.kpi .value {
+  font-size: 24px; font-weight: 600; letter-spacing: -0.02em;
+  font-family: var(--font-mono); line-height: 1.1;
+}
+.kpi .value .unit { color: var(--text-2); font-size: 13px; font-weight: 500; margin-left: 4px; }
+.kpi .footnote { font-size: 11px; color: var(--text-2); font-family: var(--font-mono); }
+.kpi .spark { position: absolute; right: 8px; bottom: 8px; opacity: 0.85; }
+.kpi.accent { border-color: rgba(232,179,65,0.25); background: linear-gradient(180deg, rgba(232,179,65,0.05) 0%, var(--bg-1) 60%); }
+.kpi.critical { border-color: rgba(240,101,106,0.25); background: linear-gradient(180deg, rgba(240,101,106,0.06) 0%, var(--bg-1) 60%); }
+.kpi.warning { border-color: rgba(245,158,11,0.2); }
+
+/* ---------- Badge: alinhar ao prototipo (mono + dot pulsante) ---------- */
+.badge { font-family: var(--font-mono); font-weight: 600; }
+.badge.em_andamento .dot { background: var(--inprogress); animation: pulse-dot 1.6s ease-in-out infinite; }
+.badge.aguardando_humano .dot { background: var(--warning); }
+.badge.concluida .dot { background: var(--success); }
+.badge.abortada .dot { background: var(--critical); }
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.35); }
+}
+
+/* ---------- Tag / chip ---------- */
+.tag {
+  display: inline-flex; align-items: center;
+  padding: 1px 7px; border-radius: 4px;
+  background: var(--bg-3); color: var(--text-1);
+  font-size: 11px; font-family: var(--font-mono);
+  border: 1px solid var(--border);
+}
+.tag.accent { background: var(--accent-soft); color: var(--accent); border-color: var(--accent-line); }
+.chip-list { display: flex; flex-wrap: wrap; gap: 5px; }
+
+/* ---------- Botoes de toolbar ---------- */
+.tb-btn {
+  background: var(--bg-1); border: 1px solid var(--border); color: var(--text-1);
+  padding: 5px 10px; border-radius: var(--r-sm); font-size: 12px;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.tb-btn:hover { background: var(--bg-2); color: var(--text-0); }
+.tb-btn.primary { background: var(--accent); color: #1A140A; border-color: transparent; font-weight: 600; }
+.tb-btn.primary:hover { background: #F0C257; }
+
+/* ---------- Mini-stat ---------- */
+.mstat { display: flex; flex-direction: column; gap: 2px; }
+.mstat .label { font-size: 10.5px; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+.mstat .value { font-family: var(--font-mono); font-size: 14px; color: var(--text-0); font-weight: 500; }
+
+/* ---------- Card padding util ---------- */
+.card-pad { padding: 16px; }
+.divider { height: 1px; background: var(--border); margin: 12px 0; }
+
+/* ---------- Provenance crumb ---------- */
+.prov { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-mono); font-size: 11px; color: var(--text-2); }
+.prov a { color: var(--text-1); cursor: pointer; }
+.prov a:hover { color: var(--accent); }
+.prov .sep { color: var(--text-3); }
+
+/* ---------- Pipeline progress ---------- */
+.pipeline { display: flex; align-items: center; gap: 4px; width: 100%; }
+.pipeline .step { flex: 1; height: 4px; border-radius: 2px; background: var(--bg-3); position: relative; }
+.pipeline .step.done { background: var(--success); }
+.pipeline .step.current { background: var(--inprogress); }
+.pipeline .step.current::after {
+  content: ''; position: absolute; inset: -2px -1px; border-radius: 4px;
+  background: var(--inprogress); opacity: 0.2; animation: pulse-bar 1.8s ease-in-out infinite;
+}
+@keyframes pulse-bar { 50% { opacity: 0.5; } }
+.pipeline .step.aborted { background: var(--critical); opacity: 0.6; }
+
+.pipeline-labeled { display: grid; grid-template-columns: repeat(9, 1fr); gap: 6px; }
+.pipeline-labeled .stage { display: flex; flex-direction: column; gap: 5px; font-size: 10.5px; color: var(--text-3); font-family: var(--font-mono); }
+.pipeline-labeled .bar { height: 4px; border-radius: 2px; background: var(--bg-3); }
+.pipeline-labeled .stage.done .bar { background: var(--success); }
+.pipeline-labeled .stage.done { color: var(--text-1); }
+.pipeline-labeled .stage.current .bar { background: var(--inprogress); }
+.pipeline-labeled .stage.current { color: var(--inprogress); }
+
+/* ---------- Funnel ---------- */
+.funnel { display: flex; flex-direction: column; gap: 4px; }
+.funnel-row { display: grid; grid-template-columns: 110px 1fr 36px; align-items: center; gap: 10px; }
+.funnel-row .label { font-family: var(--font-mono); font-size: 11px; color: var(--text-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.funnel-row .bar { background: var(--bg-3); border-radius: 4px; height: 18px; position: relative; overflow: hidden; }
+.funnel-row .bar-fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); border-radius: 4px; opacity: 0.85; }
+.funnel-row .count { font-family: var(--font-mono); font-size: 12px; color: var(--text-0); text-align: right; }
+
+/* ---------- Sparkline ---------- */
+.spark-path { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.spark-fill { fill: currentColor; opacity: 0.12; }
+
+/* ---------- Activity feed ---------- */
+.feed-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-3); flex-shrink: 0; margin-top: 6px; }
+
+/* ---------- Event timeline ---------- */
+.events { position: relative; padding-left: 22px; }
+.events::before { content: ''; position: absolute; left: 6px; top: 6px; bottom: 6px; width: 1px; background: var(--border); }
+.event { position: relative; padding: 8px 0; display: grid; grid-template-columns: 80px 1fr; gap: 14px; }
+.event::before {
+  content: ''; position: absolute; left: -19px; top: 13px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--bg-1); border: 2px solid var(--text-3);
+}
+.event.lock_contention::before { border-color: var(--critical); }
+.event.validation_failed::before { border-color: var(--warning); }
+.event.wave_retry::before { border-color: var(--info); }
+.event.schedule_wait::before { border-color: var(--text-2); }
+.event .time { font-family: var(--font-mono); font-size: 11px; color: var(--text-2); }
+.event .body { color: var(--text-1); font-size: 12.5px; }
+
+/* ---------- Waves timeline (gantt) ---------- */
+.waves { display: flex; flex-direction: column; gap: 3px; }
+.wave-row {
+  display: grid; grid-template-columns: 90px 110px 1fr 70px 90px;
+  align-items: center; gap: 12px; padding: 8px 12px;
+  border-radius: var(--r-sm); cursor: pointer; font-size: 12px;
+}
+.wave-row:hover { background: var(--bg-hover); }
+.wave-row.selected { background: var(--bg-3); }
+.wave-id { font-family: var(--font-mono); color: var(--text-0); font-size: 11.5px; }
+.wave-etapa { font-family: var(--font-mono); color: var(--text-1); font-size: 11.5px; }
+.wave-bar-wrap { height: 20px; background: var(--bg-2); border-radius: 4px; position: relative; overflow: hidden; }
+.wave-bar { position: absolute; top: 0; bottom: 0; border-radius: 4px; display: flex; align-items: center; padding: 0 6px; font-family: var(--font-mono); font-size: 10.5px; color: rgba(255,255,255,0.85); }
+.wave-bar.etapa_concluida_avancando, .wave-bar.concluido { background: linear-gradient(90deg, rgba(74,222,128,0.45) 0%, rgba(74,222,128,0.25) 100%); border-left: 2px solid var(--success); }
+.wave-bar.threshold_proxy_atingido { background: linear-gradient(90deg, rgba(245,158,11,0.5) 0%, rgba(245,158,11,0.25) 100%); border-left: 2px solid var(--warning); }
+.wave-bar.bloqueio_humano { background: linear-gradient(90deg, rgba(96,165,250,0.45) 0%, rgba(96,165,250,0.2) 100%); border-left: 2px solid var(--info); }
+.wave-bar.aborto { background: linear-gradient(90deg, rgba(240,101,106,0.5) 0%, rgba(240,101,106,0.25) 100%); border-left: 2px solid var(--critical); }
+
+/* ---------- Tabs (prototipo) ---------- */
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); }
+.tabs button {
+  background: transparent; border: 0; color: var(--text-2);
+  padding: 9px 14px; font-size: 12.5px; font-weight: 500;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  display: inline-flex; align-items: center; gap: 7px;
+}
+.tabs button:hover { color: var(--text-0); }
+.tabs button.active { color: var(--text-0); border-bottom-color: var(--accent); }
+.tabs button .count { font-family: var(--font-mono); font-size: 10.5px; background: var(--bg-3); color: var(--text-1); padding: 1px 6px; border-radius: 9px; }
+.tabs button.active .count { background: var(--accent-soft); color: var(--accent); }
+
+/* ---------- Input ---------- */
+.input {
+  background: var(--bg-1); border: 1px solid var(--border); color: var(--text-0);
+  border-radius: var(--r-sm); padding: 6px 10px; font-size: 12.5px; outline: none;
+}
+.input:focus { border-color: var(--accent-line); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+/* ---------- Tooltip ---------- */
+.tooltip { position: relative; display: inline-flex; }
+.tooltip:hover::after {
+  content: attr(data-tip);
+  position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+  background: var(--bg-4); border: 1px solid var(--border-strong); border-radius: 4px;
+  padding: 4px 8px; font-size: 11px; white-space: nowrap; color: var(--text-0);
+  z-index: 50; pointer-events: none; box-shadow: var(--shadow-md);
+}
+
+/* ---------- Legend ---------- */
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11.5px; color: var(--text-2); }
+.legend .item { display: inline-flex; align-items: center; gap: 6px; }
+.legend .sw { width: 10px; height: 10px; border-radius: 3px; }
+
+/* ---------- Misc ---------- */
+.hover-link:hover { color: var(--accent) !important; }
+mark { background: rgba(232,179,65,0.25); color: var(--accent); padding: 0 2px; border-radius: 2px; }

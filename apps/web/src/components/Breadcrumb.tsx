@@ -16,16 +16,16 @@ function buildCrumbs(pathname: string): Crumb[] {
   const segments = pathname.split('/').filter(Boolean);
 
   if (segments.length === 0) {
-    crumbs.push({ label: 'Visao Geral', current: true });
+    crumbs.push({ label: 'Visão Geral', current: true });
     return crumbs;
   }
 
   const LABELS: Record<string, string> = {
     projects: 'Projetos',
     features: 'Features',
-    executions: 'Execucoes',
+    executions: 'Execuções',
     alerts: 'Alertas',
-    metrics: 'Metricas',
+    metrics: 'Métricas',
     search: 'Busca de Conhecimento',
   };
 
