@@ -264,7 +264,7 @@ function DecisionsPanel({ execucaoId, waveFilter }: { execucaoId: string; waveFi
   if (waveFilter) decOpts.wave = waveFilter;
   const query = useDecisions(execucaoId, decOpts);
   const { isLoading, isError, errorMessage } = useApiState(query);
-  const items: DecisionDTO[] = query.data?.data ?? [];
+  const items: DecisionDTO[] = query.data?.data?.decisions ?? [];
 
   if (isLoading) return <LoadingState />;
   if (isError) return <ErrorState message={errorMessage ?? 'Erro'} />;
@@ -358,7 +358,7 @@ function DecisionsPanel({ execucaoId, waveFilter }: { execucaoId: string; waveFi
 function TasksPanel({ execucaoId }: { execucaoId: string }) {
   const query = useTasks(execucaoId);
   const { isLoading, isError, errorMessage } = useApiState(query);
-  const items: TaskDTO[] = query.data?.data ?? [];
+  const items: TaskDTO[] = query.data?.data?.tasks ?? [];
 
   if (isLoading) return <LoadingState />;
   if (isError) return <ErrorState message={errorMessage ?? 'Erro'} />;

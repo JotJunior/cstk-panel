@@ -90,7 +90,7 @@ export function Alerts({ period }: AlertsProps) {
   if (filterFeature) alertsOpts.feature = filterFeature;
   const query = useAlerts(alertsOpts);
   const { isLoading, isError, errorMessage, isDegraded } = useApiState(query);
-  const items: AlertSignalDTO[] = query.data?.data ?? [];
+  const items: AlertSignalDTO[] = query.data?.data?.alerts ?? [];
   const meta = query.data?.meta;
 
   if (isLoading) return <LoadingState variant="kpi" />;

@@ -76,7 +76,7 @@ export function Search() {
   if (filterType) searchOpts.type = filterType;
   const query = useSearch(q, searchOpts);
   const { isLoading, isError, errorMessage } = useApiState(query);
-  const items: FtsHitDTO[] = query.data?.data ?? [];
+  const items: FtsHitDTO[] = query.data?.data?.results ?? [];
 
   // Distinguir entre "digitando" e "sem resultados"
   const isEmpty = !isLoading && !isError && q.length >= 2 && items.length === 0;

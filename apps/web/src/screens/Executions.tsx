@@ -47,7 +47,7 @@ export function Executions() {
   const limit = 25;
   const query = useExecutions(limit, page * limit);
   const { isLoading, isError, errorMessage, isDegraded } = useApiState(query);
-  const items: ExecutionDTO[] = query.data?.data ?? [];
+  const items: ExecutionDTO[] = query.data?.data?.executions ?? [];
   const meta = query.data?.meta;
 
   if (isLoading) return <LoadingState />;

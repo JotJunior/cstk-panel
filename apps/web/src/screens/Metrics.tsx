@@ -33,6 +33,30 @@ function fmtPct(n: number | null | undefined, digits = 1): string {
   return `${v.toFixed(digits)}%`;
 }
 
+// Agregacao client-side: os endpoints /metrics retornam ARRAYS de linhas
+// cruas (camelCase) — ver apps/server/src/db/queries/metrics.ts. As tabelas
+// de p50/p95/media sao derivadas aqui, nao vem prontas do backend.
+function nums(arr: unknown, key: string): number[] {
+  return Array.isArray(arr)
+    ? (arr as Record<string, unknown>[])
+        .map(r => r[key])
+        .filter((x): x is number => typeof x === 'number')
+    : [];
+}
+function sum(values: number[]): number { return values.reduce((a, b) => a + b, 0); }
+function mean(values: number[]): number | null {
+  return values.length ? sum(values) / values.length : null;
+}
+function percentile(values: number[], p: number): number | null {
+  if (!values.length) return null;
+  const v = [...values].sort((a, b) => a - b);
+  const idx = Math.min(v.length - 1, Math.floor((p / 100) * v.length));
+  return v[idx] ?? null;
+}
+function maxOf(values: number[]): number | null {
+  return values.length ? Math.max(...values) : null;
+}
+
 // ---------------------------------------------------------------------------
 // Mini charts (SVG simples — sem dep externa)
 // ---------------------------------------------------------------------------
@@ -204,18 +228,19 @@ export function Metrics({ period }: MetricsProps) {
   const { isDegraded } = useApiState(costQuery);
   const meta = costQuery.data?.meta;
 
-  const costData = costQuery.data?.data as Record<string, unknown> | null;
-  const testData = testQuery.data?.data as Record<string, unknown> | null;
-  const latData  = latencyQuery.data?.data as Record<string, unknown> | null;
-  const clarData = clarifyQuery.data?.data as Record<string, unknown> | null;
+  // cost-over-time e human-latency sao ARRAYS de linhas; test/clarify sao OBJETOS.
+  const costData = costQuery.data?.data as unknown;            // array {day, toolCalls}
+  const testData = testQuery.data?.data as Record<string, unknown> | null;   // {pass, fail, rate}
+  const latData  = latencyQuery.data?.data as unknown;         // array {execucaoId, latenciaSegundos}
+  const clarData = clarifyQuery.data?.data as Record<string, unknown> | null; // {total..., rate}
   const clarMetaRaw = clarifyQuery.data?.meta;
   const clarMetaApprox = (clarMetaRaw as unknown as Record<string, unknown> | null);
 
-  // KPIs summary
-  const totalToolCalls = (costData?.total as number | null) ?? null;
-  const passRate       = (testData?.pass_rate as number | null) ?? null;
-  const latP50         = (latData?.p50 as number | null) ?? null;
-  const autoResolve    = (clarData?.auto_resolve_rate as number | null) ?? null;
+  // KPIs summary — derivados dos arrays/objetos reais
+  const totalToolCalls = Array.isArray(costData) ? sum(nums(costData, 'toolCalls')) : null;
+  const passRate       = (testData?.rate as number | null) ?? null;
+  const latP50         = percentile(nums(latData, 'latenciaSegundos'), 50);
+  const autoResolve    = (clarData?.rate as number | null) ?? null;
   const isApproximate  = (clarMetaApprox?.approximate as boolean | undefined) ?? false;
 
   return (
@@ -258,7 +283,11 @@ export function Metrics({ period }: MetricsProps) {
           subtitle="proxy: tool calls por dia"
           period={period}
           renderContent={(raw) => {
-            const data = Array.isArray(raw) ? raw as TimeSeriesPoint[] : [];
+            const data: TimeSeriesPoint[] = Array.isArray(raw)
+              ? (raw as Record<string, unknown>[]).map(r => ({
+                  value: (r.toolCalls as number | null) ?? 0,
+                }))
+              : [];
             return (
               <>
                 <AreaChart data={data} color="var(--accent)" height={140} label="tool_calls / dia (proxy — nao tokens)" />
@@ -277,8 +306,23 @@ export function Metrics({ period }: MetricsProps) {
           subtitle="% de testes passando por dia"
           period={period}
           renderContent={(raw) => {
-            const data = Array.isArray(raw) ? raw as TimeSeriesPoint[] : [];
-            return <AreaChart data={data} color="var(--success)" height={140} />;
+            const d = raw as Record<string, unknown> | null;
+            if (!d) return null;
+            const rate = d.rate as number | null;
+            return (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                {[
+                  { label: 'Taxa', value: fmtPct(rate), color: rate != null && rate >= 0.8 ? 'var(--success)' : 'var(--warning)' },
+                  { label: 'Passaram', value: String(d.pass ?? '—'), color: 'var(--success)' },
+                  { label: 'Falharam', value: String(d.fail ?? '—'), color: (d.fail as number | null) ? 'var(--critical)' : undefined },
+                ].map(s => (
+                  <div key={s.label}>
+                    <div style={{ fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 2 }}>{s.label}</div>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 18, fontWeight: 700, color: s.color ?? 'var(--text-0)' }}>{s.value}</div>
+                  </div>
+                ))}
+              </div>
+            );
           }}
         />
 
@@ -305,17 +349,16 @@ export function Metrics({ period }: MetricsProps) {
           subtitle="tempo de resposta a bloqueios"
           period={period}
           renderContent={(raw) => {
-            const d = raw as Record<string, unknown> | null;
-            if (!d) return null;
+            const lat = nums(raw, 'latenciaSegundos');
+            if (!lat.length) return null;
             return (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
                 {[
-                  { label: 'p50', value: fmtDur(d.p50 as number | null) },
-                  { label: 'p95', value: fmtDur(d.p95 as number | null) },
-                  { label: 'max', value: fmtDur(d.max as number | null) },
-                  { label: 'count', value: String(d.count ?? '—') },
-                  { label: 'pendentes', value: String(d.pending ?? '—') },
-                  { label: 'respondidos', value: String(d.resolved ?? '—') },
+                  { label: 'p50', value: fmtDur(percentile(lat, 50)) },
+                  { label: 'p95', value: fmtDur(percentile(lat, 95)) },
+                  { label: 'max', value: fmtDur(maxOf(lat)) },
+                  { label: 'media', value: fmtDur(mean(lat) != null ? Math.round(mean(lat) as number) : null) },
+                  { label: 'bloqueios', value: String(lat.length) },
                 ].map(s => (
                   <div key={s.label}>
                     <div style={{ fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 2 }}>{s.label}</div>
@@ -336,7 +379,7 @@ export function Metrics({ period }: MetricsProps) {
           renderContent={(raw, { approximate }) => {
             const d = raw as Record<string, unknown> | null;
             if (!d) return null;
-            const autoRate = (d.auto_resolve_rate as number | null);
+            const autoRate = (d.rate as number | null);
             return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {approximate && (
@@ -349,10 +392,10 @@ export function Metrics({ period }: MetricsProps) {
                 )}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
                   {[
-                    { label: 'Auto-resolvidas', value: String(d.auto_resolved ?? '—'), color: 'var(--success)' },
-                    { label: 'Escaladas', value: String(d.escalated ?? '—'), color: 'var(--warning)' },
+                    { label: 'Auto-resolvidas', value: String(d.autonomouslyResolved ?? '—'), color: 'var(--success)' },
+                    { label: 'Escaladas', value: String(d.humanPaused ?? '—'), color: 'var(--warning)' },
                     { label: 'Taxa auto', value: fmtPct(autoRate), color: autoRate != null && autoRate >= 0.7 ? 'var(--success)' : 'var(--warning)' },
-                    { label: 'Total clarify', value: String(d.total ?? '—') },
+                    { label: 'Total clarify', value: String(d.totalClarifyDecisions ?? '—') },
                   ].map(s => (
                     <div key={s.label}>
                       <div style={{ fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 2 }}>{s.label}</div>
@@ -413,17 +456,17 @@ export function Metrics({ period }: MetricsProps) {
           subtitle="distribuicao de wallclock_segundos"
           period={period}
           renderContent={(raw) => {
-            const d = raw as Record<string, unknown> | null;
-            if (!d) return null;
+            const dur = nums(raw, 'duracaoSegundos');
+            if (!dur.length) return null;
+            const m = mean(dur);
             return (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
                 {[
-                  { label: 'p50', value: fmtDur(d.p50 as number | null) },
-                  { label: 'p95', value: fmtDur(d.p95 as number | null) },
-                  { label: 'max', value: fmtDur(d.max as number | null) },
-                  { label: 'media', value: fmtDur(d.mean as number | null) },
-                  { label: 'concluidas', value: String(d.completed ?? '—') },
-                  { label: 'abortadas', value: String(d.aborted ?? '—') },
+                  { label: 'p50', value: fmtDur(percentile(dur, 50)) },
+                  { label: 'p95', value: fmtDur(percentile(dur, 95)) },
+                  { label: 'max', value: fmtDur(maxOf(dur)) },
+                  { label: 'media', value: fmtDur(m != null ? Math.round(m) : null) },
+                  { label: 'execucoes', value: String(dur.length) },
                 ].map(s => (
                   <div key={s.label}>
                     <div style={{ fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 2 }}>{s.label}</div>
@@ -442,15 +485,18 @@ export function Metrics({ period }: MetricsProps) {
           subtitle="distribuicao de profundidade_max e subagentes_spawned"
           period={period}
           renderContent={(raw) => {
-            const d = raw as Record<string, unknown> | null;
-            if (!d) return null;
+            const depth = nums(raw, 'profundidadeMax');
+            const spawned = nums(raw, 'subagentesSpawned');
+            if (!depth.length && !spawned.length) return null;
+            const avgDepth = mean(depth);
+            const avgSpawned = mean(spawned);
             return (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
                 {[
-                  { label: 'Prof. media', value: String((d.avg_depth as number | null)?.toFixed(1) ?? '—') },
-                  { label: 'Prof. maxima', value: String(d.max_depth ?? '—') },
-                  { label: 'Spawns media', value: String((d.avg_spawned as number | null)?.toFixed(1) ?? '—') },
-                  { label: 'Spawns total', value: String(d.total_spawned ?? '—') },
+                  { label: 'Prof. media', value: avgDepth != null ? avgDepth.toFixed(1) : '—' },
+                  { label: 'Prof. maxima', value: String(maxOf(depth) ?? '—') },
+                  { label: 'Spawns media', value: avgSpawned != null ? avgSpawned.toFixed(1) : '—' },
+                  { label: 'Spawns total', value: String(sum(spawned)) },
                 ].map(s => (
                   <div key={s.label}>
                     <div style={{ fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 2 }}>{s.label}</div>

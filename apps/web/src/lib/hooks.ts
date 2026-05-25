@@ -21,18 +21,44 @@ import {
 } from '@cstk-panel/shared-types';
 import { z } from 'zod';
 
-// ---- Schemas de arrays (recursos de lista) ----
-const ExecutionListSchema = z.array(ExecutionDTOSchema);
+// ---- Schemas de arrays (sub-recursos de execucao retornam array puro) ----
 const WaveListSchema = z.array(WaveDTOSchema);
-const DecisionListSchema = z.array(DecisionDTOSchema);
-const TaskListSchema = z.array(TaskDTOSchema);
 const EventListSchema = z.array(EventDTOSchema);
 const AlertListSchema = z.array(AlertSignalDTOSchema);
 const BloqueioListSchema = z.array(BloqueioDTOSchema);
 const SkillListSchema = z.array(SkillDTOSchema);
 const ProjectListSchema = z.array(ProjectRollupSchema);
 const FeatureListSchema = z.array(FeatureRollupSchema);
-const FtsHitListSchema = z.array(FtsHitDTOSchema);
+
+// ---- Schemas de objetos paginados/embrulhados ----
+// Endpoints paginados retornam `data: { <chave>: [...], pagination }`
+// (ver apps/server/src/routes/*.ts) — NAO sao arrays puros.
+const PaginationMetaSchema = z.object({
+  total: z.number(),
+  limit: z.number(),
+  offset: z.number(),
+  hasMore: z.boolean(),
+});
+export const DecisionsPageSchema = z.object({
+  decisions: z.array(DecisionDTOSchema),
+  pagination: PaginationMetaSchema,
+});
+export const TasksResultSchema = z.object({
+  passRate: z.number().nullable(),
+  tasks: z.array(TaskDTOSchema),
+});
+export const AlertsPageSchema = z.object({
+  alerts: z.array(AlertSignalDTOSchema),
+  pagination: PaginationMetaSchema,
+});
+export const SearchPageSchema = z.object({
+  results: z.array(FtsHitDTOSchema),
+  pagination: PaginationMetaSchema,
+});
+export const ExecutionsPageSchema = z.object({
+  executions: z.array(ExecutionDTOSchema),
+  pagination: PaginationMetaSchema,
+});
 
 // Overview KPI — schema livre (endpoint retorna objeto ad-hoc)
 const OverviewDataSchema = z.object({}).passthrough();
@@ -90,7 +116,7 @@ export function useFeature(project: string, feature: string) {
 export function useExecutions(limit = 20, offset = 0) {
   return useQuery({
     queryKey: ['executions', limit, offset],
-    queryFn: () => fetchApi(`/executions?limit=${limit}&offset=${offset}`, ExecutionListSchema),
+    queryFn: () => fetchApi(`/executions?limit=${limit}&offset=${offset}`, ExecutionsPageSchema),
   });
 }
 
@@ -126,7 +152,7 @@ export function useDecisions(
   const qs = params.toString() ? `?${params.toString()}` : '';
   return useQuery({
     queryKey: ['decisions', execucaoId, opts],
-    queryFn: () => fetchApi(`/executions/${encodeURIComponent(execucaoId)}/decisions${qs}`, DecisionListSchema),
+    queryFn: () => fetchApi(`/executions/${encodeURIComponent(execucaoId)}/decisions${qs}`, DecisionsPageSchema),
     enabled: Boolean(execucaoId),
   });
 }
@@ -135,7 +161,7 @@ export function useDecisions(
 export function useTasks(execucaoId: string) {
   return useQuery({
     queryKey: ['tasks', execucaoId],
-    queryFn: () => fetchApi(`/executions/${encodeURIComponent(execucaoId)}/tasks`, TaskListSchema),
+    queryFn: () => fetchApi(`/executions/${encodeURIComponent(execucaoId)}/tasks`, TasksResultSchema),
     enabled: Boolean(execucaoId),
   });
 }
@@ -186,7 +212,7 @@ export function useAlerts(opts?: { tipo?: string; project?: string; feature?: st
   const qs = params.toString() ? `?${params.toString()}` : '';
   return useQuery({
     queryKey: ['alerts', opts],
-    queryFn: () => fetchApi(`/alerts${qs}`, AlertListSchema),
+    queryFn: () => fetchApi(`/alerts${qs}`, AlertsPageSchema),
   });
 }
 
@@ -203,7 +229,7 @@ export function useSearch(
   if (opts?.offset) params.set('offset', String(opts.offset));
   return useQuery({
     queryKey: ['search', q, opts],
-    queryFn: () => fetchApi(`/search?${params.toString()}`, FtsHitListSchema),
+    queryFn: () => fetchApi(`/search?${params.toString()}`, SearchPageSchema),
     enabled: q.length >= 2,
   });
 }

@@ -20,7 +20,7 @@ import { wrap, wrapDegraded } from '../lib/envelope.js';
 import { generateETag, etagMatches } from '../lib/etag.js';
 import { loadConfig } from '../config.js';
 import { safeParsePagination } from '../lib/pagination.js';
-import { getExecution } from '../db/queries/executions.js';
+import { getExecution, listExecutions } from '../db/queries/executions.js';
 import { listWavesByExecution } from '../db/queries/waves.js';
 import { listDecisions, countDecisions } from '../db/queries/decisions.js';
 import { listTasksByExecution } from '../db/queries/tasks.js';
@@ -29,7 +29,7 @@ import { listAlertsByExecution } from '../db/queries/alerts.js';
 import { listBloqueiosByExecution } from '../db/queries/bloqueios.js';
 import { listSkillsByExecution } from '../db/queries/skills.js';
 import {
-  mapExecution, mapWave, mapWaves, mapDecision, mapDecisions,
+  mapExecution, mapExecutions, mapWave, mapWaves, mapDecision, mapDecisions,
   mapTask, mapTasks, mapEvent, mapEvents,
   mapAlert, mapAlerts, mapBloqueio, mapBloqueios,
   mapSkill, mapSkills,
@@ -73,6 +73,36 @@ export async function executionRoutes(server: FastifyInstance): Promise<void> {
     return false;
   }
   void etagReply; // suppress unused warning — usaremos inline abaixo
+
+  // ─── GET /executions (lista paginada) ──────────────────────────────────────
+  // Rota estatica registrada ANTES da dinamica /:execucaoId.
+  server.get('/executions', async (request, reply) => {
+    const pagination = safeParsePagination(request.query as Record<string, string | undefined>);
+    const openResult = openDb(config.dbPath);
+    if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
+
+    const { db } = openResult;
+    try {
+      const all = mapExecutions(listExecutions(db));
+      const total = all.length;
+      const executions = all.slice(pagination.offset, pagination.offset + pagination.limit);
+      const data = {
+        executions,
+        pagination: {
+          total,
+          limit: pagination.limit,
+          offset: pagination.offset,
+          hasMore: pagination.offset + executions.length < total,
+        },
+      };
+      const envelope = wrap(data, {}, config.dbPath, db);
+      const etag = generateETag(envelope.meta.freshness);
+      const ifNoneMatch = request.headers['if-none-match'] as string | undefined;
+      if (etag && etagMatches(ifNoneMatch, etag)) return reply.status(304).send();
+      if (etag) void reply.header('ETag', etag);
+      return reply.status(200).send(envelope);
+    } finally { db.close(); }
+  });
 
   // ─── GET /executions/:execucaoId ───────────────────────────────────────────
   server.get('/executions/:execucaoId', async (request, reply) => {
