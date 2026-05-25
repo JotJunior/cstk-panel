@@ -22,7 +22,7 @@ import { loadConfig } from '../config.js';
 import { safeParsePagination } from '../lib/pagination.js';
 import { getExecution, listExecutions } from '../db/queries/executions.js';
 import { listWavesByExecution } from '../db/queries/waves.js';
-import { listDecisions, countDecisions } from '../db/queries/decisions.js';
+import { listDecisions, countDecisions, getDecisionScoreDistribution } from '../db/queries/decisions.js';
 import { listTasksByExecution } from '../db/queries/tasks.js';
 import { listEventsByExecution } from '../db/queries/events.js';
 import { listAlertsByExecution } from '../db/queries/alerts.js';
@@ -301,6 +301,22 @@ export async function executionRoutes(server: FastifyInstance): Promise<void> {
       const skills = mapSkills(rows);
       const envelope = wrap(skills, {}, config.dbPath, db);
       return reply.status(200).send(envelope);
+    } finally { db.close(); }
+  });
+
+  // ─── GET /executions/:execucaoId/score-distribution ───────────────────────
+  server.get('/executions/:execucaoId/score-distribution', async (request, reply) => {
+    const paramResult = validateParam(request.params);
+    if (!paramResult.success) return reply.status(400).send({ data: null, meta: emptyMeta(), error: 'Invalid execucaoId' });
+
+    const { execucaoId } = paramResult.data;
+    const openResult = openDb(config.dbPath);
+    if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
+
+    const { db } = openResult;
+    try {
+      const data = getDecisionScoreDistribution(db, execucaoId);
+      return reply.status(200).send(wrap(data, {}, config.dbPath, db));
     } finally { db.close(); }
   });
 }

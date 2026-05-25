@@ -218,6 +218,18 @@ export function useSkills(execucaoId: string) {
   });
 }
 
+// Distribuicao de score (0..3) de uma execucao (card lateral)
+const ScoreDistSchema = z.array(z.object({ score: z.number(), count: z.number() }));
+
+/** Distribuicao de decisoes por score de uma execucao */
+export function useScoreDistribution(execucaoId: string) {
+  return useQuery({
+    queryKey: ['score-dist', execucaoId],
+    queryFn: () => fetchApi(`/executions/${encodeURIComponent(execucaoId)}/score-distribution`, ScoreDistSchema),
+    enabled: Boolean(execucaoId),
+  });
+}
+
 /** Alertas cross-execucao */
 export function useAlerts(opts?: { tipo?: string; project?: string; feature?: string; period?: PeriodParam }) {
   const params = new URLSearchParams();
@@ -276,10 +288,44 @@ export function useSearch(
   });
 }
 
+// ---- Health / Fonte de Dados ----
+// Schema local (health e especifico do servidor, nao um DTO de dominio).
+const HealthDataSchema = z.object({
+  ok: z.boolean(),
+  dbReachable: z.boolean(),
+  quickCheck: z.boolean(),
+  path: z.string(),
+  sizeBytes: z.number().nullable(),
+  counts: z.object({
+    executions: z.number(),
+    waves: z.number(),
+    decisions: z.number(),
+    tasks: z.number(),
+    events: z.number(),
+    alertSignals: z.number(),
+    bloqueios: z.number(),
+    skills: z.number(),
+    retros: z.number(),
+    ftsDecisoes: z.number(),
+    ftsRetros: z.number(),
+  }),
+});
+
+export type HealthData = z.infer<typeof HealthDataSchema>;
+
+/** Saude do servidor + DB (tela Fonte de Dados, frescor da Sidebar). */
+export function useHealth() {
+  return useQuery({
+    queryKey: ['health'],
+    queryFn: () => fetchApi('/health', HealthDataSchema),
+  });
+}
+
 /** Metrica por nome */
 export function useMetric(
-  name: 'cost-over-time' | 'throughput-by-stage' | 'test-pass-rate' | 'human-latency'
-       | 'clarify-resolution' | 'decisions-by-score' | 'execution-duration' | 'depth-subagents',
+  name: 'cost-over-time' | 'throughput-by-stage' | 'test-pass-rate' | 'test-pass-rate-series'
+       | 'human-latency' | 'clarify-resolution' | 'decisions-by-score' | 'execution-duration' | 'depth-subagents'
+       | 'model-mix' | 'model-mix-by-stage',
   period?: PeriodParam
 ) {
   const qs = period ? `?period=${period}` : '';

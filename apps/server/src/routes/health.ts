@@ -6,6 +6,7 @@
  * Sempre retorna 200 — mesmo degradado (Principio II).
  * meta.degraded indica o estado do DB.
  */
+import { statSync } from 'node:fs';
 import type { FastifyInstance } from 'fastify';
 import { openDb } from '../db/open.js';
 import { wrap, wrapDegraded } from '../lib/envelope.js';
@@ -16,6 +17,10 @@ export interface HealthData {
   ok: boolean;
   dbReachable: boolean;
   quickCheck: boolean;
+  /** Caminho do arquivo knowledge.db (tela Fonte de Dados). */
+  path: string;
+  /** Tamanho do arquivo em bytes; null se indisponivel. */
+  sizeBytes: number | null;
   counts: {
     executions: number;
     waves: number;
@@ -23,8 +28,18 @@ export interface HealthData {
     tasks: number;
     events: number;
     alertSignals: number;
+    bloqueios: number;
+    skills: number;
+    retros: number;
+    ftsDecisoes: number;
+    ftsRetros: number;
   };
 }
+
+const EMPTY_COUNTS: HealthData['counts'] = {
+  executions: 0, waves: 0, decisions: 0, tasks: 0, events: 0, alertSignals: 0,
+  bloqueios: 0, skills: 0, retros: 0, ftsDecisoes: 0, ftsRetros: 0,
+};
 
 export async function healthRoutes(server: FastifyInstance): Promise<void> {
   const config = loadConfig();
@@ -38,7 +53,9 @@ export async function healthRoutes(server: FastifyInstance): Promise<void> {
         ok: false,
         dbReachable: false,
         quickCheck: false,
-        counts: { executions: 0, waves: 0, decisions: 0, tasks: 0, events: 0, alertSignals: 0 },
+        path: config.dbPath,
+        sizeBytes: null,
+        counts: { ...EMPTY_COUNTS },
       };
       // Retornar shape valido mesmo degradado
       return reply.status(200).send({
@@ -49,30 +66,37 @@ export async function healthRoutes(server: FastifyInstance): Promise<void> {
 
     const { db } = openResult;
     try {
-      // Contar entidades
+      // Contagem por tabela; tabelas opcionais sob try/catch (schemas v2 variam).
       type CountRow = { n: number };
-      const execCount = (db.prepare('SELECT count(*) as n FROM executions').get() as CountRow).n;
-      const wavesCount = (db.prepare('SELECT count(*) as n FROM waves').get() as CountRow).n;
-      const decisionsCount = (db.prepare('SELECT count(*) as n FROM decisions').get() as CountRow).n;
+      const countOf = (table: string): number => {
+        try { return (db.prepare(`SELECT count(*) as n FROM ${table}`).get() as CountRow).n; }
+        catch { return 0; }
+      };
 
-      // Tasks e events podem nao existir em todos os schemas v2
-      let tasksCount = 0, eventsCount = 0, alertsCount = 0;
-      try { tasksCount = (db.prepare('SELECT count(*) as n FROM tasks').get() as CountRow).n; } catch { /* ignorar */ }
-      try { eventsCount = (db.prepare('SELECT count(*) as n FROM events').get() as CountRow).n; } catch { /* ignorar */ }
-      try { alertsCount = (db.prepare('SELECT count(*) as n FROM alert_signals').get() as CountRow).n; } catch { /* ignorar */ }
+      const counts: HealthData['counts'] = {
+        executions: countOf('executions'),
+        waves: countOf('waves'),
+        decisions: countOf('decisions'),
+        tasks: countOf('tasks'),
+        events: countOf('events'),
+        alertSignals: countOf('alert_signals'),
+        bloqueios: countOf('bloqueios'),
+        skills: countOf('skills'),
+        retros: countOf('retros'),
+        ftsDecisoes: countOf('fts_decisoes'),
+        ftsRetros: countOf('fts_retros'),
+      };
+
+      let sizeBytes: number | null = null;
+      try { sizeBytes = statSync(config.dbPath).size; } catch { /* ignorar */ }
 
       const data: HealthData = {
         ok: true,
         dbReachable: true,
         quickCheck: true,
-        counts: {
-          executions: execCount,
-          waves: wavesCount,
-          decisions: decisionsCount,
-          tasks: tasksCount,
-          events: eventsCount,
-          alertSignals: alertsCount,
-        },
+        path: config.dbPath,
+        sizeBytes,
+        counts,
       };
 
       const envelope = wrap(data, {}, config.dbPath, db);

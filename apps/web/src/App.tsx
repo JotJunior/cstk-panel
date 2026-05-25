@@ -24,8 +24,11 @@ import { Features } from '@/screens/Features.js';
 import { FeatureDetail } from '@/screens/FeatureDetail.js';
 import { Tasks } from '@/screens/Tasks.js';
 import { Incidents } from '@/screens/Incidents.js';
+import { Source } from '@/screens/Source.js';
 import { Placeholder } from '@/screens/Placeholder.js';
-import type { PeriodParam } from '@cstk-panel/shared-types';
+import { useHealth, useAlerts } from '@/lib/hooks.js';
+import { fmtRelative } from '@/lib/format.js';
+import type { PeriodParam, AlertSignalDTO } from '@cstk-panel/shared-types';
 
 // Periodo global — compartilhado entre telas (elevado ao App)
 type Period = PeriodParam;
@@ -33,10 +36,25 @@ type Period = PeriodParam;
 export default function App() {
   const [period, setPeriod] = useState<Period>('7d');
 
+  // Frescor + contagem de alertas criticos para a Sidebar (CARD-SHELL-03).
+  const healthQ = useHealth();
+  const alertsQ = useAlerts({ period });
+  const fresh = healthQ.data?.meta?.freshness;
+  const freshness = {
+    label: fmtRelative(fresh?.maxIngestedAt || fresh?.mtime),
+    degraded: healthQ.data?.meta?.degraded ?? false,
+  };
+  const alertItems: AlertSignalDTO[] = alertsQ.data?.data?.alerts ?? [];
+  const alertCount = alertItems.filter((a) =>
+    a.valorConsumido != null && a.valorThreshold != null && a.valorThreshold > 0
+      ? a.valorConsumido / a.valorThreshold >= 1
+      : false,
+  ).length;
+
   return (
     <div className="app">
       {/* Sidebar 232px fixo */}
-      <Sidebar />
+      <Sidebar alertCount={alertCount} freshness={freshness} />
 
       {/* Area principal */}
       <div className="main">
@@ -73,6 +91,9 @@ export default function App() {
 
             {/* Busca FTS5 (US3) */}
             <Route path="/search" element={<Search />} />
+
+            {/* Fonte de dados */}
+            <Route path="/source" element={<Source />} />
 
             {/* Fallback */}
             <Route path="*" element={<Placeholder title="Pagina nao encontrada" description="A rota solicitada nao existe." />} />

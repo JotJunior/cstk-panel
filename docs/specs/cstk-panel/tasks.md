@@ -340,7 +340,7 @@ Ref: spec.md §User Story 5, FR-008, FR-009; research.md §Decision 5
 - [x] 6.5.1 Criar `apps/web/src/screens/Metrics.tsx` com 8 gráficos/tabelas, uma por métrica
 - [x] 6.5.2 `cost-over-time`: série temporal por dia, eixo-y rotulado "proxy: tool calls" (SC-002)
 - [x] 6.5.3 `clarify-resolution`: card com badge "derivada/aproximada" visível (`meta.approximate=true`) (FR-009)
-- [x] 6.5.4 Card "Indisponível nesta fonte" para mix de modelos — Princípio IV, D3 Opção A
+- [x] 6.5.4 Card de mix de modelos — ~~"Indisponível nesta fonte" (D3 Opção A)~~ **revisado 2026-05-25**: exibe mix DERIVADO rotulado (intenção do roteador), consistente com Overview/FR-010. Ver research.md D3.
 - [x] 6.5.5 Seletor de período aplicado a todas as séries temporais
 - [x] 6.5.6 Aplicar 4 estados
 
@@ -514,7 +514,7 @@ flowchart TD
 | Item | Descrição | Motivo |
 |------|-----------|--------|
 | Autenticação / RBAC | Sem auth no MVP | spec.md FR-017: "sem autenticação/RBAC reais no MVP"; uso ferramental/individual |
-| Mix de modelos | Sem reimplementação nem delegação via subprocesso | Constitution Princípio IV; D3 Opção A (research.md); exibiria "indisponível nesta fonte" |
+| Mix de modelos | Sem reimplementação do relatório canônico nem delegação via subprocesso; exibe **visão DERIVADA rotulada** das decisões logadas | Constitution Princípio IV; FR-010 ("derivado"); D3 revisado 2026-05-25 (research.md) |
 | Árvore de decisões (skill decision-tree) | O painel delega à skill; não reimplementa | Constitution Princípio IV; FR-010 |
 | Reindex (`cstk recall --reindex`) | Dono externo — painel nunca chama `--reindex` | spec.md FR-003; Constitution I |
 | Escrita em `state.json` | Painel é consumidor derivado; `state.json` fora do escopo | spec.md FR-003; Constitution I |

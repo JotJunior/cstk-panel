@@ -31,6 +31,7 @@ interface TaskRow {
 export function Tasks() {
   const navigate = useNavigate();
   const [filter, setFilter] = useState<Outcome>('all');
+  const [projectFilter, setProjectFilter] = useState('');
   const query = useTasksList();
   const { isLoading, isError, errorMessage, isEmpty } = useApiState(query);
 
@@ -39,7 +40,11 @@ export function Tasks() {
   if (isEmpty) return <EmptyState title="Nenhuma tarefa" subtitle="Execute o orquestrador para ver dados aqui." />;
 
   const all = ((query.data?.data as { tasks?: TaskRow[] } | null)?.tasks ?? []);
-  const filtered = filter === 'all' ? all : all.filter(t => t.outcome === filter);
+  const projects = Array.from(new Set(all.map(t => t.project))).sort();
+  const filtered = all.filter(t =>
+    (filter === 'all' || t.outcome === filter) &&
+    (projectFilter === '' || t.project === projectFilter),
+  );
 
   const total = all.length;
   const fails = all.filter(t => t.outcome === 'fail').length;
@@ -70,12 +75,23 @@ export function Tasks() {
       <div className="card">
         <div className="card-head">
           <h3>Tarefas</h3>
-          <div className="period-tabs" role="tablist">
-            {(['all', 'pass', 'fail'] as Outcome[]).map(o => (
-              <button key={o} className={filter === o ? 'active' : ''} onClick={() => setFilter(o)}>
-                {o === 'all' ? 'todas' : o}
-              </button>
-            ))}
+          <div className="row gap-2">
+            <div className="period-tabs" role="tablist">
+              {(['all', 'pass', 'fail'] as Outcome[]).map(o => (
+                <button key={o} className={filter === o ? 'active' : ''} onClick={() => setFilter(o)}>
+                  {o === 'all' ? 'todas' : o}
+                </button>
+              ))}
+            </div>
+            <select
+              className="select"
+              aria-label="Filtrar por projeto"
+              value={projectFilter}
+              onChange={e => setProjectFilter(e.target.value)}
+            >
+              <option value="">Todos os projetos</option>
+              {projects.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
           </div>
         </div>
         <div style={{ overflowX: 'auto' }}>

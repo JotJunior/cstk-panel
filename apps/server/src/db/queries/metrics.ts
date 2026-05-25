@@ -114,6 +114,50 @@ export function getTestPassRate(db: Database.Database): TestPassRateResult {
 }
 
 // ─────────────────────────────────────────────────────────
+// 3b. test-pass-rate-series — taxa de testes passando por DIA
+//     (tasks nao tem timestamp; agrupa por date(executions.iniciada_em))
+// ─────────────────────────────────────────────────────────
+
+export interface TestPassRateSeriesRow {
+  day: string;   // 'YYYY-MM-DD'
+  pass: number;
+  fail: number;
+  rate: number;  // 0..1
+}
+
+export function getTestPassRateSeries(
+  db: Database.Database,
+  filters: { period?: MetricPeriod } = {}
+): TestPassRateSeriesRow[] {
+  const conditions: string[] = ['t.outcome IS NOT NULL'];
+  const pf = periodToFilter(filters.period);
+  if (pf) conditions.push(`e.iniciada_em >= ${pf}`);
+  const where = `WHERE ${conditions.join(' AND ')}`;
+
+  const rows = db
+    .prepare(`
+      SELECT date(e.iniciada_em) as day,
+             sum(CASE WHEN t.outcome = 'pass' THEN 1 ELSE 0 END) as pass,
+             sum(CASE WHEN t.outcome = 'fail' THEN 1 ELSE 0 END) as fail
+      FROM tasks t
+      JOIN executions e ON e.execucao_id = t.execucao_id
+      ${where}
+      GROUP BY day
+      ORDER BY day ASC
+    `)
+    .all() as { day: string | null; pass: number | null; fail: number | null }[];
+
+  return rows
+    .filter(r => r.day != null)
+    .map(r => {
+      const pass = r.pass ?? 0;
+      const fail = r.fail ?? 0;
+      const total = pass + fail;
+      return { day: r.day as string, pass, fail, rate: total > 0 ? pass / total : 0 };
+    });
+}
+
+// ─────────────────────────────────────────────────────────
 // 4. human-latency — latencia de resolucao de bloqueios humanos
 // ─────────────────────────────────────────────────────────
 
@@ -271,4 +315,39 @@ export function getDepthSubagents(db: Database.Database): DepthSubagentsRow[] {
       LIMIT 100
     `)
     .all() as DepthSubagentsRow[];
+}
+
+// ─────────────────────────────────────────────────────────
+// 9. model-mix — DERIVADO das decisoes de roteamento (escolha='model:%')
+//    Intenção do roteador, NAO confirmação da harness. Dono canônico
+//    do relatorio: model-routing-report.sh (FR-010 — UI rotula como derivado).
+// ─────────────────────────────────────────────────────────
+
+export interface ModelMixRow { modelo: string; n: number; }
+export interface ModelMixByStageRow { etapa: string; modelo: string; n: number; }
+
+/** Mix total de modelos (donut). */
+export function getModelMix(db: Database.Database): ModelMixRow[] {
+  return db
+    .prepare(`
+      SELECT replace(escolha, 'model:', '') as modelo, count(*) as n
+      FROM decisions
+      WHERE escolha LIKE 'model:%'
+      GROUP BY modelo
+      ORDER BY n DESC
+    `)
+    .all() as ModelMixRow[];
+}
+
+/** Mix de modelos por etapa SDD (barras empilhadas). */
+export function getModelMixByStage(db: Database.Database): ModelMixByStageRow[] {
+  return db
+    .prepare(`
+      SELECT etapa, replace(escolha, 'model:', '') as modelo, count(*) as n
+      FROM decisions
+      WHERE escolha LIKE 'model:%' AND etapa IS NOT NULL
+      GROUP BY etapa, modelo
+      ORDER BY etapa ASC
+    `)
+    .all() as ModelMixByStageRow[];
 }

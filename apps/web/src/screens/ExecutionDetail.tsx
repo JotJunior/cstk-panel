@@ -11,11 +11,11 @@ import { useState } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import {
   useExecution, useWaves, useDecisions, useTasks,
-  useEvents, useAlertsByExecution, useBloqueios, useSkills,
+  useEvents, useAlertsByExecution, useBloqueios, useSkills, useScoreDistribution,
 } from '@/lib/hooks.js';
 import { useApiState } from '@/hooks/useApiState.js';
 import { LoadingState, EmptyState, ErrorState, DegradedBanner } from '@/states/index.js';
-import { StatusBadge, ScoreChip, OutcomePill, TextRaw, Icon } from '@/components/index.js';
+import { StatusBadge, ScoreChip, OutcomePill, TextRaw, Icon, BarH, MiniStat } from '@/components/index.js';
 import type { ExecutionDTO, WaveDTO, DecisionDTO, TaskDTO, EventDTO, AlertSignalDTO, BloqueioDTO, SkillDTO } from '@cstk-panel/shared-types';
 
 // ---------------------------------------------------------------------------
@@ -582,60 +582,75 @@ function BloqueiosPanel({ execucaoId }: { execucaoId: string }) {
 }
 
 // ---------------------------------------------------------------------------
-// Painel de Skills
+// Cards laterais (coluna direita) — Decisoes por score, Top skills, Sugestoes
 // ---------------------------------------------------------------------------
-function SkillsPanel({ execucaoId }: { execucaoId: string }) {
+const SCORE_COLORS = ['var(--score-0)', 'var(--score-1)', 'var(--score-2)', 'var(--score-3)'];
+
+const SCORES = [0, 1, 2, 3] as const;
+
+function ScoreDistCard({ execucaoId }: { execucaoId: string }) {
+  const query = useScoreDistribution(execucaoId);
+  const rows = query.data?.data ?? [];
+  const counts = SCORES.map(s => rows.find(r => r.score === s)?.count ?? 0);
+  const max = Math.max(...counts, 1);
+  return (
+    <div className="card">
+      <div className="card-head"><h3>Decisões por score</h3></div>
+      <div className="card-pad col" style={{ gap: 8 }}>
+        {SCORES.map((s) => {
+          const c = counts[s] ?? 0;
+          return (
+            <div key={s} className="row" style={{ gap: 8, alignItems: 'center' }}>
+              <ScoreChip score={s} />
+              <div style={{ flex: 1, height: 6, background: 'var(--bg-3)', borderRadius: 3, overflow: 'hidden' }}>
+                <div style={{ width: `${(c / max) * 100}%`, height: '100%', background: SCORE_COLORS[s] }} />
+              </div>
+              <span className="mono" style={{ width: 20, textAlign: 'right', fontSize: 11.5 }}>{c}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function TopSkillsCard({ execucaoId }: { execucaoId: string }) {
   const query = useSkills(execucaoId);
-  const { isLoading, isError, errorMessage } = useApiState(query);
   const items: SkillDTO[] = query.data?.data ?? [];
-
-  if (isLoading) return <LoadingState />;
-  if (isError) return <ErrorState message={errorMessage ?? 'Erro'} />;
-  if (!items.length) return <EmptyState title="Sem invocacoes de skill" subtitle="Nenhuma skill foi registrada com record-skill nesta execucao." />;
-
-  // Agregar por skill_name
   const counts = items.reduce<Record<string, number>>((acc, s) => {
     acc[s.skillName] = (acc[s.skillName] ?? 0) + 1;
     return acc;
   }, {});
-  const sorted = Object.entries(counts).sort(([, a], [, b]) => b - a);
-  const maxCount = sorted[0]?.[1] ?? 1;
-
+  const data = Object.entries(counts)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 6)
+    .map(([label, value]) => ({ label, value, color: 'var(--info)' }));
   return (
-    <div>
-      <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {sorted.map(([name, count]) => (
-          <div key={name} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 160, fontSize: 11.5, fontFamily: 'var(--font-mono)', color: 'var(--text-1)', flexShrink: 0 }}>
-              {name}
-            </div>
-            <div style={{ flex: 1, height: 8, background: 'var(--bg-3)', borderRadius: 3, overflow: 'hidden' }}>
-              <div style={{ width: `${(count / maxCount) * 100}%`, height: '100%', background: 'var(--info)', borderRadius: 3 }} />
-            </div>
-            <div style={{ width: 30, textAlign: 'right', fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-0)', fontWeight: 600, flexShrink: 0 }}>
-              {count}
-            </div>
-          </div>
-        ))}
+    <div className="card">
+      <div className="card-head"><h3>Skills mais invocadas</h3></div>
+      <div className="card-pad">
+        {data.length === 0
+          ? <div style={{ color: 'var(--text-3)', fontSize: 12 }}>Nenhuma skill registrada.</div>
+          : <BarH data={data} maxLabel={110} />}
       </div>
-      <table className="tbl">
-        <thead>
-          <tr>
-            <th>Skill</th>
-            <th>Onda</th>
-            <th>Decisao ref.</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((s, idx) => (
-            <tr key={idx}>
-              <td><span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--info)' }}>{s.skillName}</span></td>
-              <td><span style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5 }}>{s.wave}</span></td>
-              <td><span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-2)' }}>{s.decisaoId ?? '—'}</span></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    </div>
+  );
+}
+
+function SuggestionsCard({ exec }: { exec: ExecutionDTO }) {
+  const issues = exec.issuesToolkitAbertas;
+  return (
+    <div className="card">
+      <div className="card-pad">
+        <div className="row" style={{ justifyContent: 'space-between' }}>
+          <MiniStat label="Sugestões ao toolkit" value={String(exec.sugestoesSkillsTotal ?? '—')} />
+          <MiniStat
+            label="Issues abertas"
+            value={String(issues ?? '—')}
+            {...(issues ? { valueColor: 'var(--warning)' } : {})}
+          />
+        </div>
+      </div>
     </div>
   );
 }
@@ -684,7 +699,6 @@ export function ExecutionDetail() {
     { value: 'events',    label: 'Eventos',   count: 0 },
     { value: 'alerts',    label: 'Alertas',   count: 0 },
     { value: 'bloqueios', label: 'Bloqueios', count: exec.bloqueiosHumanosTotal ?? 0 },
-    { value: 'skills',    label: 'Skills',    count: 0 },
   ];
 
   return (
@@ -718,6 +732,15 @@ export function ExecutionDetail() {
                 <span style={{ color: 'var(--text-3)' }}>·</span>
                 <span>iniciada {fmtTimestamp(exec.iniciadaEm)}</span>
               </div>
+            </div>
+            {/* Botoes decorativos (CARD-EX-02) — recursos externos ao painel */}
+            <div className="row gap-2" style={{ flexShrink: 0 }}>
+              <button className="tb-btn" disabled title="Disponível via skill decision-tree (externo)">
+                <Icon name="tree" size={13} aria-hidden />árvore de decisões
+              </button>
+              <button className="tb-btn" disabled title="Disponível via CLI recall (externo)">
+                <Icon name="external" size={13} aria-hidden />abrir no recall
+              </button>
             </div>
           </div>
 
@@ -763,13 +786,20 @@ export function ExecutionDetail() {
         </div>
       </div>
 
-      {/* Waves timeline */}
-      <WavesTimeline
-        waves={waves}
-        execId={execucaoId ?? ''}
-        selectedWave={selectedWave}
-        onSelectWave={handleSelectWave}
-      />
+      {/* Gantt (esquerda) + cards laterais (direita) — layout 2 colunas */}
+      <div className="exec-grid">
+        <WavesTimeline
+          waves={waves}
+          execId={execucaoId ?? ''}
+          selectedWave={selectedWave}
+          onSelectWave={handleSelectWave}
+        />
+        <div className="col gap-4">
+          <ScoreDistCard execucaoId={execucaoId ?? ''} />
+          <TopSkillsCard execucaoId={execucaoId ?? ''} />
+          <SuggestionsCard exec={exec} />
+        </div>
+      </div>
 
       {/* Tabs */}
       <div className="card">
@@ -780,7 +810,6 @@ export function ExecutionDetail() {
           {activeTab === 'events'    && <EventsPanel execucaoId={execucaoId ?? ''} />}
           {activeTab === 'alerts'    && <AlertsPanel execucaoId={execucaoId ?? ''} />}
           {activeTab === 'bloqueios' && <BloqueiosPanel execucaoId={execucaoId ?? ''} />}
-          {activeTab === 'skills'    && <SkillsPanel execucaoId={execucaoId ?? ''} />}
         </div>
       </div>
     </div>

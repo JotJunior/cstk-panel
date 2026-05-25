@@ -1,11 +1,17 @@
 /**
- * Topbar — altura 52px, sticky, breadcrumb + seletor de periodo.
- * Ref: spec.md FR-021, FR-022; prototipo styles.css .topbar
+ * Topbar — altura 52px, sticky, breadcrumb + periodo + filtro de projeto + busca.
+ * Ref: spec.md FR-021, FR-022; prototipo app.jsx Topbar (CARD-SHELL-08).
+ *
+ * Filtro de projeto: populado pela API real (/projects); valor derivado da rota
+ * (/projects/:project); selecionar navega ao detalhe do projeto, "Todos" → /projects.
+ * Escopar TODAS as telas por projeto e um filtro global e trabalho separado
+ * (ver tasks-cards.md, planejamento dos demais cards).
  */
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useMatch } from 'react-router-dom';
 import { Icon } from './Icon.js';
 import { Breadcrumb } from './Breadcrumb.js';
-import type { PeriodParam } from '@cstk-panel/shared-types';
+import { useProjects } from '@/lib/hooks.js';
+import type { PeriodParam, ProjectRollup } from '@cstk-panel/shared-types';
 
 export type Period = PeriodParam;
 
@@ -23,6 +29,28 @@ const PERIODS: { label: string; value: Period }[] = [
 
 export function Topbar({ period, onPeriodChange }: TopbarProps) {
   const navigate = useNavigate();
+
+  // Projeto corrente derivado da rota /projects/:project
+  const projectMatch = useMatch('/projects/:project');
+  const currentProject = projectMatch?.params.project
+    ? decodeURIComponent(projectMatch.params.project)
+    : '';
+
+  // Lista de projetos para o filtro (cacheada via TanStack Query)
+  const projectsQ = useProjects();
+  const projects = (projectsQ.data?.data ?? []) as ProjectRollup[];
+
+  // Garante que o projeto da rota apareca como opcao mesmo se a lista ainda
+  // nao carregou (evita value sem <option> correspondente no select controlado).
+  const projectIds = projects.map((p) => p.project);
+  const options = currentProject && !projectIds.includes(currentProject)
+    ? [currentProject, ...projectIds]
+    : projectIds;
+
+  function handleProjectChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const value = e.target.value;
+    navigate(value ? `/projects/${encodeURIComponent(value)}` : '/projects');
+  }
 
   function handleSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Enter') {
@@ -49,6 +77,20 @@ export function Topbar({ period, onPeriodChange }: TopbarProps) {
           </button>
         ))}
       </div>
+
+      <select
+        className="select"
+        aria-label="Filtrar por projeto"
+        value={currentProject}
+        onChange={handleProjectChange}
+      >
+        <option value="">Todos os projetos</option>
+        {options.map((id) => (
+          <option key={id} value={id}>
+            {id}
+          </option>
+        ))}
+      </select>
 
       <div className="topbar-search" role="search">
         <Icon name="search" size={13} aria-hidden />

@@ -18,11 +18,14 @@ import {
   getCostOverTime,
   getThroughputByStage,
   getTestPassRate,
+  getTestPassRateSeries,
   getHumanLatency,
   getClarifyResolution,
   getDecisionsByScore,
   getExecutionDuration,
   getDepthSubagents,
+  getModelMix,
+  getModelMixByStage,
 } from '../db/queries/metrics.js';
 
 const PeriodSchema = z.enum(['24h', '7d', '30d', 'all']).optional();
@@ -69,6 +72,20 @@ export async function metricsRoutes(server: FastifyInstance): Promise<void> {
     const { db } = openResult;
     try {
       const data = getTestPassRate(db);
+      return reply.status(200).send(wrap(data, {}, config.dbPath, db));
+    } finally { db.close(); }
+  });
+
+  // ─── GET /metrics/test-pass-rate-series ──────────────────────────────────
+  // Serie diaria (agrupa por date(executions.iniciada_em)) para o grafico 14d.
+  server.get('/metrics/test-pass-rate-series', async (request, reply) => {
+    const q = z.object({ period: PeriodSchema }).safeParse(request.query);
+    const period = q.success ? q.data.period : undefined;
+    const openResult = openDb(config.dbPath);
+    if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
+    const { db } = openResult;
+    try {
+      const data = getTestPassRateSeries(db, period !== undefined ? { period: period as MetricPeriod } : {});
       return reply.status(200).send(wrap(data, {}, config.dbPath, db));
     } finally { db.close(); }
   });
@@ -135,6 +152,31 @@ export async function metricsRoutes(server: FastifyInstance): Promise<void> {
     try {
       const data = getDepthSubagents(db);
       return reply.status(200).send(wrap(data, {}, config.dbPath, db));
+    } finally { db.close(); }
+  });
+
+  // ─── GET /metrics/model-mix ──────────────────────────────────────────────
+  // DERIVADO das decisoes de roteamento (escolha='model:%'). Intenção do
+  // roteador, NAO confirmação da harness. Dono canônico: model-routing-report.sh
+  // (FR-010 — UI rotula como derivado). meta.approximate=true.
+  server.get('/metrics/model-mix', async (request, reply) => {
+    const openResult = openDb(config.dbPath);
+    if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
+    const { db } = openResult;
+    try {
+      const data = getModelMix(db);
+      return reply.status(200).send(wrap(data, { approximate: true }, config.dbPath, db));
+    } finally { db.close(); }
+  });
+
+  // ─── GET /metrics/model-mix-by-stage ─────────────────────────────────────
+  server.get('/metrics/model-mix-by-stage', async (request, reply) => {
+    const openResult = openDb(config.dbPath);
+    if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
+    const { db } = openResult;
+    try {
+      const data = getModelMixByStage(db);
+      return reply.status(200).send(wrap(data, { approximate: true }, config.dbPath, db));
     } finally { db.close(); }
   });
 }

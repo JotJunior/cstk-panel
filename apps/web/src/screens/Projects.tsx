@@ -3,11 +3,14 @@
  * Layout do prototipo (screens_main.jsx · ProjectsScreen).
  * Ref: spec.md FR-022 (drill-down)
  */
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProjects, useFeatures } from '@/lib/hooks.js';
 import { useApiState } from '@/hooks/useApiState.js';
 import { LoadingState, EmptyState, ErrorState } from '@/states/index.js';
 import { FeaturesTable } from '@/components/FeaturesTable.js';
+import { FeaturesFilterBar } from '@/components/FeaturesFilterBar.js';
+import { filterFeatures, distinctProjects, EMPTY_FEATURE_FILTER } from '@/lib/features-filter.js';
 import { MiniStat } from '@/components/index.js';
 import { fmtNum, fmtDur, fmtRelative } from '@/lib/format.js';
 import type { ProjectRollup, FeatureRollup } from '@cstk-panel/shared-types';
@@ -19,6 +22,7 @@ export function Projects() {
   const projectsQ = useProjects();
   const featuresQ = useFeatures();
   const { isLoading, isError, errorMessage, isEmpty } = useApiState(projectsQ);
+  const [filter, setFilter] = useState(EMPTY_FEATURE_FILTER);
 
   if (isLoading) return <LoadingState variant="kpi" />;
   if (isError) return <ErrorState message={errorMessage ?? 'Erro ao carregar projetos.'} />;
@@ -26,6 +30,7 @@ export function Projects() {
 
   const projects = (projectsQ.data?.data ?? []) as ProjectRollup[];
   const features = (featuresQ.data?.data ?? []) as FeatureRollup[];
+  const visibleFeatures = filterFeatures(features, filter);
 
   const byProject = new Map<string, FeatureRollup[]>();
   for (const f of features) {
@@ -96,9 +101,13 @@ export function Projects() {
       <div className="card">
         <div className="card-head">
           <h3>Todas as features</h3>
-          <span className="mono muted" style={{ fontSize: 11 }}>{features.length} features</span>
+          <FeaturesFilterBar
+            state={filter}
+            onChange={setFilter}
+            projects={distinctProjects(features)}
+          />
         </div>
-        <FeaturesTable features={features} />
+        <FeaturesTable features={visibleFeatures} />
       </div>
     </div>
   );

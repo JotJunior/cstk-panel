@@ -10,8 +10,22 @@
 import { useMetric } from '@/lib/hooks.js';
 import { useApiState } from '@/hooks/useApiState.js';
 import { LoadingState, EmptyState, ErrorState, DegradedBanner } from '@/states/index.js';
-import { KpiCard, Icon } from '@/components/index.js';
+import { KpiCard, Icon, Histogram, ScatterChart, Donut, StackedBars, Legend } from '@/components/index.js';
+import type { ScatterDatum, DonutDatum } from '@/components/index.js';
 import type { PeriodParam } from '@cstk-panel/shared-types';
+
+// Cores por modelo (alinhado ao Overview)
+const MODEL_COLOR: Record<string, string> = {
+  haiku: 'var(--model-haiku)', sonnet: 'var(--model-sonnet)', opus: 'var(--model-opus)',
+};
+const modelColor = (m: string): string => MODEL_COLOR[m] ?? 'var(--model-fallback)';
+// Ordem preferida das séries no empilhado
+const MODEL_ORDER = ['haiku', 'sonnet', 'opus', 'manter-atual'];
+const sortModels = (models: string[]): string[] =>
+  [...models].sort((a, b) => {
+    const ia = MODEL_ORDER.indexOf(a); const ib = MODEL_ORDER.indexOf(b);
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b);
+  });
 
 interface MetricsProps {
   period: PeriodParam;
@@ -133,33 +147,6 @@ function BarH({ data, label = '' }: { data: { label: string; value: number }[]; 
   );
 }
 
-// ---------------------------------------------------------------------------
-// Cartao "Indisponivel nesta fonte" (dec-020 — mix de modelos)
-// ---------------------------------------------------------------------------
-function UnavailableCard({ title, reason }: { title: string; reason: string }) {
-  return (
-    <div className="card" style={{ opacity: 0.75 }}>
-      <div className="card-head">
-        <h3>{title}</h3>
-        <span style={{
-          padding: '2px 7px', borderRadius: 8, fontSize: 10.5, fontWeight: 600,
-          fontFamily: 'var(--font-mono)', background: 'var(--bg-3)', color: 'var(--text-3)',
-        }}>
-          indisponivel
-        </span>
-      </div>
-      <div style={{ padding: '32px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-        <Icon name="database" size={24} style={{ color: 'var(--text-3)' }} />
-        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}>
-          Indisponivel nesta fonte
-        </div>
-        <div style={{ fontSize: 12, color: 'var(--text-3)', textAlign: 'center', maxWidth: 280 }}>
-          {reason}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Cartao de metrica generico com hook
@@ -299,29 +286,27 @@ export function Metrics({ period }: MetricsProps) {
           }}
         />
 
-        {/* 2. test-pass-rate */}
+        {/* 2. test-pass-rate-series — area 14d (CARD-MT-03) */}
         <MetricCard
-          name="test-pass-rate"
-          title="Test pass rate"
+          name="test-pass-rate-series"
+          title="Test pass rate · 14d"
           subtitle="% de testes passando por dia"
           period={period}
           renderContent={(raw) => {
-            const d = raw as Record<string, unknown> | null;
-            if (!d) return null;
-            const rate = d.rate as number | null;
+            const rows = Array.isArray(raw) ? (raw as Record<string, unknown>[]) : [];
+            const series: TimeSeriesPoint[] = rows.map(r => ({
+              d: (r.day as string | null) ?? '',
+              value: ((r.rate as number | null) ?? 0) * 100,
+            }));
+            const totalPass = sum(nums(raw, 'pass'));
+            const totalFail = sum(nums(raw, 'fail'));
             return (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-                {[
-                  { label: 'Taxa', value: fmtPct(rate), color: rate != null && rate >= 0.8 ? 'var(--success)' : 'var(--warning)' },
-                  { label: 'Passaram', value: String(d.pass ?? '—'), color: 'var(--success)' },
-                  { label: 'Falharam', value: String(d.fail ?? '—'), color: (d.fail as number | null) ? 'var(--critical)' : undefined },
-                ].map(s => (
-                  <div key={s.label}>
-                    <div style={{ fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 2 }}>{s.label}</div>
-                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 18, fontWeight: 700, color: s.color ?? 'var(--text-0)' }}>{s.value}</div>
-                  </div>
-                ))}
-              </div>
+              <>
+                <AreaChart data={series} color="var(--success)" height={160} label="% por dia" />
+                <div style={{ fontSize: 10.5, color: 'var(--text-3)', fontFamily: 'var(--font-mono)', marginTop: 4 }}>
+                  {series.length} dias · {totalPass} pass · {totalFail} fail
+                </div>
+              </>
             );
           }}
         />
@@ -352,20 +337,21 @@ export function Metrics({ period }: MetricsProps) {
             const lat = nums(raw, 'latenciaSegundos');
             if (!lat.length) return null;
             return (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-                {[
-                  { label: 'p50', value: fmtDur(percentile(lat, 50)) },
-                  { label: 'p95', value: fmtDur(percentile(lat, 95)) },
-                  { label: 'max', value: fmtDur(maxOf(lat)) },
-                  { label: 'media', value: fmtDur(mean(lat) != null ? Math.round(mean(lat) as number) : null) },
-                  { label: 'bloqueios', value: String(lat.length) },
-                ].map(s => (
-                  <div key={s.label}>
-                    <div style={{ fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 2 }}>{s.label}</div>
-                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 16, fontWeight: 700, color: 'var(--text-0)' }}>{s.value}</div>
-                  </div>
-                ))}
-              </div>
+              <>
+                <Histogram values={lat} bins={8} height={140} color="var(--info)" unit="s" />
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginTop: 8 }}>
+                  {[
+                    { label: 'p50', value: fmtDur(percentile(lat, 50)) },
+                    { label: 'p95', value: fmtDur(percentile(lat, 95)) },
+                    { label: 'max', value: fmtDur(maxOf(lat)) },
+                  ].map(s => (
+                    <div key={s.label} style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 2 }}>{s.label}</div>
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 16, fontWeight: 700, color: 'var(--text-0)' }}>{s.value}</div>
+                    </div>
+                  ))}
+                </div>
+              </>
             );
           }}
         />
@@ -485,35 +471,107 @@ export function Metrics({ period }: MetricsProps) {
           subtitle="distribuicao de profundidade_max e subagentes_spawned"
           period={period}
           renderContent={(raw) => {
+            const rows = Array.isArray(raw) ? (raw as Record<string, unknown>[]) : [];
+            const points: ScatterDatum[] = rows
+              .map(r => ({
+                x: (r.profundidadeMax as number | null) ?? 0,
+                y: (r.subagentesSpawned as number | null) ?? 0,
+                color: 'var(--accent)',
+              }))
+              .filter(p => p.x > 0 || p.y > 0);
             const depth = nums(raw, 'profundidadeMax');
             const spawned = nums(raw, 'subagentesSpawned');
-            if (!depth.length && !spawned.length) return null;
+            if (!points.length) return null;
             const avgDepth = mean(depth);
             const avgSpawned = mean(spawned);
             return (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
-                {[
-                  { label: 'Prof. media', value: avgDepth != null ? avgDepth.toFixed(1) : '—' },
-                  { label: 'Prof. maxima', value: String(maxOf(depth) ?? '—') },
-                  { label: 'Spawns media', value: avgSpawned != null ? avgSpawned.toFixed(1) : '—' },
-                  { label: 'Spawns total', value: String(sum(spawned)) },
-                ].map(s => (
-                  <div key={s.label}>
-                    <div style={{ fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 2 }}>{s.label}</div>
-                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 18, fontWeight: 700, color: 'var(--text-0)' }}>{s.value}</div>
-                  </div>
-                ))}
-              </div>
+              <>
+                <ScatterChart data={points} height={180} xLabel="profundidade" yLabel="subagentes" />
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12, marginTop: 8 }}>
+                  {[
+                    { label: 'Prof. media', value: avgDepth != null ? avgDepth.toFixed(1) : '—' },
+                    { label: 'Prof. maxima', value: String(maxOf(depth) ?? '—') },
+                    { label: 'Spawns media', value: avgSpawned != null ? avgSpawned.toFixed(1) : '—' },
+                    { label: 'Spawns total', value: String(sum(spawned)) },
+                  ].map(s => (
+                    <div key={s.label}>
+                      <div style={{ fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 2 }}>{s.label}</div>
+                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 18, fontWeight: 700, color: 'var(--text-0)' }}>{s.value}</div>
+                    </div>
+                  ))}
+                </div>
+              </>
             );
           }}
         />
       </div>
 
-      {/* Mix de modelos — INDISPONIVEL nesta fonte (dec-020, Principio IV, D3 Opcao A) */}
-      <UnavailableCard
-        title="Mix de modelos por execucao"
-        reason="A harness do Claude Code nao expoe rastreamento de modelo por invocacao. O campo 'escolha' de decisoes model-routing reflete intencao do orquestrador, nao confirmacao da harness. Metrica indisponivel nesta fonte. (Principio IV, dec-020, D3 Opcao A)"
-      />
+      {/* Mix de modelos — DERIVADO das decisoes de roteamento (D3 revisado 2026-05-25) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+        {/* Mix total (donut) */}
+        <MetricCard
+          name="model-mix"
+          title="Mix de modelos · total"
+          subtitle="intenção do roteador · derivado · canônico: model-routing-report.sh"
+          renderContent={(raw) => {
+            const rows = Array.isArray(raw) ? (raw as Record<string, unknown>[]) : [];
+            const donut: DonutDatum[] = rows.map(r => ({
+              label: (r.modelo as string | null) ?? '?',
+              value: (r.n as number | null) ?? 0,
+              color: modelColor((r.modelo as string | null) ?? ''),
+            }));
+            const total = donut.reduce((a, d) => a + d.value, 0);
+            if (total === 0) return null;
+            return (
+              <div className="row" style={{ gap: 16, alignItems: 'center' }}>
+                <Donut data={donut} size={130} thickness={20} centerLabel="decisões" centerValue={String(total)} />
+                <div className="col" style={{ flex: 1, gap: 6 }}>
+                  {donut.map(m => (
+                    <div key={m.label} className="row" style={{ justifyContent: 'space-between' }}>
+                      <div className="row gap-2">
+                        <span style={{ width: 8, height: 8, borderRadius: 2, background: m.color }} />
+                        <span className="mono" style={{ fontSize: 11.5 }}>{m.label}</span>
+                      </div>
+                      <span className="mono" style={{ fontSize: 12, color: 'var(--text-0)' }}>{fmtPct(m.value / total)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          }}
+        />
+
+        {/* Mix por etapa (empilhado) */}
+        <MetricCard
+          name="model-mix-by-stage"
+          title="Mix de modelos por etapa"
+          subtitle="intenção do roteador · derivado"
+          renderContent={(raw) => {
+            const rows = Array.isArray(raw) ? (raw as Record<string, unknown>[]) : [];
+            if (rows.length === 0) return null;
+            const models = sortModels(Array.from(new Set(rows.map(r => (r.modelo as string | null) ?? '?'))));
+            const byStage = new Map<string, Record<string, number | string>>();
+            for (const r of rows) {
+              const etapa = (r.etapa as string | null) ?? '?';
+              const modelo = (r.modelo as string | null) ?? '?';
+              const n = (r.n as number | null) ?? 0;
+              const row = byStage.get(etapa) ?? { d: etapa.slice(0, 8) };
+              row[modelo] = ((row[modelo] as number | undefined) ?? 0) + n;
+              byStage.set(etapa, row);
+            }
+            const data = [...byStage.values()];
+            const colors = models.map(modelColor);
+            return (
+              <>
+                <Legend items={models.map((m, i) => ({ color: colors[i] ?? 'var(--model-fallback)', label: m }))} />
+                <div style={{ marginTop: 8 }}>
+                  <StackedBars data={data} keys={models} colors={colors} height={180} />
+                </div>
+              </>
+            );
+          }}
+        />
+      </div>
     </div>
   );
 }

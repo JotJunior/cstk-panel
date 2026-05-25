@@ -8,8 +8,10 @@ import { useNavigate } from 'react-router-dom';
 import { useEventsList } from '@/lib/hooks.js';
 import { useApiState } from '@/hooks/useApiState.js';
 import { LoadingState, EmptyState, ErrorState } from '@/states/index.js';
-import { KpiCard, Icon } from '@/components/index.js';
+import { KpiCard, Icon, StackedBars, Legend } from '@/components/index.js';
 import { fmtTimestamp } from '@/lib/format.js';
+
+const SERIES_COLORS = ['var(--critical)', 'var(--warning)', 'var(--info)', 'var(--text-2)'];
 
 interface EventRow {
   execucaoId: string;
@@ -47,6 +49,20 @@ export function Incidents() {
     schedule_wait: countOf('schedule_wait'),
   };
 
+  // Serie empilhada por dia × tipo (CARD-IN-02) — sempre sobre TODOS os eventos.
+  const seriesByDay = new Map<string, Record<string, number>>();
+  for (const e of all) {
+    const day = (e.timestamp ?? '').slice(0, 10);
+    if (!day) continue;
+    const row = seriesByDay.get(day) ?? Object.fromEntries(TYPES.map(t => [t, 0]));
+    if (e.eventType in row) row[e.eventType] = (row[e.eventType] ?? 0) + 1;
+    seriesByDay.set(day, row);
+  }
+  const stackedSeries = [...seriesByDay.keys()].sort().map(day => ({
+    d: day.slice(5), // 'MM-DD'
+    ...seriesByDay.get(day)!,
+  }));
+
   const filtered = typeFilter === 'all' ? all : all.filter(e => e.eventType === typeFilter);
   // Agrupar por data (desc).
   const groups = new Map<string, EventRow[]>();
@@ -73,6 +89,18 @@ export function Incidents() {
         <KpiCard label="wave_retry" value={counts.wave_retry} icon="retry" />
         <KpiCard label="schedule_wait" value={counts.schedule_wait} icon="wait" />
       </div>
+
+      {stackedSeries.length > 1 && (
+        <div className="card">
+          <div className="card-head">
+            <h3>Incidentes ao longo do tempo</h3>
+            <Legend items={TYPES.map((t, i) => ({ color: SERIES_COLORS[i] ?? 'var(--text-2)', label: t }))} />
+          </div>
+          <div className="card-pad">
+            <StackedBars data={stackedSeries} keys={[...TYPES]} colors={SERIES_COLORS} height={180} />
+          </div>
+        </div>
+      )}
 
       <div className="card">
         <div className="card-head">

@@ -58,27 +58,49 @@ rate-limit leve da busca FTS5 (FR-020). Schema-first casa com Zod.
 
 ---
 
-## Decision 3 (D3) — Mix de modelos: **Opção A (omitir, "indisponível nesta fonte")**
+## Decision 3 (D3) — Mix de modelos: **Opção A-revisada (exibir mix DERIVADO e rotulado)**
 
-**Decision**: o painel **não** reimplementa nem delega o mix de modelos. Onde a
-UI esperaria essa visão, exibe o card **"indisponível nesta fonte"**.
+> **Revisão 2026-05-25:** a decisão original (Opção A — card "indisponível nesta
+> fonte") foi **revista**. O painel passa a **exibir o mix DERIVADO** das decisões
+> de roteamento, rotulado, em Métricas — consistente com o que a **Visão Geral já
+> fazia** (`getModelMix`, FR-010 "derivado · decisões"). Ver "Revisão" abaixo.
 
-**Rationale**:
-- Princípio IV (MUST NOT reimplementar dono canônico): o mix de modelos tem dono
-  `model-routing-report.sh`, que opera sobre `state.json` — fora do escopo do
-  painel.
-- Opção B (delegar via subprocesso a `model-routing-report.sh` com acesso a
-  state-dirs) **amplia a superfície de ataque**: exec de subprocesso, acesso de
-  leitura fora da `knowledge.db`, parsing de stdout não-confiável. Conflita com a
-  postura minimalista read-only e com a confinação de path (FR-018).
-- A `knowledge.db` schema v2 **não tem coluna de modelo por decisão** — não há
-  dado-fonte para uma visão honesta de mix sem sair da base (Princípio III: não
-  inventar campos).
+**Decision (original)**: o painel não reimplementa nem delega o mix; onde a UI
+esperaria essa visão, exibia o card "indisponível nesta fonte".
+
+**Rationale (original)**:
+- Princípio IV (MUST NOT reimplementar dono canônico): o mix tem dono
+  `model-routing-report.sh`, que opera sobre `state.json`.
+- Opção B (delegar via subprocesso) **amplia a superfície de ataque** (exec,
+  leitura fora da `knowledge.db`, stdout não-confiável). Conflita com read-only.
+- ~~A `knowledge.db` schema v2 não tem coluna de modelo por decisão~~ —
+  **incorreto/desatualizado**: as decisões de roteamento são gravadas como
+  `escolha='model:<modelo>'` na tabela `decisions` (é o que `getModelMix` consome).
+
+**Revisão (2026-05-25) — por que mudou**:
+- As decisões `escolha='model:%'` **existem** na base e a **Visão Geral já exibia**
+  o mix derivado delas (rotulado "derivado · decisões", justificado por FR-010).
+  Manter Métricas como "indisponível" era **inconsistente** com a mesma fonte.
+- A harness **permite delegar o modelo** (param `model` do Agent/Task, frontmatter
+  de subagente, fast mode); o orquestrador **registra essa intenção**. O que falta
+  é *confirmação pós-hoc do modelo executado* (fallback silencioso) — isso é
+  detalhe de **rótulo**, não de disponibilidade.
+- **Não viola o Princípio IV / FR-010**: exibir uma visão **derivada e rotulada**
+  (`'intenção do roteador · derivado · canônico: model-routing-report.sh'`,
+  `meta.approximate=true`) **não é reimplementar o relatório canônico** — é a mesma
+  postura já aceita no Overview. A verdade canônica continua em
+  `model-routing-report.sh` sobre `state.json`.
+
+**Implementação**: endpoints `/metrics/model-mix` (donut total) e
+`/metrics/model-mix-by-stage` (empilhado por etapa), derivados de
+`decisions.escolha='model:%'`, ambos com `meta.approximate=true`.
+
+**Gap remanescente (data-gaps.md #5):** mix *confirmado* (modelo efetivamente
+executado, incl. fallback) exigiria o orquestrador logar `modelo_confirmado`.
 
 **Alternatives considered**:
-- Opção B (delegar ao dono via subprocesso): rejeitada no MVP por superfície de
-  ataque e por violar a confinação read-only. Pode ser reavaliada como feature
-  futura *separada* se o acesso a state-dirs for explicitamente concedido.
+- Opção B (delegar ao dono via subprocesso): rejeitada por superfície de ataque /
+  confinação read-only. A visão derivada não precisa dela.
 
 ---
 
@@ -197,7 +219,7 @@ saúde e na abertura surfaceia corrupção como degradação.
 |---------|--------|---------|
 | D1 stack back-end | **Resolvido (clarify)** | Node.js + TypeScript |
 | D2 empacotamento | **Resolvido** | Standalone monorepo (gancho p/ `cstk panel serve`) |
-| D3 mix de modelos | **Resolvido** | Opção A — "indisponível nesta fonte" |
+| D3 mix de modelos | **Revisado (2026-05-25)** | Exibir mix DERIVADO e rotulado (consistente com Overview/FR-010); endpoints `/metrics/model-mix[-by-stage]`, `meta.approximate=true` |
 | D4 formato API | **Resolvido (briefing)** | REST/JSON |
 | D5 granularidade séries | **Resolvido** | Por dia + período selecionável |
 | Driver SQLite | **Resolvido** | `better-sqlite3` readonly+query_only |

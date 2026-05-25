@@ -2,6 +2,7 @@
  * Sidebar — 232px fixo, dark-mode-first, pixel-perfect do prototipo.
  * Ref: spec.md FR-021; plan.md §Project Structure `apps/web`
  */
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Icon } from './Icon.js';
 
@@ -35,18 +36,29 @@ interface SidebarProps {
   freshness?: { label: string; degraded: boolean };
 }
 
+type Theme = 'dark' | 'light';
+
 export function Sidebar({ alertCount = 0, freshness }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Tema (decorativo — dark-mode-first; persiste a preferencia em data-theme).
+  const [theme, setTheme] = useState<Theme>(
+    () => (localStorage.getItem('cstk-theme') as Theme | null) ?? 'dark',
+  );
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem('cstk-theme', theme);
+  }, [theme]);
 
   return (
     <aside className="sidebar">
       {/* Brand */}
       <div className="brand">
-        <div className="brand-mark">c</div>
+        <img className="brand-logo" src="/cstk-logo.png" alt="cstk-panel" width={28} height={28} />
         <div>
           <div className="brand-name">cstk-panel</div>
-          <div className="brand-tag">observabilidade</div>
+          <div className="brand-tag">observabilidade · v3.19</div>
         </div>
       </div>
 
@@ -74,7 +86,7 @@ export function Sidebar({ alertCount = 0, freshness }: SidebarProps) {
         ))}
       </nav>
 
-      {/* Footer: freshness */}
+      {/* Footer: freshness + fonte de dados + tema */}
       <div className="sidebar-foot">
         <div className={`freshness-widget${freshness?.degraded ? ' degraded' : ''}`}>
           <span className="fresh-dot" />
@@ -87,6 +99,26 @@ export function Sidebar({ alertCount = 0, freshness }: SidebarProps) {
               knowledge.db · schema v2
             </span>
           </div>
+        </div>
+        <div className="row" style={{ justifyContent: 'space-between', marginTop: 10 }}>
+          <span
+            className="row gap-2"
+            role="link"
+            tabIndex={0}
+            onClick={() => navigate('/source')}
+            onKeyDown={(e) => e.key === 'Enter' && navigate('/source')}
+            style={{ cursor: 'pointer', color: 'var(--text-2)', fontSize: 11 }}
+          >
+            <Icon name="database" size={12} aria-hidden />fonte de dados
+          </span>
+          <button
+            className="ico-btn"
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            title="tema (decorativo)"
+            aria-label="Alternar tema (decorativo)"
+          >
+            <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={12} aria-hidden />
+          </button>
         </div>
       </div>
     </aside>

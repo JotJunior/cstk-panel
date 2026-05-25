@@ -8,7 +8,7 @@
  */
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAlerts } from '@/lib/hooks.js';
+import { useAlerts, useProjects } from '@/lib/hooks.js';
 import { useApiState } from '@/hooks/useApiState.js';
 import { LoadingState, EmptyState, ErrorState, DegradedBanner } from '@/states/index.js';
 import { KpiCard, Icon, TextRaw } from '@/components/index.js';
@@ -93,6 +93,10 @@ export function Alerts({ period }: AlertsProps) {
   const items: AlertSignalDTO[] = query.data?.data?.alerts ?? [];
   const meta = query.data?.meta;
 
+  // Projetos para o select (lista completa, não só os com alerta)
+  const projectsQ = useProjects();
+  const projectOptions = (projectsQ.data?.data ?? []).map(p => p.project);
+
   if (isLoading) return <LoadingState variant="kpi" />;
   if (isError) return <ErrorState message={errorMessage ?? 'Erro ao carregar alertas.'} />;
 
@@ -112,9 +116,6 @@ export function Alerts({ period }: AlertsProps) {
       : null;
     return pct != null && pct >= 0.8 && pct < 1;
   }).length;
-
-  // Projetos distintos para filtro
-  const projects = Array.from(new Set(items.map(a => a.execucaoId.split('/')[0] ?? a.execucaoId)));
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -169,16 +170,15 @@ export function Alerts({ period }: AlertsProps) {
               <option value="circular">movimento circular</option>
               <option value="budget_breach">budget_breach</option>
             </select>
-            <input
-              style={{
-                background: 'var(--bg-1)', border: '1px solid var(--border)',
-                borderRadius: 'var(--r-sm)', color: 'var(--text-1)',
-                fontSize: 12, padding: '5px 8px', outline: 0, width: 150,
-              }}
-              placeholder="Filtrar projeto…"
+            <select
+              className="select"
+              aria-label="Filtrar por projeto"
               value={filterProject}
               onChange={e => setFilterProject(e.target.value)}
-            />
+            >
+              <option value="">Todos os projetos</option>
+              {projectOptions.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
           </div>
         </div>
 

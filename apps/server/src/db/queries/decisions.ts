@@ -96,3 +96,21 @@ export function countDecisions(
     .get(...params) as { n: number };
   return row.n;
 }
+
+/** Distribuicao de score (0..3) das decisoes de UMA execucao (card lateral). */
+export interface ScoreDistRow { score: number; count: number; }
+
+export function getDecisionScoreDistribution(
+  db: Database.Database,
+  execucaoId: string
+): ScoreDistRow[] {
+  return db
+    .prepare(`
+      SELECT score, count(*) as count
+      FROM decisions
+      WHERE execucao_id = ? AND score IS NOT NULL
+      GROUP BY score
+      ORDER BY score ASC
+    `)
+    .all(execucaoId) as ScoreDistRow[];
+}

@@ -134,3 +134,162 @@ export function FunnelChart({ data }: { data: FunnelDatum[] }) {
     </div>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Legend — chips de cor + rotulo (cabecalho de graficos empilhados)
+// ---------------------------------------------------------------------------
+export interface LegendItem { color: string; label: string; }
+
+export function Legend({ items }: { items: LegendItem[] }) {
+  return (
+    <div className="legend">
+      {items.map((it) => (
+        <span className="item" key={it.label}>
+          <span className="sw" style={{ background: it.color }} />
+          {it.label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// StackedBars — barras empilhadas por categoria ao longo de um eixo X
+// (ex: incidentes por dia/tipo, pass/fail no tempo). Portado do prototipo.
+// ---------------------------------------------------------------------------
+export interface StackedBarsProps {
+  /** Cada linha tem o rotulo do eixo X (xKey) + uma chave numerica por serie. */
+  data: Record<string, number | string>[];
+  keys: string[];
+  colors: string[];
+  height?: number;
+  /** Chave do rotulo do eixo X em cada linha (default 'd'). */
+  xKey?: string;
+}
+
+export function StackedBars({ data, keys, colors, height = 160, xKey = 'd' }: StackedBarsProps) {
+  const W = 800;
+  const H = height;
+  const padT = 10, padB = 24, padL = 28, padR = 12;
+  const innerW = W - padL - padR;
+  const innerH = H - padT - padB;
+  const valOf = (row: Record<string, number | string>, k: string): number =>
+    typeof row[k] === 'number' ? (row[k] as number) : 0;
+  const max = Math.max(...data.map(d => keys.reduce((a, k) => a + valOf(d, k), 0)), 0) || 1;
+  const bw = data.length ? innerW / data.length : innerW;
+  const yAt = (v: number): number => padT + innerH - (v / max) * innerH;
+  return (
+    <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden>
+      {[0, 0.25, 0.5, 0.75, 1].map((f, i) => (
+        <line key={i} x1={padL} x2={W - padR} y1={padT + innerH * (1 - f)} y2={padT + innerH * (1 - f)} stroke="var(--border)" strokeWidth="0.5" />
+      ))}
+      {data.map((d, i) => {
+        let acc = 0;
+        const x = padL + i * bw + 2;
+        const xLabel = String(d[xKey] ?? '');
+        return (
+          <g key={i}>
+            {keys.map((k, ki) => {
+              const v = valOf(d, k);
+              if (!v) return null;
+              const y0 = yAt(acc);
+              const y1 = yAt(acc + v);
+              acc += v;
+              return <rect key={k} x={x} y={y1} width={Math.max(0, bw - 4)} height={Math.max(0, y0 - y1)} fill={colors[ki]} rx="1" />;
+            })}
+            {i % 2 === 0 && (
+              <text x={x + (bw - 4) / 2} y={H - 6} fontSize="9.5" textAnchor="middle" fill="var(--text-3)" fontFamily="var(--font-mono)">{xLabel}</text>
+            )}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Histogram — distribuicao de valores numericos em bins (ex: latencia humana)
+// ---------------------------------------------------------------------------
+export interface HistogramProps {
+  values: number[];
+  bins?: number;
+  height?: number;
+  color?: string;
+  /** Sufixo do rotulo do eixo X (ex: 's' para segundos). */
+  unit?: string;
+}
+
+export function Histogram({ values, bins = 8, height = 140, color = 'var(--info)', unit = '' }: HistogramProps) {
+  if (!values.length) {
+    return (
+      <div style={{ height, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-3)', fontSize: 12 }}>
+        Sem dados suficientes
+      </div>
+    );
+  }
+  const max = Math.max(...values);
+  const min = Math.min(...values);
+  const rng = max - min || 1;
+  const step = rng / bins;
+  const counts = new Array<number>(bins).fill(0);
+  values.forEach(v => {
+    let i = Math.floor((v - min) / step);
+    if (i >= bins) i = bins - 1;
+    if (i < 0) i = 0;
+    counts[i] = (counts[i] ?? 0) + 1;
+  });
+  const cmax = Math.max(...counts) || 1;
+  const W = 600;
+  const H = height;
+  const padT = 8, padB = 22, padL = 8, padR = 8;
+  const innerW = W - padL - padR;
+  const innerH = H - padT - padB;
+  const bw = innerW / bins;
+  return (
+    <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden>
+      {counts.map((c, i) => {
+        const h = (c / cmax) * innerH;
+        return <rect key={i} x={padL + i * bw + 1} y={padT + innerH - h} width={bw - 2} height={h} fill={color} opacity="0.7" rx="1" />;
+      })}
+      {counts.map((_, i) => (i % 2 === 0 ? (
+        <text key={`x${i}`} x={padL + i * bw + bw / 2} y={H - 6} fontSize="9.5" textAnchor="middle" fill="var(--text-3)" fontFamily="var(--font-mono)">
+          {Math.round(min + i * step)}{unit}
+        </text>
+      ) : null))}
+    </svg>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// ScatterChart — dispersao X×Y (ex: profundidade × subagentes por execucao)
+// ---------------------------------------------------------------------------
+export interface ScatterDatum { x: number; y: number; color?: string; label?: string; }
+export interface ScatterChartProps {
+  data: ScatterDatum[];
+  height?: number;
+  xLabel?: string;
+  yLabel?: string;
+}
+
+export function ScatterChart({ data, height = 180, xLabel = '', yLabel = '' }: ScatterChartProps) {
+  const W = 360, padT = 14, padB = 28, padL = 30, padR = 14;
+  const H = height;
+  const innerW = W - padL - padR;
+  const innerH = H - padT - padB;
+  const xMax = Math.max(...data.map(d => d.x), 5);
+  const yMax = Math.max(...data.map(d => d.y), 12);
+  const xAt = (v: number): number => padL + (v / xMax) * innerW;
+  const yAt = (v: number): number => padT + innerH - (v / yMax) * innerH;
+  return (
+    <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} aria-hidden>
+      {[0, 0.5, 1].map((f, i) => (
+        <line key={i} x1={padL} x2={W - padR} y1={padT + innerH * (1 - f)} y2={padT + innerH * (1 - f)} stroke="var(--border)" strokeWidth="0.5" />
+      ))}
+      {data.map((d, i) => (
+        <circle key={i} cx={xAt(d.x)} cy={yAt(d.y)} r="5" fill={d.color ?? 'var(--accent)'} opacity="0.85" />
+      ))}
+      {xLabel && <text x={padL} y={H - 8} fontSize="9.5" fill="var(--text-3)" fontFamily="var(--font-mono)">{xLabel} →</text>}
+      {yLabel && <text x={4} y={padT + 6} fontSize="9.5" fill="var(--text-3)" fontFamily="var(--font-mono)">{yLabel}</text>}
+    </svg>
+  );
+}

@@ -10,5 +10,5 @@ export { BudgetMini } from './BudgetMini.js';
 export { PipelineProgress } from './PipelineProgress.js';
 export { Tabs } from './Tabs.js';
 export { MiniStat } from './MiniStat.js';
-export { Sparkline, Donut, BarH, FunnelChart } from './charts.js';
-export type { DonutDatum, BarHDatum, FunnelDatum } from './charts.js';
+export { Sparkline, Donut, BarH, FunnelChart, Legend, StackedBars, Histogram, ScatterChart } from './charts.js';
+export type { DonutDatum, BarHDatum, FunnelDatum, LegendItem, StackedBarsProps, HistogramProps, ScatterDatum } from './charts.js';

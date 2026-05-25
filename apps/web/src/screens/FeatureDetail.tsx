@@ -6,9 +6,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useFeature } from '@/lib/hooks.js';
 import { useApiState } from '@/hooks/useApiState.js';
 import { LoadingState, EmptyState, ErrorState } from '@/states/index.js';
-import { StatusBadge, MiniStat, PipelineProgress } from '@/components/index.js';
+import { StatusBadge, MiniStat, PipelineProgress, Icon } from '@/components/index.js';
 import { fmtNum, fmtDur, fmtTimestamp } from '@/lib/format.js';
-import type { ExecutionDTO } from '@cstk-panel/shared-types';
+import type { ExecutionDTO, RetroDTO } from '@cstk-panel/shared-types';
 
 interface FeatureRollupShape {
   totalExecutions: number;
@@ -29,26 +29,60 @@ export function FeatureDetail() {
   if (isLoading) return <LoadingState variant="kpi" />;
   if (isError) return <ErrorState message={errorMessage ?? 'Erro ao carregar feature.'} />;
 
-  const data = query.data?.data as { rollup?: FeatureRollupShape; executions?: ExecutionDTO[] } | null;
+  const data = query.data?.data as { rollup?: FeatureRollupShape; executions?: ExecutionDTO[]; retros?: RetroDTO[] } | null;
   if (!data) return <EmptyState title="Feature não encontrada" subtitle={`${project} / ${feature}`} />;
 
   const rollup = data.rollup;
   const executions = data.executions ?? [];
+  const retros = data.retros ?? [];
   const status = rollup?.latestStatus ?? null;
+
+  // Stack: primeira execucao com stack_sugerida (CARD-FTD-02)
+  const stack = executions.find(e => e.stackSugerida)?.stackSugerida ?? null;
+  const stackItems = stack ? stack.split(',').map(s => s.trim()).filter(Boolean) : [];
+  // Execucao mais recente para "Ver execução" (CARD-FTD-03)
+  const latestExecId = executions[0]?.execucaoId ?? null;
 
   return (
     <div className="col gap-4">
       {/* Cabecalho */}
       <div className="card">
         <div className="card-pad">
-          <div className="row gap-2">
-            <StatusBadge status={status} />
-            <h2 style={{ margin: 0, fontSize: 20, fontWeight: 600 }}>{feature}</h2>
-          </div>
-          <div className="prov" style={{ marginTop: 6 }}>
-            <a onClick={() => navigate(`/projects/${encodeURIComponent(project)}`)}>{project}</a>
-            <span className="sep">/</span>
-            <span>{feature}</span>
+          <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+            <div style={{ minWidth: 0 }}>
+              <div className="row gap-2">
+                <StatusBadge status={status} />
+                <h2 style={{ margin: 0, fontSize: 20, fontWeight: 600 }}>{feature}</h2>
+              </div>
+              <div className="prov" style={{ marginTop: 6 }}>
+                <a onClick={() => navigate(`/projects/${encodeURIComponent(project)}`)}>{project}</a>
+                <span className="sep">/</span>
+                <span>{feature}</span>
+              </div>
+              {stackItems.length > 0 && (
+                <div className="row gap-2" style={{ marginTop: 10, flexWrap: 'wrap' }}>
+                  {stackItems.map(s => (
+                    <span key={s} style={{
+                      padding: '2px 7px', borderRadius: 8, fontSize: 11,
+                      background: 'var(--bg-3)', color: 'var(--text-1)',
+                      border: '1px solid var(--border)', fontFamily: 'var(--font-mono)',
+                    }}>{s}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="row gap-2" style={{ flexShrink: 0, alignItems: 'flex-start' }}>
+              <button
+                className="tb-btn"
+                disabled={!latestExecId}
+                onClick={() => latestExecId && navigate(`/executions/${encodeURIComponent(latestExecId)}`)}
+              >
+                <Icon name="activity" size={13} aria-hidden />Ver execução
+              </button>
+              <button className="tb-btn" disabled title="Disponível via skill decision-tree (externo)">
+                <Icon name="tree" size={13} aria-hidden />Árvore de decisões
+              </button>
+            </div>
           </div>
 
           <div className="divider" />
@@ -105,6 +139,31 @@ export function FeatureDetail() {
               ))}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* Retrospectivas (CARD-FTD-06) */}
+      <div className="card">
+        <div className="card-head">
+          <h3>Retrospectivas</h3>
+          <span className="mono muted" style={{ fontSize: 11 }}>{retros.length} entrada{retros.length !== 1 ? 's' : ''}</span>
+        </div>
+        <div className="card-pad col" style={{ gap: 8 }}>
+          {retros.length === 0 ? (
+            <div style={{ color: 'var(--text-3)', fontSize: 12, textAlign: 'center', padding: '12px 0' }}>
+              Sem retros ainda. Retros são geradas ao final das ondas relevantes.
+            </div>
+          ) : (
+            retros.map((r, idx) => (
+              <div key={`${r.execucaoId}/${r.wave}/${idx}`} style={{ background: 'var(--bg-2)', padding: 12, borderRadius: 'var(--r-sm)', border: '1px solid var(--border)' }}>
+                <div className="row gap-2" style={{ marginBottom: 6 }}>
+                  <span className="tag accent">retro</span>
+                  <span className="mono muted" style={{ fontSize: 11.5 }}>{r.wave}</span>
+                </div>
+                <div style={{ color: 'var(--text-1)', fontSize: 12.5 }}>{r.texto ?? '—'}</div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

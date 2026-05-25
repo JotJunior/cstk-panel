@@ -10,6 +10,7 @@ import { wrap, wrapDegraded } from '../lib/envelope.js';
 import { generateETag, etagMatches } from '../lib/etag.js';
 import { loadConfig } from '../config.js';
 import { getRollupByFeature, listExecutions } from '../db/queries/executions.js';
+import { listRetrosByFeature } from '../db/queries/retros.js';
 import { mapExecution } from '../mappers/index.js';
 
 // Validacao de path params (FR-018 — sem traversal)
@@ -110,9 +111,12 @@ export async function featureRoutes(server: FastifyInstance): Promise<void> {
         .filter(e => e.project === project && e.feature === feature)
         .map(mapExecution);
 
+      const retros = listRetrosByFeature(db, project, feature);
+
       const data = {
         project,
         feature,
+        retros,
         rollup: {
           totalExecutions: featureRollup.total_executions,
           activeExecutions: featureRollup.active_executions,
