@@ -13,9 +13,10 @@
  * Cada teste usa tmpdir isolado — sem side effects.
  */
 import { describe, it, expect, afterEach } from 'vitest';
-import { mkdtempSync, writeFileSync, unlinkSync, mkdirSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, readFileSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
+import { Worker } from 'node:worker_threads';
 import Database from 'better-sqlite3';
 import { openDb } from '../../src/db/open.js';
 
@@ -219,6 +220,85 @@ describe('openDb — caminho feliz', () => {
         result.db.exec("INSERT INTO executions (execucao_id) VALUES ('hack')");
       }).toThrow();
       result.db.close();
+    }
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// Resiliencia ao "snapshot que muda" (Principio VI) — torn read / retry
+// ─────────────────────────────────────────────────────────
+
+/**
+ * Cria um DB multi-pagina valido e corrompe paginas do MEIO (preservando a
+ * pagina 1 / header). quick_check passa a reportar != 'ok' → db-corrupt.
+ * Simula um arquivo torn — leitura no instante de uma copia/reescrita.
+ */
+function makeMalformedDb(path: string): void {
+  const db = new Database(path);
+  db.exec(`
+    CREATE TABLE schema_meta (key TEXT PRIMARY KEY, value TEXT);
+    INSERT INTO schema_meta VALUES ('schema_version', '2');
+    CREATE TABLE executions (
+      execucao_id TEXT PRIMARY KEY, project TEXT, feature TEXT, status TEXT,
+      motivo_termino TEXT, etapa_corrente TEXT, iniciada_em TEXT, terminada_em TEXT,
+      duracao_segundos REAL, stack_sugerida TEXT, ondas_total INTEGER,
+      tool_calls_total INTEGER, wallclock_total_segundos REAL, subagentes_spawned INTEGER,
+      profundidade_max INTEGER, decisoes_total INTEGER, bloqueios_humanos_total INTEGER,
+      sugestoes_skills_total INTEGER, issues_toolkit_abertas INTEGER
+    );
+  `);
+  const ins = db.prepare('INSERT INTO executions (execucao_id, project, feature, status) VALUES (?, ?, ?, ?)');
+  const tx = db.transaction(() => {
+    for (let i = 0; i < 800; i++) ins.run(`exec-${i}`, `proj-${i}`, `feat-${i}`, 'concluida');
+  });
+  tx();
+  db.close();
+
+  // Corromper paginas do meio (offset 4096+), preservando a pagina 1 (schema).
+  const buf = readFileSync(path);
+  const start = 4096;
+  const end = Math.min(buf.length, 4096 * 4);
+  buf.fill(0xdb, start, end);
+  writeFileSync(path, buf);
+}
+
+describe('openDb — resiliencia (Principio VI: snapshot que muda)', () => {
+  it('arquivo torn/malformed degrada como db-corrupt sem lancar e termina (retry limitado)', () => {
+    const path = tmpFile('.db');
+    makeMalformedDb(path);
+
+    const t0 = Date.now();
+    const result = openDb(path);
+    const elapsed = Date.now() - t0;
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe('db-corrupt');
+    // Retry e limitado: nao pode travar. 3 tentativas * 80ms backoff << 2s.
+    expect(elapsed).toBeLessThan(2000);
+  });
+
+  it('recupera automaticamente quando a copia/reescrita termina durante o retry', async () => {
+    const validSrc = tmpFile('.db');
+    makeValidDb(validSrc);
+
+    const target = tmpFile('.db');
+    makeMalformedDb(target); // estado inicial: torn → db-corrupt (transitorio)
+
+    // Thread paralela substitui o arquivo torn pelo valido (rename atomico)
+    // enquanto openDb dorme entre tentativas (Atomics.wait nao bloqueia o worker).
+    const worker = new Worker(
+      `const fs = require('node:fs');
+       const { workerData } = require('node:worker_threads');
+       setTimeout(() => { try { fs.renameSync(workerData.src, workerData.tgt); } catch {} }, 20);`,
+      { eval: true, workerData: { src: validSrc, tgt: target } }
+    );
+
+    try {
+      const result = openDb(target);
+      expect(result.ok).toBe(true);
+      if (result.ok) result.db.close();
+    } finally {
+      await worker.terminate();
     }
   });
 });

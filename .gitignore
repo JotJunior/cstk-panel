@@ -1,6 +1,8 @@
 # dependencies
 node_modules/
 
+tmp/
+
 # build output
 dist/
 build/
