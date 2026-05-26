@@ -2,9 +2,9 @@
  * Tasks — tarefas cross-execucao (tela Tarefas, prototipo screens_aux.jsx).
  * KPIs + tabela com filtro de outcome. Dados reais de /tasks.
  *
- * Nota de honestidade: a tabela `tasks` (schema v2) nao tem titulo de tarefa;
- * usamos feature/onda como identidade. Series temporais de pass/fail vivem em
- * Metricas (nao reproduzimos os graficos mock do prototipo aqui).
+ * Schema v3: a tabela `tasks` passa a ter `titulo` (heading do tasks.md). Quando
+ * presente, e a identidade primaria da linha; em bases v2 (ou titulo vazio) cai
+ * no fallback feature/onda. Series temporais de pass/fail vivem em Metricas.
  */
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -21,6 +21,7 @@ interface TaskRow {
   execucaoId: string;
   project: string;
   feature: string;
+  titulo?: string;
   outcome: 'pass' | 'fail' | null;
   testesRodados: number | null;
   testesPassados: number | null;
@@ -112,8 +113,9 @@ export function Tasks() {
               ) : filtered.map((t, idx) => (
                 <tr key={`${t.execucaoId}/${t.wave}/${idx}`} className="clickable" onClick={() => navigate(`/executions/${encodeURIComponent(t.execucaoId)}?tab=tasks`)}>
                   <td>
-                    <div style={{ color: 'var(--text-0)' }}>{t.feature} · {t.wave}</div>
-                    <div className="mono muted-2" style={{ fontSize: 10.5 }}>{t.execucaoId.slice(0, 40)}</div>
+                    {/* titulo (v3) e untrusted — React escapa via textContent por padrao */}
+                    <div style={{ color: 'var(--text-0)' }}>{t.titulo?.trim() ? t.titulo : `${t.feature} · ${t.wave}`}</div>
+                    <div className="mono muted-2" style={{ fontSize: 10.5 }}>{t.titulo?.trim() ? `${t.feature} · ${t.wave}` : t.execucaoId.slice(0, 40)}</div>
                   </td>
                   <td>
                     <span className="prov">

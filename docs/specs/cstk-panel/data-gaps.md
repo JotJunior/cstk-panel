@@ -33,12 +33,14 @@ Legenda de prioridade: **P1** alto valor / **P2** médio / **P3** baixo ·
 - **Instrumentar:** gravar `executed_at` (ou `concluded_at`) por task.
 - **Tabela alvo:** `tasks` (+ coluna `executed_at`).
 
-### 3. Título / identidade de task (Tarefas)
+### 3. Título / identidade de task (Tarefas) — ✅ RESOLVIDO (schema v3, cstk ≥ 4.2.0)
 - **UI quer:** título legível da tarefa.
-- **Hoje:** `tasks` (schema v2) **não tem título**; a UI usa `feature · onda`
-  como identidade (`cross.ts`).
-- **Instrumentar:** gravar `task_id` (ex: `5.2.4`) e `titulo` por task.
-- **Tabela alvo:** `tasks` (+ colunas `task_id`, `titulo`).
+- **~~Hoje~~ (v2):** `tasks` não tinha título; a UI usava `feature · onda`.
+- **Resolvido:** o schema **v3** adicionou `tasks.titulo` (heading do `tasks.md`,
+  via `secrets-filter`). O painel expõe `titulo` ponta-a-ponta e a UI o usa como
+  identidade primária (fallback `feature · onda` em bases v2 ou título vazio).
+  Ver `docs/specs/panel-schema-v3/`. `task_id` segue não instrumentado (a chave
+  natural da ingestão é `wave + source_id`).
 
 ### 4. Timestamp por alerta — coluna "Quando" (Alertas · CARD-AL-02)
 - **UI quer:** quando o alerta disparou (prototipo: coluna "Quando").
@@ -116,13 +118,17 @@ Legenda de prioridade: **P1** alto valor / **P2** médio / **P3** baixo ·
 
 ## Resumo para o orquestrador (agente-00c / feature-00c)
 
-Colunas/campos sugeridos para futuras gravações na `knowledge.db` (schema v3?):
+Colunas/campos sugeridos para futuras gravações na `knowledge.db`:
+
+> **Schema v3 (cstk ≥ 4.2.0)** já entregou `tasks.titulo` (P1·#3 ✅) e o evento
+> `recall_consulted` (métrica de consultas ao histórico). Demais itens abaixo
+> seguem pendentes de instrumentação no cstk.
 
 | Tabela | Coluna sugerida | Destrava |
 |--------|-----------------|----------|
 | `bloqueios` | `disparado_em`, `respondido_em` | Latência humana real (P1·#1) |
 | `tasks` | `executed_at` | Série diária de pass-rate (P1·#2) |
-| `tasks` | `task_id`, `titulo` | Identidade de task (P1·#3) |
+| ~~`tasks` · `titulo`~~ | ✅ entregue em v3 | Identidade de task (P1·#3) |
 | `alert_signals` | `disparado_em` | Coluna "Quando" (P1·#4) |
 | `alert_signals` | `severity` | Severidade canônica (P3·#9) |
 | `decisions` | `modelo_confirmado` | Mix de modelos real (P2·#5) |

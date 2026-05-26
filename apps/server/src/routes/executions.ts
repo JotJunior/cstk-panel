@@ -78,7 +78,7 @@ export async function executionRoutes(server: FastifyInstance): Promise<void> {
   // Rota estatica registrada ANTES da dinamica /:execucaoId.
   server.get('/executions', async (request, reply) => {
     const pagination = safeParsePagination(request.query as Record<string, string | undefined>);
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
 
     const { db } = openResult;
@@ -112,7 +112,7 @@ export async function executionRoutes(server: FastifyInstance): Promise<void> {
     }
 
     const { execucaoId } = paramResult.data;
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
 
     const { db } = openResult;
@@ -135,7 +135,7 @@ export async function executionRoutes(server: FastifyInstance): Promise<void> {
     if (!paramResult.success) return reply.status(400).send({ data: null, meta: emptyMeta(), error: 'Invalid execucaoId' });
 
     const { execucaoId } = paramResult.data;
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
 
     const { db } = openResult;
@@ -172,7 +172,7 @@ export async function executionRoutes(server: FastifyInstance): Promise<void> {
       ...(score !== undefined ? { score } : {}),
     };
 
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
 
     const { db } = openResult;
@@ -213,7 +213,7 @@ export async function executionRoutes(server: FastifyInstance): Promise<void> {
     if (!paramResult.success) return reply.status(400).send({ data: null, meta: emptyMeta(), error: 'Invalid execucaoId' });
 
     const { execucaoId } = paramResult.data;
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
 
     const { db } = openResult;
@@ -238,7 +238,7 @@ export async function executionRoutes(server: FastifyInstance): Promise<void> {
     if (!paramResult.success) return reply.status(400).send({ data: null, meta: emptyMeta(), error: 'Invalid execucaoId' });
 
     const { execucaoId } = paramResult.data;
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
 
     const { db } = openResult;
@@ -256,7 +256,7 @@ export async function executionRoutes(server: FastifyInstance): Promise<void> {
     if (!paramResult.success) return reply.status(400).send({ data: null, meta: emptyMeta(), error: 'Invalid execucaoId' });
 
     const { execucaoId } = paramResult.data;
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
 
     const { db } = openResult;
@@ -274,7 +274,7 @@ export async function executionRoutes(server: FastifyInstance): Promise<void> {
     if (!paramResult.success) return reply.status(400).send({ data: null, meta: emptyMeta(), error: 'Invalid execucaoId' });
 
     const { execucaoId } = paramResult.data;
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
 
     const { db } = openResult;
@@ -292,7 +292,7 @@ export async function executionRoutes(server: FastifyInstance): Promise<void> {
     if (!paramResult.success) return reply.status(400).send({ data: null, meta: emptyMeta(), error: 'Invalid execucaoId' });
 
     const { execucaoId } = paramResult.data;
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
 
     const { db } = openResult;
@@ -310,7 +310,7 @@ export async function executionRoutes(server: FastifyInstance): Promise<void> {
     if (!paramResult.success) return reply.status(400).send({ data: null, meta: emptyMeta(), error: 'Invalid execucaoId' });
 
     const { execucaoId } = paramResult.data;
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
 
     const { db } = openResult;

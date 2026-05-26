@@ -572,6 +572,38 @@ export function Metrics({ period }: MetricsProps) {
           }}
         />
       </div>
+
+      {/* Consultas ao histórico — read-back loop (schema v3, evento recall_consulted) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+        <MetricCard
+          name="recall-consultations"
+          title="Consultas ao histórico"
+          subtitle="read-back loop · contagem exata (não proxy)"
+          renderContent={(raw) => {
+            const d = raw as Record<string, unknown> | null;
+            if (!d) return null;
+            const total = (d.total as number | null) ?? 0;
+            const produtivas = (d.produtivas as number | null) ?? 0;
+            const vazias = (d.vazias as number | null) ?? 0;
+            const taxa = total > 0 ? produtivas / total : null;
+            return (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
+                {[
+                  { label: 'Total', value: String(total) },
+                  { label: 'Taxa produtiva', value: fmtPct(taxa), color: taxa != null && taxa >= 0.5 ? 'var(--success)' : 'var(--warning)' },
+                  { label: 'Produtivas · hits>0', value: String(produtivas), color: 'var(--success)' },
+                  { label: 'Vazias · hits=0', value: String(vazias), color: vazias > 0 ? 'var(--text-2)' : undefined },
+                ].map(s => (
+                  <div key={s.label}>
+                    <div style={{ fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 2 }}>{s.label}</div>
+                    <div style={{ fontFamily: 'var(--font-mono)', fontSize: 18, fontWeight: 700, color: s.color ?? 'var(--text-0)' }}>{s.value}</div>
+                  </div>
+                ))}
+              </div>
+            );
+          }}
+        />
+      </div>
     </div>
   );
 }

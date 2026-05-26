@@ -34,6 +34,12 @@ export type OpenResult =
 
 /** _busy_timeout=5000 (constituicao Principio I) — ja e o default da lib, explicitado. */
 const BUSY_TIMEOUT_MS = 5000;
+/**
+ * Versoes de schema aceitas por default (FR-V3-001). A fonte de verdade em
+ * runtime e o env CSTK_SCHEMA_VERSIONS (resolvido em config.ts e passado pelas
+ * rotas); este default cobre chamadas diretas/de teste com 1 argumento.
+ */
+const DEFAULT_SUPPORTED_VERSIONS: readonly string[] = ['2', '3'];
 /** Tentativas de abertura+verificacao antes de degradar (resiliencia ao torn read). */
 const MAX_ATTEMPTS = 3;
 /** Backoff fixo entre tentativas, em ms (apenas no caminho degradado/transitorio). */
@@ -82,7 +88,7 @@ function isTransient(msg: string): boolean {
  * 4. SELECT schema_version FROM schema_meta (divergencia → schema-mismatch)
  * 5. COUNT(*) FROM executions (vazio → table-empty)
  */
-function tryOpenOnce(dbPath: string): OnceResult {
+function tryOpenOnce(dbPath: string, supported: readonly string[]): OnceResult {
   // Passo 1: tentar abrir o arquivo
   let db: Database.Database;
   try {
@@ -121,7 +127,7 @@ function tryOpenOnce(dbPath: string): OnceResult {
       return { ok: false, reason: 'db-corrupt', transient: true };
     }
 
-    // Passo 4: validar schema_version === '2' (task 3.2.4)
+    // Passo 4: validar schema_version contra o conjunto aceito (FR-V3-001/002)
     let schemaVersion: string | undefined;
     try {
       const row = db
@@ -134,7 +140,7 @@ function tryOpenOnce(dbPath: string): OnceResult {
       return { ok: false, reason: 'db-missing', transient: false };
     }
 
-    if (schemaVersion !== '2') {
+    if (schemaVersion === undefined || !supported.includes(schemaVersion)) {
       db.close();
       return { ok: false, reason: 'schema-mismatch', transient: false };
     }
@@ -173,10 +179,13 @@ function tryOpenOnce(dbPath: string): OnceResult {
  * imediato. Estados transitorios (torn read / lock / WAL recovery) sao
  * retentados ate MAX_ATTEMPTS com backoff curto antes de degradar.
  */
-export function openDb(dbPath: string): OpenResult {
+export function openDb(
+  dbPath: string,
+  supported: readonly string[] = DEFAULT_SUPPORTED_VERSIONS,
+): OpenResult {
   let last: { reason: DegradedReason } = { reason: 'db-corrupt' };
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    const result = tryOpenOnce(dbPath);
+    const result = tryOpenOnce(dbPath, supported);
     if (result.ok) return result;
     last = { reason: result.reason };
     // Sem retry para estado permanente ou na ultima tentativa.

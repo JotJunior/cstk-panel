@@ -119,13 +119,13 @@ describe.skipIf(!FIXTURE_EXISTS)('7.1 Roundtrip E2E — GET /overview com base r
     expect('total_executions' in kpis).toBe(false);
   });
 
-  // 7.1.3 — meta.schemaVersion === "2" e meta.degraded === false
-  it('7.1.3 meta.schemaVersion === "2" e meta.degraded === false na base real', async () => {
+  // 7.1.3 — meta.schemaVersion reflete a versao real da fixture (v3) e degraded=false
+  it('7.1.3 meta.schemaVersion === "3" e meta.degraded === false na base real', async () => {
     const res = await server.inject({ method: 'GET', url: '/api/v1/overview' });
     expect(res.statusCode).toBe(200);
 
     const body = res.json<{ meta: { schemaVersion: string; degraded: boolean } }>();
-    expect(body.meta.schemaVersion).toBe('2');
+    expect(body.meta.schemaVersion).toBe('3');
     expect(body.meta.degraded).toBe(false);
   });
 

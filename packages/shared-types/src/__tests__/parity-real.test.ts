@@ -72,6 +72,7 @@ const REAL_WAVE_PAYLOAD = {
 const REAL_TASK_PAYLOAD = {
   wave: 'onda-005',
   execucaoId: 'exec-20260506T125546Z',
+  titulo: 'Implementar ingestão de métricas',  // schema v3
   outcome: 'pass' as const,
   testesRodados: 12,
   testesPassados: 12,

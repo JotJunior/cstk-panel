@@ -27,7 +27,7 @@ export async function taskRoutes(server: FastifyInstance): Promise<void> {
 
     const pagination = safeParsePagination(request.query as Record<string, string | undefined>);
 
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
 
     const { db } = openResult;
@@ -46,6 +46,7 @@ export async function taskRoutes(server: FastifyInstance): Promise<void> {
           execucaoId: r.execucao_id,
           project: r.project,
           feature: r.feature,
+          titulo: r.titulo,
           outcome: r.outcome,
           testesRodados: r.testes_rodados,
           testesPassados: r.testes_passados,

@@ -80,6 +80,10 @@ export interface DecisionDTO {
 export interface TaskDTO {
   wave: string;
   execucaoId: string;
+  /** titulo descritivo da task (schema v3); '' em bases v2 ou quando ausente.
+   *  @untrusted leve — texto livre (passa por secrets-filter na ingestao);
+   *  renderizar via textContent. */
+  titulo: string;
   outcome: 'pass' | 'fail' | null;
   testesRodados: number | null;
   testesPassados: number | null;
@@ -94,7 +98,7 @@ export interface TaskDTO {
 // ---------------------------------------------------------------------------
 export interface EventDTO {
   execucaoId: string;
-  eventType: 'lock_contention' | 'validation_failed' | 'wave_retry' | 'schedule_wait';
+  eventType: 'lock_contention' | 'validation_failed' | 'wave_retry' | 'schedule_wait' | 'recall_consulted';
   timestamp: string;
   /** @untrusted leve — renderizar via textContent */
   descricao: string | null;

@@ -66,6 +66,7 @@ export const DecisionDTOSchema = z.object({
 export const TaskDTOSchema = z.object({
   wave: z.string(),
   execucaoId: z.string(),
+  titulo: z.string(),
   outcome: z.enum(['pass', 'fail']).nullable(),
   testesRodados: z.number().nullable(),
   testesPassados: z.number().nullable(),
@@ -78,7 +79,7 @@ export const TaskDTOSchema = z.object({
 // ---------------------------------------------------------------------------
 export const EventDTOSchema = z.object({
   execucaoId: z.string(),
-  eventType: z.enum(['lock_contention', 'validation_failed', 'wave_retry', 'schedule_wait']),
+  eventType: z.enum(['lock_contention', 'validation_failed', 'wave_retry', 'schedule_wait', 'recall_consulted']),
   timestamp: z.string(),
   descricao: z.string().nullable(),
 });

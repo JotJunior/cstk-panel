@@ -24,7 +24,7 @@ export async function projectRoutes(server: FastifyInstance): Promise<void> {
 
   // GET /projects — lista todos os projetos com rollup
   server.get('/projects', async (request, reply) => {
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) {
       return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
     }
@@ -69,7 +69,7 @@ export async function projectRoutes(server: FastifyInstance): Promise<void> {
     }
 
     const { project } = paramResult.data;
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) {
       return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
     }

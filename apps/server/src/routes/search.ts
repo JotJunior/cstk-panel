@@ -77,7 +77,7 @@ export async function searchRoutes(server: FastifyInstance): Promise<void> {
       // Camada 1: sanitizacao FTS5 (research.md §Decision 6)
       const ftsQuery = sanitizeFts(q);
 
-      const openResult = openDb(config.dbPath);
+      const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
       if (!openResult.ok) {
         // DB degradado — retornar resultados vazios com meta.degraded=true
         return reply.status(200).send({

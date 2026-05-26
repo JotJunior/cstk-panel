@@ -225,6 +225,45 @@ describe('openDb — caminho feliz', () => {
 });
 
 // ─────────────────────────────────────────────────────────
+// FR-V3-001/002: conjunto de versoes aceitas (default 2|3 + override)
+// ─────────────────────────────────────────────────────────
+
+/** makeValidDb com schema_version arbitrario. */
+function makeDbWithVersion(path: string, version: string): void {
+  makeValidDb(path);
+  const w = new Database(path);
+  w.prepare("UPDATE schema_meta SET value = ? WHERE key = 'schema_version'").run(version);
+  w.close();
+}
+
+describe('openDb — versoes de schema aceitas (FR-V3-001/002)', () => {
+  it('aceita schema_version=3 por default (sem 2o argumento)', () => {
+    const path = tmpFile('.db');
+    makeDbWithVersion(path, '3');
+    const result = openDb(path);
+    expect(result.ok).toBe(true);
+    if (result.ok) result.db.close();
+  });
+
+  it('versao fora do conjunto aceito (ex.: 99) degrada como schema-mismatch', () => {
+    const path = tmpFile('.db');
+    makeDbWithVersion(path, '99');
+    const result = openDb(path);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe('schema-mismatch');
+  });
+
+  it('respeita o conjunto suportado passado por parametro (env override)', () => {
+    const path = tmpFile('.db');
+    makeValidDb(path); // schema_version = '2'
+    // Operador travou em ['3'] → v2 deixa de ser aceita.
+    const result = openDb(path, ['3']);
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe('schema-mismatch');
+  });
+});
+
+// ─────────────────────────────────────────────────────────
 // Resiliencia ao "snapshot que muda" (Principio VI) — torn read / retry
 // ─────────────────────────────────────────────────────────
 

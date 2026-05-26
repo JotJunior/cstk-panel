@@ -43,6 +43,7 @@ async function buildServer(dbPath: string): Promise<FastifyInstance> {
   const { executionRoutes } = await import('../../src/routes/executions.js');
   const { metricsRoutes } = await import('../../src/routes/metrics.js');
   const { searchRoutes } = await import('../../src/routes/search.js');
+  const { taskRoutes } = await import('../../src/routes/tasks.js');
 
   await server.register(async (v1) => {
     await v1.register(healthRoutes);
@@ -52,6 +53,7 @@ async function buildServer(dbPath: string): Promise<FastifyInstance> {
     await v1.register(executionRoutes);
     await v1.register(metricsRoutes);
     await v1.register(searchRoutes);
+    await v1.register(taskRoutes);
   }, { prefix: '/api/v1' });
 
   server.setNotFoundHandler((_req, reply) => {
@@ -217,6 +219,28 @@ describe.skipIf(!FIXTURE_EXISTS)('Rotas com fixture real — GET /api/v1/*', () 
       expect('toolCalls' in item).toBe(true);
       expect('tokens' in item).toBe(false);
     }
+  });
+
+  // FR-V3-007 — /metrics/recall-consultations: total + split produtivas/vazias
+  it('GET /metrics/recall-consultations retorna total e split (produtivas+vazias=total)', async () => {
+    const res = await server.inject({ method: 'GET', url: '/api/v1/metrics/recall-consultations' });
+    expect(res.statusCode).toBe(200);
+    const body = res.json<{ data: { total: number; produtivas: number; vazias: number } | null; meta: { degraded: boolean } }>();
+    if (body.meta.degraded || body.data === null) return; // sem fixture
+    const { total, produtivas, vazias } = body.data;
+    expect(produtivas + vazias).toBe(total);
+    // Fixture v3 semeia 2 eventos: hits=3 (produtiva) e hits=0 (vazia).
+    expect(total).toBeGreaterThanOrEqual(2);
+    expect(produtivas).toBeGreaterThanOrEqual(1);
+  });
+
+  // FR-V3-009 — /tasks expoe titulo (schema v3)
+  it('GET /tasks expoe campo titulo em cada item (schema v3)', async () => {
+    const res = await server.inject({ method: 'GET', url: '/api/v1/tasks?limit=5' });
+    expect(res.statusCode).toBe(200);
+    const body = res.json<{ data: { tasks: Record<string, unknown>[] } | null }>();
+    if (!body.data || body.data.tasks.length === 0) return;
+    expect('titulo' in body.data.tasks[0]!).toBe(true);
   });
 
   // ETag/304

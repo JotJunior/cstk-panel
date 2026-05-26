@@ -19,6 +19,8 @@ export function mapTask(row: TaskRow): TaskDTO {
   return {
     wave: row.wave,
     execucaoId: row.execucao_id,
+    // titulo (schema v3): texto livre untrusted; '' em bases v2 (query garante)
+    titulo: row.titulo ?? '',
     outcome: toOutcome(row.outcome),
     testesRodados: row.testes_rodados,
     testesPassados: row.testes_passados,

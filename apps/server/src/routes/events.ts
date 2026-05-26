@@ -28,7 +28,7 @@ export async function eventRoutes(server: FastifyInstance): Promise<void> {
 
     const pagination = safeParsePagination(request.query as Record<string, string | undefined>);
 
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
 
     const { db } = openResult;

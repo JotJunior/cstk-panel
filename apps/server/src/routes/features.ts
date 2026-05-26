@@ -32,7 +32,7 @@ export async function featureRoutes(server: FastifyInstance): Promise<void> {
     const qResult = FeatureQuerySchema.safeParse(request.query);
     const { project, status } = qResult.success ? qResult.data : { project: undefined, status: undefined };
 
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) {
       return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
     }
@@ -90,7 +90,7 @@ export async function featureRoutes(server: FastifyInstance): Promise<void> {
     }
 
     const { project, feature } = paramResult.data;
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) {
       return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
     }

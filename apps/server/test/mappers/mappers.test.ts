@@ -68,9 +68,29 @@ describe('mapTask', () => {
     expect(Array.isArray(dto.arquivosTocadosCount)).toBe(false);
   });
 
-  it('paridade round-trip: TaskDTOSchema.safeParse(mapTask(row)).success===true', () => {
+  it('titulo (v3) presente → mapeado verbatim', () => {
+    const row = {
+      wave: 'onda-001', execucao_id: 'e1', titulo: 'Implementar login', outcome: 'pass',
+      testes_rodados: 3, testes_passados: 3, lint_ok: 1, arquivos_tocados: 5,
+    };
+    const dto = mapTask(row);
+    expect(dto.titulo).toBe('Implementar login');
+  });
+
+  it('titulo ausente (base v2) → "" (retro-compat, FR-V3-004)', () => {
+    // Row de uma base v2 sem a coluna titulo (a query projeta '' mas validamos
+    // a defesa do mapper tambem).
     const row = {
       wave: 'onda-001', execucao_id: 'e1', outcome: 'pass',
+      testes_rodados: 1, testes_passados: 1, lint_ok: 1, arquivos_tocados: 0,
+    } as unknown as Parameters<typeof mapTask>[0];
+    const dto = mapTask(row);
+    expect(dto.titulo).toBe('');
+  });
+
+  it('paridade round-trip: TaskDTOSchema.safeParse(mapTask(row)).success===true', () => {
+    const row = {
+      wave: 'onda-001', execucao_id: 'e1', titulo: 'Task X', outcome: 'pass',
       testes_rodados: 3, testes_passados: 3, lint_ok: 1, arquivos_tocados: 5,
     };
     const dto = mapTask(row);
@@ -161,6 +181,24 @@ describe('mapEvent', () => {
     };
     const r = EventDTOSchema.safeParse(mapEvent(row));
     expect(r.success).toBe(true);
+  });
+
+  it('recall_consulted (v3) NAO e reclassificado como schedule_wait (FR-V3-006)', () => {
+    const row = {
+      execucao_id: 'e1', event_type: 'recall_consulted',
+      timestamp: ISO, descricao: 'etapa=specify hits=3',
+    };
+    const dto = mapEvent(row);
+    expect(dto.eventType).toBe('recall_consulted');
+    expect(EventDTOSchema.safeParse(dto).success).toBe(true);
+  });
+
+  it('tipo desconhecido continua caindo no fallback schedule_wait', () => {
+    const row = {
+      execucao_id: 'e1', event_type: 'tipo_inexistente',
+      timestamp: ISO, descricao: null,
+    };
+    expect(mapEvent(row).eventType).toBe('schedule_wait');
   });
 });
 

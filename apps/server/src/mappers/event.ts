@@ -5,9 +5,12 @@
 import type { EventDTO } from '@cstk-panel/shared-types';
 import type { EventRow } from '../db/queries/events.js';
 
-type ValidEventType = 'lock_contention' | 'validation_failed' | 'wave_retry' | 'schedule_wait';
+type ValidEventType =
+  | 'lock_contention' | 'validation_failed' | 'wave_retry' | 'schedule_wait'
+  | 'recall_consulted';  // schema v3 — consulta do read-back loop (FR-V3-006)
 const VALID_EVENT_TYPES = new Set<string>([
   'lock_contention', 'validation_failed', 'wave_retry', 'schedule_wait',
+  'recall_consulted',
 ]);
 
 function toEventType(raw: string): ValidEventType {

@@ -111,6 +111,7 @@ describe('Paridade schemas Zod — entidades', () => {
     const payload = {
       wave: 'onda-001',
       execucaoId: 'exec-001',
+      titulo: 'Task de teste',
       outcome: 'pass',
       testesRodados: 3,
       testesPassados: 3,

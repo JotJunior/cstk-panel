@@ -45,7 +45,7 @@ export async function overviewRoutes(server: FastifyInstance): Promise<void> {
     const qResult = QuerySchema.safeParse(request.query);
     const period = qResult.success ? qResult.data.period : '7d';
 
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) {
       return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
     }

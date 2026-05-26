@@ -108,13 +108,16 @@ Grão: 1 por tarefa.
 | Coluna | Tipo | DTO | Notas |
 |--------|------|-----|-------|
 | `wave` | TEXT | `wave: string` | |
+| `titulo` | TEXT | `titulo: string` | **schema v3**; título descritivo (heading do `tasks.md`). UNTRUSTED leve. Base v2 ou ausente → `''` (query projeta `'' AS titulo` via `hasColumn`) |
 | `outcome` | TEXT | `outcome: 'pass' \| 'fail' \| null` | OutcomePill |
 | `testes_rodados` | INTEGER | `testesRodados: number \| null` | |
 | `testes_passados` | INTEGER | `testesPassados: number \| null` | |
 | `lint_ok` | INTEGER (0/1) | `lintOk: boolean \| null` | **mapper: `=== 1`** |
 | `arquivos_tocados` | INTEGER | `arquivosTocadosCount: number \| null` | **contagem, NÃO array** |
 
-KPI pass-rate derivado de `outcome` (rotular como derivado se aproximado).
+KPI pass-rate derivado de `outcome` (rotular como derivado se aproximado). A UI
+usa `titulo` como identidade primária da task quando presente; senão cai em
+`feature · onda`.
 
 ---
 
@@ -124,11 +127,17 @@ Grão: 1 por incidente.
 
 | Coluna | Tipo | DTO | Notas |
 |--------|------|-----|-------|
-| `event_type` | TEXT NOT NULL | `eventType` | enum: `lock_contention \| validation_failed \| wave_retry \| schedule_wait` |
+| `event_type` | TEXT NOT NULL | `eventType` | enum: `lock_contention \| validation_failed \| wave_retry \| schedule_wait \| recall_consulted` |
 | `timestamp` | TEXT NOT NULL | `timestamp: string` | ISO |
-| `descricao` | TEXT | `descricao: string \| null` | UNTRUSTED leve |
+| `descricao` | TEXT | `descricao: string \| null` | UNTRUSTED leve; em `recall_consulted` carrega `etapa=… hits=N` |
 
 `EventIcon` por `eventType`.
+
+**`recall_consulted` (schema v3)**: evento informativo do read-back loop
+(`cstk recall --context` no início de specify/plan), gravado **inclusive com
+`hits=0`**. NÃO é incidente operacional → a tela **Incidentes o exclui**; vive
+na métrica `recall-consultations` (tela Métricas). O mapper de eventos
+reconhece o tipo (não cai no fallback `schedule_wait`).
 
 ---
 
@@ -210,9 +219,15 @@ Busca: `MATCH ?` + `ORDER BY bm25(knowledge_fts)`. Resultado inclui `rank`
 
 ## Metadata: `schema_meta`
 
-`key='schema_version' → value='2'`. O BE valida `=== '2'` na abertura;
-divergência → degradação `schema-mismatch` (não erro). **Não exposto** como
-entidade de domínio; surfaceia em `meta.schemaVersion`.
+`key='schema_version' → value ∈ {'2','3'}`. O BE valida a versão contra o
+**conjunto aceito** na abertura; fora do conjunto → degradação `schema-mismatch`
+(não erro). O conjunto vem do env **`CSTK_SCHEMA_VERSIONS`** (CSV; default
+`2,3`) — nunca hardcoded inline no guard (FR-V3-001). **Não exposto** como
+entidade de domínio; surfaceia em `meta.schemaVersion` com a versão **real**
+lida da base (FR-V3-003).
+
+> **Schema v3** (cstk ≥ 4.2.0): aditivo e retro-compatível — coluna
+> `tasks.titulo` + evento `recall_consulted`. Ver `docs/specs/panel-schema-v3/`.
 
 ---
 

@@ -11,6 +11,24 @@ import type Database from 'better-sqlite3';
 import type { ApiEnvelope, Meta, Freshness } from '@cstk-panel/shared-types';
 import { computeFreshness } from '../db/freshness.js';
 
+/**
+ * Le schema_meta.schema_version da base aberta (FR-V3-003). Nunca lanca —
+ * fallback '2' quando ilegivel (db null/degradado ou tabela ausente em race).
+ * Em modo degradado o open ja barrou versoes nao suportadas, entao o valor
+ * lido aqui pertence ao conjunto aceito (ex.: '2' ou '3').
+ */
+function readSchemaVersion(db: Database.Database | null): string {
+  if (db === null) return '2';
+  try {
+    const row = db
+      .prepare("SELECT value FROM schema_meta WHERE key = 'schema_version'")
+      .get() as { value: string } | undefined;
+    return row?.value ?? '2';
+  } catch {
+    return '2';
+  }
+}
+
 export interface WrapOptions {
   /** Se true, data sera null e degraded=true */
   degraded?: boolean;
@@ -45,7 +63,7 @@ export function wrap<T>(
     degraded: opts.degraded ?? false,
     reason: opts.reason ?? null,
     freshness,
-    schemaVersion: '2',
+    schemaVersion: readSchemaVersion(db),
     ...(opts.approximate ? { approximate: true } : {}),
   };
 

@@ -40,7 +40,10 @@ export function Incidents() {
   if (isError) return <ErrorState message={errorMessage ?? 'Erro ao carregar incidentes.'} />;
   if (isEmpty) return <EmptyState title="Nenhum incidente" subtitle="Sem eventos operacionais registrados." />;
 
-  const all = ((query.data?.data as { events?: EventRow[] } | null)?.events ?? []);
+  // recall_consulted (schema v3) e informativo (read-back loop), NAO incidente
+  // operacional — vive na tela Metricas ("Consultas ao historico"), nao aqui.
+  const all = ((query.data?.data as { events?: EventRow[] } | null)?.events ?? [])
+    .filter(e => e.eventType !== 'recall_consulted');
   const countOf = (t: string) => all.filter(e => e.eventType === t).length;
   const counts = {
     lock_contention: countOf('lock_contention'),

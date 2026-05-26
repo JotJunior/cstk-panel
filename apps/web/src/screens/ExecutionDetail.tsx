@@ -387,6 +387,7 @@ function TasksPanel({ execucaoId }: { execucaoId: string }) {
       <table className="tbl">
         <thead>
           <tr>
+            <th>Tarefa</th>
             <th>Onda</th>
             <th>Outcome</th>
             <th className="num">Testes</th>
@@ -397,6 +398,11 @@ function TasksPanel({ execucaoId }: { execucaoId: string }) {
         <tbody>
           {items.map((t, idx) => (
             <tr key={idx}>
+              {/* titulo (v3) e untrusted — React escapa via textContent por padrao */}
+              <td>{t.titulo?.trim()
+                ? <span style={{ color: 'var(--text-0)' }}>{t.titulo}</span>
+                : <span className="muted">—</span>}
+              </td>
               <td><span style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5 }}>{t.wave}</span></td>
               <td><OutcomePill outcome={t.outcome} /></td>
               <td className="num">{t.testesPassados}/{t.testesRodados}</td>
@@ -421,6 +427,7 @@ const EVENT_META: Record<string, { label: string; color: string; icon: string }>
   validation_failed: { label: 'validation_failed', color: 'var(--critical)', icon: 'alert' },
   wave_retry:        { label: 'wave_retry',         color: 'var(--info)',     icon: 'activity' },
   schedule_wait:     { label: 'schedule_wait',      color: 'var(--text-2)',   icon: 'clock' },
+  recall_consulted:  { label: 'recall_consulted',   color: 'var(--info)',     icon: 'search' },
 };
 
 function EventsPanel({ execucaoId }: { execucaoId: string }) {

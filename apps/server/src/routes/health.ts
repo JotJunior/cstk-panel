@@ -45,7 +45,7 @@ export async function healthRoutes(server: FastifyInstance): Promise<void> {
   const config = loadConfig();
 
   server.get('/health', async (request, reply) => {
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
 
     if (!openResult.ok) {
       const envelope = wrapDegraded(openResult.reason, config.dbPath);

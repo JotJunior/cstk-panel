@@ -351,3 +351,38 @@ export function getModelMixByStage(db: Database.Database): ModelMixByStageRow[] 
     `)
     .all() as ModelMixByStageRow[];
 }
+
+// ─────────────────────────────────────────────────────────
+// 10. recall-consultations — consultas ao histórico (read-back loop, schema v3)
+//     Evento `recall_consulted` gravado a cada `cstk recall --context` no
+//     início de specify/plan, INCLUSIVE com hits=0. A `descricao` carrega
+//     `etapa=… hits=N`. Contagem EXATA (Princípio III — não proxy/aproximada).
+//     produtivas = hits>0; vazias = total - produtivas (inclui descricao sem
+//     `hits=` parseável, que degrada para vazia sem quebrar — FR-V3-007).
+// ─────────────────────────────────────────────────────────
+
+export interface RecallConsultationsResult {
+  total: number;
+  produtivas: number; // hits > 0
+  vazias: number;     // hits = 0 ou descricao sem hits parseável
+}
+
+const HITS_RE = /hits=(\d+)/;
+
+export function getRecallConsultations(db: Database.Database): RecallConsultationsResult {
+  const rows = db
+    .prepare(`
+      SELECT descricao
+      FROM events
+      WHERE event_type = 'recall_consulted'
+    `)
+    .all() as { descricao: string | null }[];
+
+  const total = rows.length;
+  let produtivas = 0;
+  for (const r of rows) {
+    const m = r.descricao ? HITS_RE.exec(r.descricao) : null;
+    if (m && Number(m[1]) > 0) produtivas++;
+  }
+  return { total, produtivas, vazias: total - produtivas };
+}

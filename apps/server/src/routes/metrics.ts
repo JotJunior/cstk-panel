@@ -26,6 +26,7 @@ import {
   getDepthSubagents,
   getModelMix,
   getModelMixByStage,
+  getRecallConsultations,
 } from '../db/queries/metrics.js';
 
 const PeriodSchema = z.enum(['24h', '7d', '30d', 'all']).optional();
@@ -40,7 +41,7 @@ export async function metricsRoutes(server: FastifyInstance): Promise<void> {
     const q = z.object({ project: z.string().optional(), period: PeriodSchema }).safeParse(request.query);
     const { project, period } = q.success ? q.data : { project: undefined, period: undefined };
 
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
     const { db } = openResult;
     try {
@@ -56,7 +57,7 @@ export async function metricsRoutes(server: FastifyInstance): Promise<void> {
 
   // ─── GET /metrics/throughput-by-stage ────────────────────────────────────
   server.get('/metrics/throughput-by-stage', async (request, reply) => {
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
     const { db } = openResult;
     try {
@@ -67,7 +68,7 @@ export async function metricsRoutes(server: FastifyInstance): Promise<void> {
 
   // ─── GET /metrics/test-pass-rate ─────────────────────────────────────────
   server.get('/metrics/test-pass-rate', async (request, reply) => {
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
     const { db } = openResult;
     try {
@@ -81,7 +82,7 @@ export async function metricsRoutes(server: FastifyInstance): Promise<void> {
   server.get('/metrics/test-pass-rate-series', async (request, reply) => {
     const q = z.object({ period: PeriodSchema }).safeParse(request.query);
     const period = q.success ? q.data.period : undefined;
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
     const { db } = openResult;
     try {
@@ -92,7 +93,7 @@ export async function metricsRoutes(server: FastifyInstance): Promise<void> {
 
   // ─── GET /metrics/human-latency ──────────────────────────────────────────
   server.get('/metrics/human-latency', async (request, reply) => {
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
     const { db } = openResult;
     try {
@@ -104,7 +105,7 @@ export async function metricsRoutes(server: FastifyInstance): Promise<void> {
   // ─── GET /metrics/clarify-resolution ─────────────────────────────────────
   // meta.approximate=TRUE (Principio III — taxa derivada/estimada)
   server.get('/metrics/clarify-resolution', async (request, reply) => {
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
     const { db } = openResult;
     try {
@@ -116,7 +117,7 @@ export async function metricsRoutes(server: FastifyInstance): Promise<void> {
 
   // ─── GET /metrics/decisions-by-score ─────────────────────────────────────
   server.get('/metrics/decisions-by-score', async (request, reply) => {
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
     const { db } = openResult;
     try {
@@ -131,7 +132,7 @@ export async function metricsRoutes(server: FastifyInstance): Promise<void> {
     const { project, period } = q.success ? q.data : { project: undefined, period: undefined };
     void ProjectSchema;
 
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
     const { db } = openResult;
     try {
@@ -146,7 +147,7 @@ export async function metricsRoutes(server: FastifyInstance): Promise<void> {
 
   // ─── GET /metrics/depth-subagents ────────────────────────────────────────
   server.get('/metrics/depth-subagents', async (request, reply) => {
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
     const { db } = openResult;
     try {
@@ -160,7 +161,7 @@ export async function metricsRoutes(server: FastifyInstance): Promise<void> {
   // roteador, NAO confirmação da harness. Dono canônico: model-routing-report.sh
   // (FR-010 — UI rotula como derivado). meta.approximate=true.
   server.get('/metrics/model-mix', async (request, reply) => {
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
     const { db } = openResult;
     try {
@@ -171,12 +172,25 @@ export async function metricsRoutes(server: FastifyInstance): Promise<void> {
 
   // ─── GET /metrics/model-mix-by-stage ─────────────────────────────────────
   server.get('/metrics/model-mix-by-stage', async (request, reply) => {
-    const openResult = openDb(config.dbPath);
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
     const { db } = openResult;
     try {
       const data = getModelMixByStage(db);
       return reply.status(200).send(wrap(data, { approximate: true }, config.dbPath, db));
+    } finally { db.close(); }
+  });
+
+  // ─── GET /metrics/recall-consultations ───────────────────────────────────
+  // Consultas ao histórico (read-back loop, schema v3). Contagem EXATA
+  // (Princípio III — não proxy/aproximada): total + split produtivas/vazias.
+  server.get('/metrics/recall-consultations', async (request, reply) => {
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
+    if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
+    const { db } = openResult;
+    try {
+      const data = getRecallConsultations(db);
+      return reply.status(200).send(wrap(data, {}, config.dbPath, db));
     } finally { db.close(); }
   });
 }

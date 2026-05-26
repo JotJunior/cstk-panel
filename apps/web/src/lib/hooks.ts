@@ -325,7 +325,7 @@ export function useHealth() {
 export function useMetric(
   name: 'cost-over-time' | 'throughput-by-stage' | 'test-pass-rate' | 'test-pass-rate-series'
        | 'human-latency' | 'clarify-resolution' | 'decisions-by-score' | 'execution-duration' | 'depth-subagents'
-       | 'model-mix' | 'model-mix-by-stage',
+       | 'model-mix' | 'model-mix-by-stage' | 'recall-consultations',
   period?: PeriodParam
 ) {
   const qs = period ? `?period=${period}` : '';

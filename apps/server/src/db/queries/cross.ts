@@ -12,6 +12,7 @@
  * - events: event_type, project, period
  */
 import type Database from 'better-sqlite3';
+import { tituloSelect } from './tasks.js';
 
 // ─────────────────────────────────────────────────────────
 // Tipos de filtro
@@ -75,6 +76,7 @@ export interface CrossTaskRow {
   execucao_id: string;
   project: string;
   feature: string;
+  titulo: string;                     // schema v3; '' em bases v2 (FR-V3-005)
   outcome: string | null;
   testes_rodados: number | null;
   testes_passados: number | null;
@@ -221,6 +223,7 @@ export function listCrossTasks(
   return db
     .prepare(`
       SELECT t.wave, t.execucao_id, e.project, e.feature,
+             ${tituloSelect(db, 't.')},
              t.outcome, t.testes_rodados, t.testes_passados,
              t.lint_ok, t.arquivos_tocados
       FROM tasks t
