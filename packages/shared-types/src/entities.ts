@@ -173,6 +173,30 @@ export interface FtsHitDTO {
 }
 
 // ---------------------------------------------------------------------------
+// MemoryDTO — grao: 1 por arquivo .md de auto-memoria do Claude Code
+// (schema v4, feature recall-memory-mirror). Tabela `memories`, chave (project, slug).
+// Read-only: o painel apenas exibe; a fonte canonica sao os .md no disco.
+// ---------------------------------------------------------------------------
+
+/** Tipo derivado do prefixo do .md (FR-007 do produtor). */
+export type MemoryType = 'index' | 'feedback' | 'project' | 'reference' | 'user';
+
+export interface MemoryDTO {
+  project: string;
+  /** nome do .md sem extensao (ex: feedback_code_in_english) — compoe a chave natural */
+  slug: string;
+  type: MemoryType;
+  /** @untrusted leve — 1a linha do .md (ja scrubbed na ingestao); renderizar via textContent */
+  description: string | null;
+  /** @untrusted — conteudo .md completo scrubbed; renderizar via textContent/pre, NUNCA innerHTML */
+  body: string | null;
+  /** path absoluto do .md original (rastreabilidade) */
+  path: string | null;
+  /** ISO 8601 UTC do momento da indexacao */
+  indexedAt: string | null;
+}
+
+// ---------------------------------------------------------------------------
 // Rollups para Overview (US1) e listas de Projects/Features (US3)
 // ---------------------------------------------------------------------------
 

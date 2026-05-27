@@ -39,7 +39,7 @@ const BUSY_TIMEOUT_MS = 5000;
  * runtime e o env CSTK_SCHEMA_VERSIONS (resolvido em config.ts e passado pelas
  * rotas); este default cobre chamadas diretas/de teste com 1 argumento.
  */
-const DEFAULT_SUPPORTED_VERSIONS: readonly string[] = ['2', '3'];
+const DEFAULT_SUPPORTED_VERSIONS: readonly string[] = ['2', '3', '4'];
 /** Tentativas de abertura+verificacao antes de degradar (resiliencia ao torn read). */
 const MAX_ATTEMPTS = 3;
 /** Backoff fixo entre tentativas, em ms (apenas no caminho degradado/transitorio). */

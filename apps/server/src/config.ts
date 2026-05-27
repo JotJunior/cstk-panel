@@ -15,8 +15,10 @@
 import { homedir } from 'node:os';
 import { resolve } from 'node:path';
 
-/** Default quando CSTK_SCHEMA_VERSIONS nao esta definido — aceita v2 e v3. */
-export const DEFAULT_SCHEMA_VERSIONS = ['2', '3'] as const;
+/** Default quando CSTK_SCHEMA_VERSIONS nao esta definido — aceita v2, v3 e v4.
+ *  v4 (recall-memory-mirror) adiciona a tabela `memories`; e aditivo, entao as
+ *  telas existentes seguem operando e a tela Memorias aparece quando presente. */
+export const DEFAULT_SCHEMA_VERSIONS = ['2', '3', '4'] as const;
 
 export interface ServerConfig {
   /** Path absoluto canonicalizado para knowledge.db */

@@ -12,6 +12,7 @@
 import type Database from 'better-sqlite3';
 
 const cache = new WeakMap<Database.Database, Map<string, boolean>>();
+const tableCache = new WeakMap<Database.Database, Map<string, boolean>>();
 
 /** True se a tabela possui a coluna. Read-only; nunca lanca para tabela ausente. */
 export function hasColumn(
@@ -38,5 +39,36 @@ export function hasColumn(
     exists = false;
   }
   perDb.set(key, exists);
+  return exists;
+}
+
+/**
+ * True se a base possui a tabela. Read-only; nunca lanca.
+ *
+ * Uma base v2/v3 nao tem `memories` (introduzida em v4 — recall-memory-mirror);
+ * consultar a tabela diretamente lancaria. As queries de memoria checam isto
+ * antes e degradam para lista vazia (Principio II), em vez de quebrar.
+ */
+export function hasTable(db: Database.Database, table: string): boolean {
+  let perDb = tableCache.get(db);
+  if (perDb === undefined) {
+    perDb = new Map<string, boolean>();
+    tableCache.set(db, perDb);
+  }
+  const cached = perDb.get(table);
+  if (cached !== undefined) return cached;
+
+  let exists = false;
+  try {
+    const row = db
+      .prepare(
+        "SELECT 1 FROM sqlite_master WHERE type IN ('table','view') AND name = ?",
+      )
+      .get(table);
+    exists = row !== undefined;
+  } catch {
+    exists = false;
+  }
+  perDb.set(table, exists);
   return exists;
 }

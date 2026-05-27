@@ -22,6 +22,7 @@ import { taskRoutes } from './routes/tasks.js';
 import { eventRoutes } from './routes/events.js';
 import { metricsRoutes } from './routes/metrics.js';
 import { searchRoutes } from './routes/search.js';
+import { memoryRoutes } from './routes/memories.js';
 
 async function main(): Promise<void> {
   const config = loadConfig();
@@ -81,6 +82,7 @@ async function main(): Promise<void> {
     await v1.register(eventRoutes);
     await v1.register(metricsRoutes);
     await v1.register(searchRoutes);
+    await v1.register(memoryRoutes);
   }, { prefix: '/api/v1' });
 
   // 404 handler. Rotas /api/* (e tudo quando o web nao esta habilitado) retornam

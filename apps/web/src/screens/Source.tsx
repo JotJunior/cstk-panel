@@ -43,6 +43,7 @@ export function Source() {
     { table: 'bloqueios', rows: counts?.bloqueios ?? null },
     { table: 'skills', rows: counts?.skills ?? null },
     { table: 'retros', rows: counts?.retros ?? null },
+    { table: 'memories (v4)', rows: counts?.memories ?? null },
     { table: 'fts_decisoes (FTS5)', rows: counts?.ftsDecisoes ?? null },
     { table: 'fts_retros (FTS5)', rows: counts?.ftsRetros ?? null },
   ];

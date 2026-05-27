@@ -23,6 +23,7 @@ const ROUTES: NavRoute[] = [
   { id: 'metrics', label: 'Métricas', icon: 'bar', path: '/metrics' },
   { id: 'tasks', label: 'Tarefas', icon: 'check', path: '/tasks' },
   { id: 'incidents', label: 'Incidentes', icon: 'zap', path: '/incidents' },
+  { id: 'memories', label: 'Memórias', icon: 'doc', path: '/memories' },
   { id: 'search', label: 'Busca de Conhecimento', icon: 'search', path: '/search' },
 ];
 
@@ -34,11 +35,13 @@ function isRouteActive(route: NavRoute, pathname: string): boolean {
 interface SidebarProps {
   alertCount?: number;
   freshness?: { label: string; degraded: boolean };
+  /** schema_version corrente da knowledge.db (vindo de /health). */
+  schemaVersion?: string | undefined;
 }
 
 type Theme = 'dark' | 'light';
 
-export function Sidebar({ alertCount = 0, freshness }: SidebarProps) {
+export function Sidebar({ alertCount = 0, freshness, schemaVersion }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -96,7 +99,7 @@ export function Sidebar({ alertCount = 0, freshness }: SidebarProps) {
               <span className="mono">{freshness?.label ?? '...'}</span>
             </span>
             <span className="mono" style={{ color: 'var(--text-3)', fontSize: 10 }}>
-              knowledge.db · schema v2
+              knowledge.db · schema v{schemaVersion ?? '—'}
             </span>
           </div>
         </div>

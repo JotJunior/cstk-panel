@@ -17,6 +17,7 @@ import {
   ProjectRollupSchema,
   FeatureRollupSchema,
   FtsHitDTOSchema,
+  MemoryDTOSchema,
   type PeriodParam,
 } from '@cstk-panel/shared-types';
 import { z } from 'zod';
@@ -57,6 +58,11 @@ export const SearchPageSchema = z.object({
 });
 export const ExecutionsPageSchema = z.object({
   executions: z.array(ExecutionDTOSchema),
+  pagination: PaginationMetaSchema,
+});
+export const MemoriesPageSchema = z.object({
+  memories: z.array(MemoryDTOSchema),
+  projects: z.array(z.string()),
   pagination: PaginationMetaSchema,
 });
 // Listas cross-execucao (tasks/events globais) carregam project/feature alem
@@ -270,6 +276,18 @@ export function useEventsList(opts?: { eventType?: string; project?: string; per
   });
 }
 
+/** Auto-memorias do Claude Code (tela Memorias, schema v4). Filtro por projeto. */
+export function useMemories(project?: string) {
+  const params = new URLSearchParams();
+  if (project) params.set('project', project);
+  params.set('limit', '100');
+  const qs = params.toString() ? `?${params.toString()}` : '';
+  return useQuery({
+    queryKey: ['memories', project],
+    queryFn: () => fetchApi(`/memories${qs}`, MemoriesPageSchema),
+  });
+}
+
 /** Busca FTS5 */
 export function useSearch(
   q: string,
@@ -306,6 +324,7 @@ const HealthDataSchema = z.object({
     bloqueios: z.number(),
     skills: z.number(),
     retros: z.number(),
+    memories: z.number(),
     ftsDecisoes: z.number(),
     ftsRetros: z.number(),
   }),

@@ -146,6 +146,19 @@ export const FtsHitDTOSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// MemoryDTO schema (schema v4 — feature recall-memory-mirror)
+// ---------------------------------------------------------------------------
+export const MemoryDTOSchema = z.object({
+  project: z.string(),
+  slug: z.string(),
+  type: z.enum(['index', 'feedback', 'project', 'reference', 'user']),
+  description: z.string().nullable(),
+  body: z.string().nullable(),
+  path: z.string().nullable(),
+  indexedAt: z.string().nullable(),
+});
+
+// ---------------------------------------------------------------------------
 // Rollup schemas
 // ---------------------------------------------------------------------------
 export const ProjectRollupSchema = z.object({

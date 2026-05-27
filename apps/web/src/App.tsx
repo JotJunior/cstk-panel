@@ -24,6 +24,7 @@ import { Features } from '@/screens/Features.js';
 import { FeatureDetail } from '@/screens/FeatureDetail.js';
 import { Tasks } from '@/screens/Tasks.js';
 import { Incidents } from '@/screens/Incidents.js';
+import { Memories } from '@/screens/Memories.js';
 import { Source } from '@/screens/Source.js';
 import { Placeholder } from '@/screens/Placeholder.js';
 import { useHealth, useAlerts } from '@/lib/hooks.js';
@@ -54,7 +55,7 @@ export default function App() {
   return (
     <div className="app">
       {/* Sidebar 232px fixo */}
-      <Sidebar alertCount={alertCount} freshness={freshness} />
+      <Sidebar alertCount={alertCount} freshness={freshness} schemaVersion={healthQ.data?.meta?.schemaVersion} />
 
       {/* Area principal */}
       <div className="main">
@@ -88,6 +89,9 @@ export default function App() {
             {/* Tarefas e Incidentes (cross-execucao) */}
             <Route path="/tasks" element={<Tasks />} />
             <Route path="/incidents" element={<Incidents />} />
+
+            {/* Memorias (auto-memorias do Claude Code, schema v4) */}
+            <Route path="/memories" element={<Memories />} />
 
             {/* Busca FTS5 (US3) */}
             <Route path="/search" element={<Search />} />

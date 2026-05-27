@@ -16,6 +16,7 @@ import {
   SkillDTOSchema,
   RetroDTOSchema,
   FtsHitDTOSchema,
+  MemoryDTOSchema,
   ProjectRollupSchema,
   FeatureRollupSchema,
 } from '../schemas/entities.js';
@@ -204,6 +205,42 @@ describe('Paridade schemas Zod — entidades', () => {
     if (r.success) {
       expect(typeof r.data.rank).toBe('number');
     }
+  });
+
+  it('MemoryDTOSchema: payload valido passa (type enum, body UNTRUSTED como string)', () => {
+    const payload = {
+      project: 'claude-ai-tips',
+      slug: 'feedback_code_in_english',
+      type: 'feedback',
+      description: 'Codigo em ingles obrigatorio',
+      body: '# feedback_code_in_english\n\nCodigo em ingles obrigatorio...',
+      path: '/Users/jot/.claude/projects/-x/memory/feedback_code_in_english.md',
+      indexedAt: ISO,
+    };
+    const r = MemoryDTOSchema.safeParse(payload);
+    expect(r.success).toBe(true);
+  });
+
+  it('MemoryDTOSchema: body/description/path/indexedAt nullable passam', () => {
+    const payload = {
+      project: 'cstk-panel',
+      slug: 'MEMORY',
+      type: 'index',
+      description: null,
+      body: null,
+      path: null,
+      indexedAt: null,
+    };
+    const r = MemoryDTOSchema.safeParse(payload);
+    expect(r.success).toBe(true);
+  });
+
+  it('MemoryDTOSchema: type fora do enum falha', () => {
+    const r = MemoryDTOSchema.safeParse({
+      project: 'p', slug: 's', type: 'desconhecido',
+      description: null, body: null, path: null, indexedAt: null,
+    });
+    expect(r.success).toBe(false);
   });
 
   it('ProjectRollupSchema: payload valido passa', () => {

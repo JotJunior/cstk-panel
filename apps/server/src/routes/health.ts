@@ -31,6 +31,8 @@ export interface HealthData {
     bloqueios: number;
     skills: number;
     retros: number;
+    /** tabela `memories` (schema v4); 0 em bases v2/v3 sem a tabela. */
+    memories: number;
     ftsDecisoes: number;
     ftsRetros: number;
   };
@@ -38,7 +40,7 @@ export interface HealthData {
 
 const EMPTY_COUNTS: HealthData['counts'] = {
   executions: 0, waves: 0, decisions: 0, tasks: 0, events: 0, alertSignals: 0,
-  bloqueios: 0, skills: 0, retros: 0, ftsDecisoes: 0, ftsRetros: 0,
+  bloqueios: 0, skills: 0, retros: 0, memories: 0, ftsDecisoes: 0, ftsRetros: 0,
 };
 
 export async function healthRoutes(server: FastifyInstance): Promise<void> {
@@ -83,6 +85,7 @@ export async function healthRoutes(server: FastifyInstance): Promise<void> {
         bloqueios: countOf('bloqueios'),
         skills: countOf('skills'),
         retros: countOf('retros'),
+        memories: countOf('memories'),
         ftsDecisoes: countOf('fts_decisoes'),
         ftsRetros: countOf('fts_retros'),
       };

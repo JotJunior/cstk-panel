@@ -21,6 +21,8 @@ export type {
   SkillDTO,
   RetroDTO,
   FtsHitDTO,
+  MemoryDTO,
+  MemoryType,
   ProjectRollup,
   FeatureRollup,
   PaginationParams,
@@ -49,6 +51,7 @@ export {
   SkillDTOSchema,
   RetroDTOSchema,
   FtsHitDTOSchema,
+  MemoryDTOSchema,
   ProjectRollupSchema,
   FeatureRollupSchema,
 } from './schemas/entities.js';

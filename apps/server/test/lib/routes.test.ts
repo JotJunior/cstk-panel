@@ -44,6 +44,7 @@ async function buildServer(dbPath: string): Promise<FastifyInstance> {
   const { metricsRoutes } = await import('../../src/routes/metrics.js');
   const { searchRoutes } = await import('../../src/routes/search.js');
   const { taskRoutes } = await import('../../src/routes/tasks.js');
+  const { memoryRoutes } = await import('../../src/routes/memories.js');
 
   await server.register(async (v1) => {
     await v1.register(healthRoutes);
@@ -54,6 +55,7 @@ async function buildServer(dbPath: string): Promise<FastifyInstance> {
     await v1.register(metricsRoutes);
     await v1.register(searchRoutes);
     await v1.register(taskRoutes);
+    await v1.register(memoryRoutes);
   }, { prefix: '/api/v1' });
 
   server.setNotFoundHandler((_req, reply) => {
@@ -241,6 +243,23 @@ describe.skipIf(!FIXTURE_EXISTS)('Rotas com fixture real — GET /api/v1/*', () 
     const body = res.json<{ data: { tasks: Record<string, unknown>[] } | null }>();
     if (!body.data || body.data.tasks.length === 0) return;
     expect('titulo' in body.data.tasks[0]!).toBe(true);
+  });
+
+  // recall-memory-mirror — /memories degrada graciosamente em base v3 (sem a
+  // tabela `memories`): 200, nao-degradado, listas vazias (Principio II).
+  it('GET /memories em base v3 retorna 200 com listas vazias (sem tabela memories)', async () => {
+    const res = await server.inject({ method: 'GET', url: '/api/v1/memories' });
+    expect(res.statusCode).toBe(200);
+    const body = res.json<{
+      data: { memories: unknown[]; projects: unknown[]; pagination: { total: number } } | null;
+      meta: { degraded: boolean };
+    }>();
+    expect(body.meta.degraded).toBe(false);
+    expect(body.data).not.toBeNull();
+    expect(Array.isArray(body.data!.memories)).toBe(true);
+    expect(body.data!.memories.length).toBe(0);
+    expect(Array.isArray(body.data!.projects)).toBe(true);
+    expect(body.data!.pagination.total).toBe(0);
   });
 
   // ETag/304
