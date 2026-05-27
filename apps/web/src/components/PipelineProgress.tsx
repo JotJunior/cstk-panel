@@ -5,7 +5,31 @@
  */
 import { SDD_STAGES } from '@/lib/constants.js';
 
-type Status = 'em_andamento' | 'aguardando_humano' | 'concluida' | 'abortada' | null;
+export type Status = 'em_andamento' | 'aguardando_humano' | 'concluida' | 'abortada' | null;
+
+/** Estado visual de uma etapa. 'idle' = ainda nao alcancada (cinza). */
+export type StageState = 'done' | 'current' | 'aborted' | 'idle';
+
+/**
+ * Classifica cada uma das 9 etapas SDD para um dado (etapa, status).
+ * Fonte unica consumida pelos dois modos de render (compacto e rotulado).
+ *
+ * Nota: execucoes terminais gravam etapa='concluida'/'abortada', marcadores
+ * FORA de SDD_STAGES — logo idx=-1. Por isso a decisao acende pelo STATUS,
+ * nao pelo indice da etapa. O status ja chega normalizado do servidor
+ * (mappers/status.ts: 'concluido'→'concluida'), entao comparar com 'concluida'
+ * e seguro.
+ */
+export function stageStates(etapa: string | null, status: Status): StageState[] {
+  const idx = etapa ? (SDD_STAGES as readonly string[]).indexOf(etapa) : -1;
+  return SDD_STAGES.map((_, i) => {
+    if (status === 'concluida') return 'done';
+    if (status === 'abortada') return i >= idx ? 'aborted' : 'done';
+    if (i < idx) return 'done';
+    if (i === idx) return 'current';
+    return 'idle';
+  });
+}
 
 interface PipelineProgressProps {
   etapa: string | null;
@@ -14,16 +38,16 @@ interface PipelineProgressProps {
 }
 
 export function PipelineProgress({ etapa, status, labeled = false }: PipelineProgressProps) {
-  const idx = etapa ? (SDD_STAGES as readonly string[]).indexOf(etapa) : -1;
+  const states = stageStates(etapa, status);
 
   if (labeled) {
     return (
       <div className="pipeline-labeled">
         {SDD_STAGES.map((st, i) => {
-          const done = (i < idx) || (i === idx && status === 'concluida');
-          const current = i === idx && status !== 'concluida' && status !== 'abortada';
+          const state = states[i];
+          const cls = state === 'idle' ? '' : ` ${state}`;
           return (
-            <div key={st} className={`stage${done ? ' done' : ''}${current ? ' current' : ''}`}>
+            <div key={st} className={`stage${cls}`}>
               <div className="bar" />
               <div className="label" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{st}</div>
             </div>
@@ -36,11 +60,8 @@ export function PipelineProgress({ etapa, status, labeled = false }: PipelinePro
   return (
     <div className="pipeline">
       {SDD_STAGES.map((st, i) => {
-        let cls = '';
-        if (status === 'abortada' && i >= idx) cls = 'aborted';
-        else if (status === 'concluida') cls = 'done';
-        else if (i < idx) cls = 'done';
-        else if (i === idx) cls = 'current';
+        const state = states[i];
+        const cls = state === 'idle' ? '' : state;
         return <div key={st} className={`step ${cls}`} title={st} />;
       })}
     </div>

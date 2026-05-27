@@ -124,6 +124,8 @@
 .pipeline-labeled .stage.done { color: var(--text-1); }
 .pipeline-labeled .stage.current .bar { background: var(--inprogress); }
 .pipeline-labeled .stage.current { color: var(--inprogress); }
+.pipeline-labeled .stage.aborted .bar { background: var(--critical); opacity: 0.6; }
+.pipeline-labeled .stage.aborted { color: var(--critical); }
 
 /* ---------- Funnel ---------- */
 .funnel { display: flex; flex-direction: column; gap: 4px; }

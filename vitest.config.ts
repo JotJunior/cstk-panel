@@ -1,6 +1,17 @@
 import { defineConfig } from 'vitest/config';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  // Alias '@' do app web: componentes importam '@/lib/...'; sem isto o vitest
+  // (config raiz) nao resolve o caminho e a suite do componente falha ao carregar.
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './apps/web/src'),
+    },
+  },
   test: {
     globals: true,
     environment: 'node',
