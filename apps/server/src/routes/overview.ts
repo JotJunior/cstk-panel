@@ -17,6 +17,7 @@ import {
   getModelMix, getRecentActivity, getCostSeries,
 } from '../db/queries/overview.js';
 import { getRollupByProject, getRollupByFeature } from '../db/queries/executions.js';
+import { normalizeStatus } from '../mappers/index.js';
 
 const PeriodSchema = z.enum(['24h', '7d', '30d', 'all']).optional().default('7d');
 const QuerySchema = z.object({ period: PeriodSchema });
@@ -157,7 +158,7 @@ export async function overviewRoutes(server: FastifyInstance): Promise<void> {
           project: r.project,
           feature: r.feature,
           totalExecutions: r.total_executions,
-          latestStatus: r.latest_status,
+          latestStatus: normalizeStatus(r.latest_status),
           latestExecutionAt: r.latest_execution_at,
         })),
       };

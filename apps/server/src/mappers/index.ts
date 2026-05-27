@@ -3,6 +3,7 @@
  * Task 3.4.5
  */
 export { mapExecution, mapExecutions } from './execution.js';
+export { normalizeStatus, type ExecutionStatus } from './status.js';
 export { mapWave, mapWaves } from './wave.js';
 export { mapDecision, mapDecisions } from './decision.js';
 export { mapTask, mapTasks } from './task.js';

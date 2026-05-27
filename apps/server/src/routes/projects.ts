@@ -12,7 +12,7 @@ import { wrap, wrapDegraded } from '../lib/envelope.js';
 import { generateETag, etagMatches } from '../lib/etag.js';
 import { loadConfig } from '../config.js';
 import { getRollupByProject, getRollupByFeature, listExecutionsByProject } from '../db/queries/executions.js';
-import { mapExecution } from '../mappers/index.js';
+import { mapExecution, normalizeStatus } from '../mappers/index.js';
 
 // Validacao de path param: string nao-vazia, sem traversal (FR-018)
 const ProjectParamSchema = z.object({
@@ -101,7 +101,7 @@ export async function projectRoutes(server: FastifyInstance): Promise<void> {
         totalBloqueios: r.total_bloqueios,
         etapaCorrente: r.etapa_corrente,
         openAlerts: r.open_alerts,
-        latestStatus: r.latest_status,
+        latestStatus: normalizeStatus(r.latest_status),
         latestExecutionAt: r.latest_execution_at,
       }));
 

@@ -11,7 +11,7 @@ import { generateETag, etagMatches } from '../lib/etag.js';
 import { loadConfig } from '../config.js';
 import { getRollupByFeature, listExecutions } from '../db/queries/executions.js';
 import { listRetrosByFeature } from '../db/queries/retros.js';
-import { mapExecution } from '../mappers/index.js';
+import { mapExecution, normalizeStatus } from '../mappers/index.js';
 
 // Validacao de path params (FR-018 — sem traversal)
 const FeatureParamSchema = z.object({
@@ -45,7 +45,9 @@ export async function featureRoutes(server: FastifyInstance): Promise<void> {
         features = features.filter(f => f.project === project);
       }
       if (status) {
-        features = features.filter(f => f.latest_status === status);
+        // Compara o status NORMALIZADO: assim o filtro por 'concluida' tambem
+        // captura linhas cujo valor cru e uma variante conhecida ('concluido').
+        features = features.filter(f => normalizeStatus(f.latest_status) === status);
       }
 
       const data = features.map(r => ({
@@ -62,7 +64,7 @@ export async function featureRoutes(server: FastifyInstance): Promise<void> {
         totalBloqueios: r.total_bloqueios,
         etapaCorrente: r.etapa_corrente,
         openAlerts: r.open_alerts,
-        latestStatus: r.latest_status,
+        latestStatus: normalizeStatus(r.latest_status),
         latestExecutionAt: r.latest_execution_at,
       }));
 
@@ -129,7 +131,7 @@ export async function featureRoutes(server: FastifyInstance): Promise<void> {
           totalBloqueios: featureRollup.total_bloqueios,
           etapaCorrente: featureRollup.etapa_corrente,
           openAlerts: featureRollup.open_alerts,
-          latestStatus: featureRollup.latest_status,
+          latestStatus: normalizeStatus(featureRollup.latest_status),
           latestExecutionAt: featureRollup.latest_execution_at,
         },
         executions,

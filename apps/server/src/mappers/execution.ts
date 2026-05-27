@@ -6,24 +6,14 @@
  */
 import type { ExecutionDTO } from '@cstk-panel/shared-types';
 import type { ExecutionRow } from '../db/queries/executions.js';
-
-type ValidStatus = 'em_andamento' | 'aguardando_humano' | 'concluida' | 'abortada';
-
-const VALID_STATUSES: Set<string> = new Set([
-  'em_andamento', 'aguardando_humano', 'concluida', 'abortada',
-]);
-
-function toStatus(raw: string | null): ValidStatus | null {
-  if (raw && VALID_STATUSES.has(raw)) return raw as ValidStatus;
-  return null;
-}
+import { normalizeStatus } from './status.js';
 
 export function mapExecution(row: ExecutionRow): ExecutionDTO {
   return {
     project: row.project,
     feature: row.feature,
     execucaoId: row.execucao_id,
-    status: toStatus(row.status),
+    status: normalizeStatus(row.status),
     motivoTermino: row.motivo_termino,
     etapaCorrente: row.etapa_corrente,
     iniciadaEm: row.iniciada_em,
