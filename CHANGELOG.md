@@ -5,6 +5,31 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.2.0] - 2026-05-27
+
+### Adicionado
+
+#### Backend (`@cstk-panel/server`)
+- `npm run start` agora sobe **API + front-end** num único processo e porta: o
+  servidor Fastify serve o SPA buildado (`apps/web/dist`) via `@fastify/static`,
+  além dos endpoints `GET /api/v1`. Antes o `start` subia apenas a API e a raiz
+  devolvia o envelope JSON 404 — por isso o `cstk serve` precisava recorrer ao
+  `npm run dev` (Vite + proxy em duas portas). Diretório do front-end
+  configurável via `CSTK_WEB_DIR` (default: `apps/web/dist`).
+
+### Modificado
+
+#### Backend (`@cstk-panel/server`)
+- O header `Content-Type: application/json` passou a ser **escopado às rotas
+  `/api/v1`**. O hook global de resposta mantém apenas os headers de segurança
+  (`X-Content-Type-Options`, `X-Frame-Options`, `Cache-Control`), evitando
+  corromper o `Content-Type` de HTML/CSS/JS servidos estaticamente.
+- `notFoundHandler`: rotas `/api/*` continuam retornando 404 JSON estruturado;
+  demais paths caem em _fallback_ SPA (`index.html`) quando o front-end está
+  habilitado, para o `HashRouter` resolver a rota no cliente.
+- Degradação graciosa (Invariante II): se o build do web estiver ausente, o
+  servidor sobe **apenas a API** e registra um aviso — nunca falha o boot.
+
 ## [0.1.2] - 2026-05-27
 
 ### Modificado
@@ -84,6 +109,7 @@ execuções dos orquestradores `agente-00c` / `feature-00c`, lido diretamente da
 - Invariantes constitucionais I–VI verificáveis por scripts de _lint_.
 - `npm run lint:readonly-check` garante zero verbos de mutação SQL em `apps/server/src`.
 
+[0.2.0]: https://github.com/JotJunior/cstk-panel/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/JotJunior/cstk-panel/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/JotJunior/cstk-panel/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/JotJunior/cstk-panel/releases/tag/v0.1.0
