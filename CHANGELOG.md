@@ -5,6 +5,56 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.3.0] - 2026-05-27
+
+### Adicionado
+
+#### Tela "Memórias" (auto-memórias do Claude Code, schema v4)
+- Nova tela **Memórias** que exibe a tabela `memories` introduzida no **schema
+  v4** da `knowledge.db` (feature `recall-memory-mirror` do cstk/claude-ai-tips):
+  espelho dos arquivos `.md` de auto-memória que o harness persiste por projeto.
+  **Read-only e best-effort** — o painel apenas exibe; a fonte canônica são os
+  `.md` no disco. Filtro por projeto (server-side) ou exibição de todas, além de
+  filtro por tipo e busca textual (client-side). O corpo do `.md` é expansível,
+  renderizado via `children` do React (textContent — Princípio V, nunca
+  `innerHTML`).
+
+#### Backend (`@cstk-panel/server`)
+- `config`/`open` passam a aceitar `schema_version='4'` (mantendo v2/v3). O
+  default de `CSTK_SCHEMA_VERSIONS` agora é `2,3,4`.
+- Novo `hasTable()` (cacheado por conexão) em `db/columns`: bases v2/v3 sem a
+  tabela `memories` **degradam para lista vazia** em vez de quebrar (Princípio
+  II) — ausência da feature não é defeito da base, então `degraded=false`.
+- Novo `GET /memories?project=` (`db/queries/memories` + `routes/memories`):
+  apenas `SELECT` (passa no `lint:readonly-check`). Retorna as memórias
+  paginadas, a **lista completa de projetos** para o seletor (independente do
+  filtro corrente) e metadados de paginação. `description`/`body` viajam crus
+  (UNTRUSTED — defesa de XSS é do front-end).
+- `GET /health` passa a contar a tabela `memories`.
+
+#### Tipos compartilhados (`@cstk-panel/shared-types`)
+- `MemoryDTO` + `MemoryDTOSchema` (Zod): `type` como enum
+  `index|feedback|project|reference|user`; `description`/`body` marcados
+  `@untrusted`.
+
+#### Front-end (`@cstk-panel/web`)
+- `useMemories(project)` (TanStack Query) + `MemoriesPageSchema`.
+- `memory-display`: derivação **defensiva** do rótulo de descrição. O produtor
+  define `description` como a 1ª linha não-vazia do `.md`; como os `.md` começam
+  com frontmatter YAML, isso captura o delimitador `---` na maioria dos casos
+  (~86% da base real observada). No display (sem reescrever o índice) caímos para
+  o campo `description:` do frontmatter, depois 1ª linha de prosa, depois slug
+  humanizado.
+- Item **Memórias** na Sidebar + rota `/memories`; a tela **Fonte de dados**
+  lista a tabela `memories`. O rodapé da Sidebar e o Source passam a refletir o
+  `schema_version` **real** (antes fixo em "v2").
+
+### Testes / Infra
+- Rota `/memories` com base v4 real construída em tmpdir (listagem, filtro por
+  projeto, `projects` completo, `body` UNTRUSTED cru, projeto inexistente) +
+  degradação graciosa em base v3 (sem a tabela). Unit de `memory-display`
+  cobrindo o caso `description='---'` e os fallbacks. Suíte: **218 testes**.
+
 ## [0.2.2] - 2026-05-27
 
 ### Corrigido
