@@ -29,6 +29,14 @@ export interface ServerConfig {
   corsOrigin: string;
   /** Versoes de schema_meta.schema_version aceitas na abertura (FR-V3-001). */
   supportedSchemaVersions: string[];
+  /**
+   * Diretorio do SPA buildado (apps/web/dist) servido estaticamente para que
+   * `npm run start` suba API + front-end no mesmo processo/porta. Resolvido
+   * relativo ao dist do server (__dirname = apps/server/dist) ou via env
+   * CSTK_WEB_DIR. Pode nao existir (build do web ausente) — o server degrada:
+   * sobe so a API e loga aviso (Principio II).
+   */
+  webDir: string;
 }
 
 function resolveDbPath(): string {
@@ -37,6 +45,19 @@ function resolveDbPath(): string {
     return resolve(fromEnv.trim());
   }
   return resolve(homedir(), '.claude', 'cstk', 'knowledge.db');
+}
+
+/**
+ * Resolve o diretorio do SPA buildado. Env CSTK_WEB_DIR tem prioridade; senao
+ * sobe de apps/server/dist ate apps/ e desce em web/dist. __dirname existe no
+ * build CommonJS (modulo CommonJS em apps/server/tsconfig.json).
+ */
+function resolveWebDir(): string {
+  const fromEnv = process.env['CSTK_WEB_DIR'];
+  if (fromEnv && fromEnv.trim() !== '') {
+    return resolve(fromEnv.trim());
+  }
+  return resolve(__dirname, '..', '..', 'web', 'dist');
 }
 
 /** Parseia CSTK_SCHEMA_VERSIONS (CSV) em lista; vazio/ausente → default. */
@@ -54,5 +75,6 @@ export function loadConfig(): ServerConfig {
     host: '127.0.0.1', // FR-017: bind APENAS em localhost
     corsOrigin: process.env['CORS_ORIGIN'] ?? 'http://localhost:5173',
     supportedSchemaVersions: resolveSchemaVersions(),
+    webDir: resolveWebDir(),
   };
 }

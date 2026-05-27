@@ -7,8 +7,10 @@
  * - Principio II: degradacao nunca quebra (servidor sobe mesmo sem DB)
  * - Principio VI: snapshot freshness em cada resposta
  */
+import { existsSync } from 'node:fs';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import fastifyStatic from '@fastify/static';
 import { loadConfig } from './config.js';
 import { healthRoutes } from './routes/health.js';
 import { overviewRoutes } from './routes/overview.js';
@@ -30,22 +32,45 @@ async function main(): Promise<void> {
     },
   });
 
-  // CORS restrito a origem do front-end (FR-017)
+  // CORS restrito a origem do front-end (FR-017). Irrelevante quando a UI e
+  // servida pelo proprio server (mesma origem), mas mantido para o modo dev
+  // (Vite em :5173 chamando a API em :3001).
   await server.register(cors, {
     origin: config.corsOrigin,
     methods: ['GET', 'OPTIONS'],
   });
 
-  // Hook global: headers de seguranca obrigatorios em TODA resposta (FR-019)
+  // Headers de seguranca obrigatorios em TODA resposta — inclusive os assets
+  // estaticos do SPA (FR-019). NAO fixa Content-Type aqui: isso corromperia o
+  // HTML/CSS/JS servido pelo @fastify/static. O Content-Type das respostas de
+  // API e definido no escopo /api/v1 abaixo (e o Fastify ja serializa objetos
+  // como application/json por padrao).
   server.addHook('onSend', async (_request, reply, _payload) => {
-    void reply.header('Content-Type', 'application/json; charset=utf-8');
     void reply.header('X-Content-Type-Options', 'nosniff');
     void reply.header('X-Frame-Options', 'DENY');
     void reply.header('Cache-Control', 'no-store');
   });
 
+  // Serving estatico do SPA buildado (apps/web/dist) — faz `npm run start` subir
+  // API + front-end no mesmo processo e porta. Degrada com elegancia (Principio
+  // II): se o build do web nao existe, sobe so a API e loga aviso.
+  const webEnabled = existsSync(config.webDir);
+  if (webEnabled) {
+    await server.register(fastifyStatic, {
+      root: config.webDir,
+      prefix: '/',
+      // index.html servido em '/'; assets servidos por path; ausentes caem no
+      // notFoundHandler (fallback SPA abaixo).
+      wildcard: true,
+    });
+  }
+
   // Registrar todas as rotas sob /api/v1
   await server.register(async (v1) => {
+    // Content-Type JSON explicito apenas no escopo da API (FR-019).
+    v1.addHook('onSend', async (_request, reply, _payload) => {
+      void reply.header('Content-Type', 'application/json; charset=utf-8');
+    });
     await v1.register(healthRoutes);
     await v1.register(overviewRoutes);
     await v1.register(projectRoutes);
@@ -58,8 +83,14 @@ async function main(): Promise<void> {
     await v1.register(searchRoutes);
   }, { prefix: '/api/v1' });
 
-  // 404 handler — resposta JSON estruturada (nunca HTML)
-  server.setNotFoundHandler((_request, reply) => {
+  // 404 handler. Rotas /api/* (e tudo quando o web nao esta habilitado) retornam
+  // o envelope JSON estruturado (nunca HTML). Demais paths, com o SPA habilitado,
+  // caem no fallback de history: devolve index.html para o React Router resolver
+  // a rota no cliente.
+  server.setNotFoundHandler((request, reply) => {
+    if (webEnabled && !request.url.startsWith('/api')) {
+      return reply.sendFile('index.html');
+    }
     return reply.status(404).send({
       data: null,
       meta: {
@@ -79,6 +110,13 @@ async function main(): Promise<void> {
       `Server listening on ${config.host}:${config.port}`
     );
     server.log.info(`DB path: ${config.dbPath}`);
+    if (webEnabled) {
+      server.log.info(`Web UI served from ${config.webDir}`);
+    } else {
+      server.log.warn(
+        `Web UI desabilitada: build ausente em ${config.webDir} (rode "npm run build"). Apenas a API esta no ar.`
+      );
+    }
   } catch (err) {
     server.log.error(err);
     process.exit(1);
