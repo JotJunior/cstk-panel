@@ -5,6 +5,26 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.1.1] - 2026-05-27
+
+### Corrigido
+
+#### Frontend (`@cstk-panel/web`)
+- Barras do _pipeline_ ficavam totalmente cinzas para execuções concluídas: o
+  orquestrador grava `etapa_corrente='concluida'` (marcador terminal, fora de
+  `SDD_STAGES`), e os renderizadores _inline_ preenchiam segmentos apenas com
+  `i <= idx` — com `idx=-1` nenhuma barra era pintada.
+- Corrigidas `keys` de React no `DecisionsPanel` (uso de `Fragment` com `key`).
+
+### Modificado
+
+#### Frontend (`@cstk-panel/web`)
+- Renderização do _pipeline_ consolidada no componente compartilhado
+  `PipelineProgress` (_single source of truth_ para a lógica de etapas
+  done/current/aborted), eliminando cópias duplicadas em `Executions` e
+  `ExecutionDetail`. As telas agora usam coloração por etapa, consistente com
+  Overview/Features.
+
 ## [0.1.0] - 2026-05-26
 
 Primeira versão do **cstk-panel** — dashboard de observabilidade _read-only_ para
@@ -40,4 +60,5 @@ execuções dos orquestradores `agente-00c` / `feature-00c`, lido diretamente da
 - Invariantes constitucionais I–VI verificáveis por scripts de _lint_.
 - `npm run lint:readonly-check` garante zero verbos de mutação SQL em `apps/server/src`.
 
+[0.1.1]: https://github.com/JotJunior/cstk-panel/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/JotJunior/cstk-panel/releases/tag/v0.1.0
