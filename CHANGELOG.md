@@ -5,6 +5,31 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.2.2] - 2026-05-27
+
+### Corrigido
+
+#### Front-end (`@cstk-panel/web`)
+- A visão da execução (`ExecutionDetail`) exibia o pipeline com **todas as
+  etapas apagadas** para execuções concluídas. Execuções terminais gravam
+  `etapa_corrente='concluida'` — marcador fora de `SDD_STAGES` (`idx=-1`) — e o
+  modo rotulado do `PipelineProgress` acendia por `i < idx`, deixando tudo
+  cinza. Mesmo defeito já corrigido na listagem (modo compacto), agora
+  replicado na visão de detalhe.
+- A classificação das etapas foi extraída para `stageStates()` (função pura,
+  fonte única consumida pelos dois modos de render): a decisão acende pelo
+  **status** — já normalizado no servidor (`concluido`→`concluida`) — e não
+  pelo índice da etapa. Concluída acende todas; abortada marca da etapa
+  corrente em diante.
+- Adicionado o estilo `.pipeline-labeled .stage.aborted` (a variante rotulada
+  não possuía, ao contrário da compacta), para paridade de renderização.
+
+### Testes / Infra
+- Novo teste de `stageStates` cobrindo `concluida`/`abortada` com `idx=-1`,
+  `em_andamento`, `aguardando_humano` e `null`.
+- Registrado o alias `@` na config Vitest raiz para que a suíte de componentes
+  resolva `@/lib/...` (antes só existia no `vite.config` do web).
+
 ## [0.2.1] - 2026-05-27
 
 ### Corrigido
