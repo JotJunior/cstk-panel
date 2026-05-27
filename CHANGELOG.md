@@ -5,6 +5,24 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.2.1] - 2026-05-27
+
+### Corrigido
+
+#### Backend (`@cstk-panel/server`)
+- O front-end quebrava por inteiro (`invalid_enum_value` na validação Zod) quando
+  a `knowledge.db` continha um status fora do contrato — ex.: `concluido` em vez
+  de `concluida`. Como o `status` é parcialmente escrito por um LLM
+  (orquestrador), variantes assim podem ocorrer. As rotas de _rollup_
+  (features/projects/overview) emitiam `latestStatus` **cru**, derrubando a lista
+  inteira (violando o Invariante II — _degradação nunca quebra_).
+- Novo normalizador `normalizeStatus` (fonte única) no limite de leitura:
+  remapeia _aliases_ conhecidos (`concluido`→`concluida`, `abortado`→`abortada`)
+  e degrada qualquer valor desconhecido para `null` — o servidor nunca mais
+  emite um enum inválido. `mapExecution` passou a reutilizá-lo (sem duplicação).
+  O filtro de `GET /features?status=` também normaliza, de modo que filtrar por
+  `concluida` captura linhas cujo valor cru é uma variante conhecida.
+
 ## [0.2.0] - 2026-05-27
 
 ### Adicionado
@@ -109,6 +127,7 @@ execuções dos orquestradores `agente-00c` / `feature-00c`, lido diretamente da
 - Invariantes constitucionais I–VI verificáveis por scripts de _lint_.
 - `npm run lint:readonly-check` garante zero verbos de mutação SQL em `apps/server/src`.
 
+[0.2.1]: https://github.com/JotJunior/cstk-panel/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/JotJunior/cstk-panel/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/JotJunior/cstk-panel/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/JotJunior/cstk-panel/compare/v0.1.0...v0.1.1
