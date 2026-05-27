@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useExecutions } from '@/lib/hooks.js';
 import { useApiState } from '@/hooks/useApiState.js';
 import { LoadingState, EmptyState, ErrorState, DegradedBanner } from '@/states/index.js';
-import { StatusBadge } from '@/components/index.js';
+import { StatusBadge, PipelineProgress } from '@/components/index.js';
 import type { ExecutionDTO } from '@cstk-panel/shared-types';
 
 function fmtNum(n: number | null | undefined): string {
@@ -25,20 +25,6 @@ function fmtDur(s: number | null | undefined): string {
 function fmtTimestamp(iso: string | null | undefined): string {
   if (!iso) return '—';
   return new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-}
-
-const SDD_STAGES = ['briefing','constitution','specify','clarify','plan','checklist','create-tasks','execute-task','review-task'];
-
-function PipelineMini({ etapa, status }: { etapa: string | null; status: string | null }) {
-  const idx = etapa ? SDD_STAGES.indexOf(etapa) : -1;
-  const color = status === 'concluida' ? 'var(--success)' : status === 'abortada' ? 'var(--critical)' : status === 'aguardando_humano' ? 'var(--warning)' : 'var(--inprogress)';
-  return (
-    <div style={{ display: 'flex', gap: 1.5, height: 4, width: 120, borderRadius: 2, overflow: 'hidden' }}>
-      {SDD_STAGES.map((s, i) => (
-        <div key={s} style={{ flex: 1, background: i <= idx ? color : 'var(--bg-4)' }} />
-      ))}
-    </div>
-  );
 }
 
 export function Executions() {
@@ -102,7 +88,7 @@ export function Executions() {
                         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10.5, color: 'var(--text-2)' }}>{e.project}</div>
                       </td>
                       <td><StatusBadge status={e.status} /></td>
-                      <td><PipelineMini etapa={e.etapaCorrente} status={e.status} /></td>
+                      <td><PipelineProgress etapa={e.etapaCorrente} status={e.status} /></td>
                       <td className="num">{e.ondasTotal ?? '—'}</td>
                       <td className="num">{fmtNum(e.toolCallsTotal)}</td>
                       <td className="num">{fmtDur(e.wallclockTotalSegundos)}</td>

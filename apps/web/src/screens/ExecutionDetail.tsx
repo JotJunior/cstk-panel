@@ -7,7 +7,7 @@
  *
  * Ref: spec.md §User Story 2; tasks.md §6.2
  */
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import {
   useExecution, useWaves, useDecisions, useTasks,
@@ -15,7 +15,7 @@ import {
 } from '@/lib/hooks.js';
 import { useApiState } from '@/hooks/useApiState.js';
 import { LoadingState, EmptyState, ErrorState, DegradedBanner } from '@/states/index.js';
-import { StatusBadge, ScoreChip, OutcomePill, TextRaw, Icon, BarH, MiniStat } from '@/components/index.js';
+import { StatusBadge, ScoreChip, OutcomePill, TextRaw, Icon, BarH, MiniStat, PipelineProgress } from '@/components/index.js';
 import type { ExecutionDTO, WaveDTO, DecisionDTO, TaskDTO, EventDTO, AlertSignalDTO, BloqueioDTO, SkillDTO } from '@cstk-panel/shared-types';
 
 // ---------------------------------------------------------------------------
@@ -42,39 +42,8 @@ function fmtTimestamp(iso: string | null | undefined): string {
   return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
-const SDD_STAGES = [
-  'briefing','constitution','specify','clarify','plan',
-  'checklist','create-tasks','execute-task','review-task',
-];
-
-function PipelineProgress({ etapa, status }: { etapa: string | null; status: string | null }) {
-  const idx = etapa ? SDD_STAGES.indexOf(etapa) : -1;
-  const color =
-    status === 'concluida' ? 'var(--success)' :
-    status === 'abortada' ? 'var(--critical)' :
-    status === 'aguardando_humano' ? 'var(--warning)' :
-    'var(--inprogress)';
-  return (
-    <div>
-      <div style={{ display: 'flex', gap: 2, height: 4, borderRadius: 2, overflow: 'hidden', marginBottom: 4 }}>
-        {SDD_STAGES.map((s, i) => (
-          <div key={s} style={{ flex: 1, background: i <= idx ? color : 'var(--bg-4)', borderRadius: 2 }} />
-        ))}
-      </div>
-      <div style={{ display: 'flex', gap: 2 }}>
-        {SDD_STAGES.map((s, i) => (
-          <div key={s} style={{
-            flex: 1, fontSize: 9, color: i === idx ? color : 'var(--text-3)',
-            fontFamily: 'var(--font-mono)', textAlign: 'center', overflow: 'hidden',
-            textOverflow: 'clip', whiteSpace: 'nowrap',
-          }}>
-            {s.slice(0, 4)}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+// PipelineProgress: usa o componente compartilhado (single source of truth para a
+// logica de etapas done/current/aborted). Ver components/PipelineProgress.tsx.
 
 // ---------------------------------------------------------------------------
 // WavesTimeline
@@ -288,8 +257,8 @@ function DecisionsPanel({ execucaoId, waveFilter }: { execucaoId: string; waveFi
             const key = `${d.wave}-${idx}`;
             const isExp = expanded === key;
             return (
-              <>
-                <tr key={key} className="clickable" onClick={() => setExpanded(isExp ? null : key)}>
+              <Fragment key={key}>
+                <tr className="clickable" onClick={() => setExpanded(isExp ? null : key)}>
                   <td>
                     <Icon name={isExp ? 'chevron-down' : 'chevron-right'} size={12} style={{ color: 'var(--text-3)' }} />
                   </td>
@@ -300,7 +269,7 @@ function DecisionsPanel({ execucaoId, waveFilter }: { execucaoId: string; waveFi
                   <td><ScoreChip score={d.score} /></td>
                 </tr>
                 {isExp && (
-                  <tr key={`${key}-exp`}>
+                  <tr>
                     <td colSpan={6} style={{ background: 'var(--bg-2)', padding: '14px 16px' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                         <div>
@@ -323,7 +292,7 @@ function DecisionsPanel({ execucaoId, waveFilter }: { execucaoId: string; waveFi
                     </td>
                   </tr>
                 )}
-              </>
+              </Fragment>
             );
           })}
         </tbody>
@@ -775,7 +744,7 @@ export function ExecutionDetail() {
             ))}
           </div>
 
-          <PipelineProgress etapa={exec.etapaCorrente} status={exec.status} />
+          <PipelineProgress etapa={exec.etapaCorrente} status={exec.status} labeled />
 
           {exec.stackSugerida && (
             <div style={{ marginTop: 10, display: 'flex', gap: 6 }}>
