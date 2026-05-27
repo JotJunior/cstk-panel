@@ -5,6 +5,30 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.1.2] - 2026-05-27
+
+### Modificado
+
+#### Tooling e dependências
+- Migração do ESLint 8 → 9 com _flat config_ (`eslint.config.mjs`, substituindo
+  `.eslintrc.cjs`), trocando `@typescript-eslint/{eslint-plugin,parser}` v7 pelo
+  pacote unificado `typescript-eslint` v8. As regras constitucionais permanecem
+  idênticas (proibição de `innerHTML`/`dangerouslySetInnerHTML`, `no-unused-vars`,
+  `no-explicit-any`).
+- Removida a flag `--ext .ts,.tsx` dos scripts de _lint_ (não suportada em _flat
+  config_; o casamento de arquivos passa a ser definido na própria config).
+- Eliminados **6 dos 7** _warnings_ de dependência depreciada na instalação
+  (`inflight`, `glob@7`, `rimraf@3`, `@humanwhocodes/config-array`,
+  `@humanwhocodes/object-schema`, `eslint@8`), todos provenientes da cadeia do
+  ESLint 8. O _warning_ remanescente (`prebuild-install`) vem de `better-sqlite3`
+  e não tem correção por versão — persiste até no _release_ mais recente da lib.
+
+### Removido
+
+#### Frontend (`@cstk-panel/web`)
+- Diretiva `eslint-disable` obsoleta em `api.ts` (`no-unsafe-return` nunca esteve
+  ativa; o ESLint 9 passou a sinalizá-la).
+
 ## [0.1.1] - 2026-05-27
 
 ### Corrigido
@@ -60,5 +84,6 @@ execuções dos orquestradores `agente-00c` / `feature-00c`, lido diretamente da
 - Invariantes constitucionais I–VI verificáveis por scripts de _lint_.
 - `npm run lint:readonly-check` garante zero verbos de mutação SQL em `apps/server/src`.
 
+[0.1.2]: https://github.com/JotJunior/cstk-panel/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/JotJunior/cstk-panel/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/JotJunior/cstk-panel/releases/tag/v0.1.0

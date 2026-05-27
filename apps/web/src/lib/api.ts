@@ -45,7 +45,6 @@ function storeEtag(path: string, etag: string): void {
 
 /** Parse envelope com schema Zod. Lanca ZodError se shape invalida. */
 function parseEnvelope<T>(json: unknown, dataSchema: z.ZodType<T>): ApiEnvelope<T> {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return ApiEnvelopeSchema(dataSchema).parse(json) as unknown as ApiEnvelope<T>;
 }
 
