@@ -159,6 +159,21 @@ export const MemoryDTOSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// SuggestionDTO schema (schema v5 — feature recall-suggestions)
+// ---------------------------------------------------------------------------
+export const SuggestionDTOSchema = z.object({
+  execucaoId: z.string(),
+  sourceId: z.string(),
+  skillAfetada: z.string().nullable(),
+  severidade: z.enum(['informativa', 'aviso', 'impeditiva']).nullable(),
+  diagnostico: z.string().nullable(),
+  proposta: z.string().nullable(),
+  referencias: z.array(z.string()),
+  issueAberta: z.string().nullable(),
+  criadaEm: z.string().nullable(),
+});
+
+// ---------------------------------------------------------------------------
 // Rollup schemas
 // ---------------------------------------------------------------------------
 export const ProjectRollupSchema = z.object({

@@ -23,6 +23,8 @@ export type {
   FtsHitDTO,
   MemoryDTO,
   MemoryType,
+  SuggestionDTO,
+  SuggestionSeveridade,
   ProjectRollup,
   FeatureRollup,
   PaginationParams,
@@ -52,6 +54,7 @@ export {
   RetroDTOSchema,
   FtsHitDTOSchema,
   MemoryDTOSchema,
+  SuggestionDTOSchema,
   ProjectRollupSchema,
   FeatureRollupSchema,
 } from './schemas/entities.js';

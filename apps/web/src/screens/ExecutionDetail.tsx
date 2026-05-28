@@ -12,12 +12,13 @@ import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import {
   useExecution, useWaves, useDecisions, useTasks,
   useEvents, useAlertsByExecution, useBloqueios, useSkills, useScoreDistribution,
+  useSuggestions,
 } from '@/lib/hooks.js';
 import { useApiState } from '@/hooks/useApiState.js';
 import { stackDisplayItems } from '@/lib/stack-display.js';
 import { LoadingState, EmptyState, ErrorState, DegradedBanner } from '@/states/index.js';
 import { StatusBadge, ScoreChip, OutcomePill, TextRaw, Icon, BarH, MiniStat, PipelineProgress } from '@/components/index.js';
-import type { ExecutionDTO, WaveDTO, DecisionDTO, TaskDTO, EventDTO, AlertSignalDTO, BloqueioDTO, SkillDTO } from '@cstk-panel/shared-types';
+import type { ExecutionDTO, WaveDTO, DecisionDTO, TaskDTO, EventDTO, AlertSignalDTO, BloqueioDTO, SkillDTO, SuggestionDTO } from '@cstk-panel/shared-types';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -559,6 +560,82 @@ function BloqueiosPanel({ execucaoId }: { execucaoId: string }) {
 }
 
 // ---------------------------------------------------------------------------
+// Painel de Sugestoes (schema v5 — melhorias propostas pela IA a skills)
+// ---------------------------------------------------------------------------
+const SEVERIDADE_META: Record<string, { label: string; color: string }> = {
+  impeditiva:  { label: 'impeditiva',  color: 'var(--critical)' },
+  aviso:       { label: 'aviso',       color: 'var(--warning)' },
+  informativa: { label: 'informativa', color: 'var(--info)' },
+};
+
+function SuggestionsPanel({ execucaoId }: { execucaoId: string }) {
+  const query = useSuggestions(execucaoId);
+  const { isLoading, isError, errorMessage } = useApiState(query);
+  const items: SuggestionDTO[] = query.data?.data ?? [];
+
+  if (isLoading) return <LoadingState />;
+  if (isError) return <ErrorState message={errorMessage ?? 'Erro'} />;
+  if (!items.length) return <EmptyState title="Sem sugestoes" subtitle="A IA nao propos melhorias a skills nesta execucao (ou a base esta em schema < v5)." />;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+      {items.map((s, idx) => {
+        const sev = SEVERIDADE_META[s.severidade ?? ''] ?? { label: s.severidade ?? '—', color: 'var(--text-2)' };
+        return (
+          <div key={s.sourceId || idx} style={{ padding: '14px 18px', borderBottom: '1px solid var(--border-soft)' }}>
+            <div className="row" style={{ justifyContent: 'space-between', marginBottom: 8 }}>
+              <div className="row gap-2">
+                <Icon name="zap" size={13} style={{ color: sev.color }} />
+                <span style={{ fontSize: 11, fontWeight: 600, color: sev.color, fontFamily: 'var(--font-mono)' }}>
+                  {sev.label}
+                </span>
+                {s.skillAfetada && (
+                  <span style={{ fontSize: 11, color: 'var(--text-1)', fontFamily: 'var(--font-mono)', padding: '1px 7px', background: 'var(--bg-3)', borderRadius: 8 }}>
+                    {s.skillAfetada}
+                  </span>
+                )}
+                <span style={{ fontSize: 10.5, color: 'var(--text-3)', fontFamily: 'var(--font-mono)' }}>
+                  {s.sourceId}
+                </span>
+              </div>
+              <div className="row gap-2" style={{ fontSize: 11, color: 'var(--text-3)', fontFamily: 'var(--font-mono)' }}>
+                {s.issueAberta
+                  ? <span style={{ color: 'var(--warning)' }}>issue: {s.issueAberta}</span>
+                  : <span>{fmtTimestamp(s.criadaEm)}</span>}
+              </div>
+            </div>
+            <div style={{ marginBottom: 8 }}>
+              <div style={{ fontSize: 10.5, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 3, fontFamily: 'var(--font-mono)' }}>diagnostico</div>
+              <TextRaw value={s.diagnostico} />
+            </div>
+            {s.proposta && (
+              <div style={{ marginBottom: s.referencias.length ? 8 : 0 }}>
+                <div style={{ fontSize: 10.5, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 3, fontFamily: 'var(--font-mono)' }}>proposta</div>
+                <div style={{ background: 'var(--bg-2)', borderRadius: 'var(--r-xs)', padding: '6px 10px', fontSize: 12.5 }}>
+                  <TextRaw value={s.proposta} />
+                </div>
+              </div>
+            )}
+            {s.referencias.length > 0 && (
+              <div>
+                <div style={{ fontSize: 10.5, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 3, fontFamily: 'var(--font-mono)' }}>referencias</div>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                  {s.referencias.map((r, i) => (
+                    <span key={i} style={{ fontSize: 11, color: 'var(--text-1)', fontFamily: 'var(--font-mono)', padding: '2px 7px', background: 'var(--bg-3)', border: '1px solid var(--border)', borderRadius: 8 }}>
+                      <TextRaw value={r} maxLength={80} />
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Cards laterais (coluna direita) — Decisoes por score, Top skills, Sugestoes
 // ---------------------------------------------------------------------------
 const SCORE_COLORS = ['var(--score-0)', 'var(--score-1)', 'var(--score-2)', 'var(--score-3)'];
@@ -676,6 +753,7 @@ export function ExecutionDetail() {
     { value: 'events',    label: 'Eventos',   count: 0 },
     { value: 'alerts',    label: 'Alertas',   count: 0 },
     { value: 'bloqueios', label: 'Bloqueios', count: exec.bloqueiosHumanosTotal ?? 0 },
+    { value: 'suggestions', label: 'Sugestoes', count: exec.sugestoesSkillsTotal ?? 0 },
   ];
 
   return (
@@ -787,6 +865,7 @@ export function ExecutionDetail() {
           {activeTab === 'events'    && <EventsPanel execucaoId={execucaoId ?? ''} />}
           {activeTab === 'alerts'    && <AlertsPanel execucaoId={execucaoId ?? ''} />}
           {activeTab === 'bloqueios' && <BloqueiosPanel execucaoId={execucaoId ?? ''} />}
+          {activeTab === 'suggestions' && <SuggestionsPanel execucaoId={execucaoId ?? ''} />}
         </div>
       </div>
     </div>

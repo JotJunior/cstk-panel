@@ -28,11 +28,12 @@ import { listEventsByExecution } from '../db/queries/events.js';
 import { listAlertsByExecution } from '../db/queries/alerts.js';
 import { listBloqueiosByExecution } from '../db/queries/bloqueios.js';
 import { listSkillsByExecution } from '../db/queries/skills.js';
+import { listSuggestionsByExecution } from '../db/queries/suggestions.js';
 import {
   mapExecution, mapExecutions, mapWave, mapWaves, mapDecision, mapDecisions,
   mapTask, mapTasks, mapEvent, mapEvents,
   mapAlert, mapAlerts, mapBloqueio, mapBloqueios,
-  mapSkill, mapSkills,
+  mapSkill, mapSkills, mapSuggestions,
 } from '../mappers/index.js';
 
 // Validacao de path param (FR-018 — sem traversal)
@@ -300,6 +301,26 @@ export async function executionRoutes(server: FastifyInstance): Promise<void> {
       const rows = listSkillsByExecution(db, execucaoId);
       const skills = mapSkills(rows);
       const envelope = wrap(skills, {}, config.dbPath, db);
+      return reply.status(200).send(envelope);
+    } finally { db.close(); }
+  });
+
+  // ─── GET /executions/:execucaoId/suggestions ──────────────────────────────
+  // Sugestoes de melhoria propostas pela IA (schema v5 — recall-suggestions).
+  // Bases v<5 degradam para [] (a query checa hasTable; Principio II).
+  server.get('/executions/:execucaoId/suggestions', async (request, reply) => {
+    const paramResult = validateParam(request.params);
+    if (!paramResult.success) return reply.status(400).send({ data: null, meta: emptyMeta(), error: 'Invalid execucaoId' });
+
+    const { execucaoId } = paramResult.data;
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
+    if (!openResult.ok) return reply.status(200).send(wrapDegraded(openResult.reason, config.dbPath));
+
+    const { db } = openResult;
+    try {
+      const rows = listSuggestionsByExecution(db, execucaoId);
+      const suggestions = mapSuggestions(rows);
+      const envelope = wrap(suggestions, {}, config.dbPath, db);
       return reply.status(200).send(envelope);
     } finally { db.close(); }
   });

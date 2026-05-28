@@ -197,6 +197,36 @@ export interface MemoryDTO {
 }
 
 // ---------------------------------------------------------------------------
+// SuggestionDTO — grao: 1 por sugestao de melhoria proposta pela IA
+// (schema v5, feature recall-suggestions). Tabela `suggestions`, escopo por
+// execucao (espelho de state.json `.sugestoes[]`). Chave natural (execucaoId,
+// sourceId). Read-only: o painel apenas exibe; a fonte canonica e o state.json.
+// ---------------------------------------------------------------------------
+
+/** 3 severidades do produtor (suggestions.sh). Outro valor → null no mapper. */
+export type SuggestionSeveridade = 'informativa' | 'aviso' | 'impeditiva';
+
+export interface SuggestionDTO {
+  execucaoId: string;
+  /** id natural da sugestao (ex: sug-001) — compoe a chave (execucaoId, sourceId) */
+  sourceId: string;
+  /** skill alvo da melhoria proposta (ex: execute-task); '' quando ausente */
+  skillAfetada: string | null;
+  severidade: SuggestionSeveridade | null;
+  /** @untrusted — texto livre (scrubbed na ingestao); renderizar via textContent */
+  diagnostico: string | null;
+  /** @untrusted — texto livre (scrubbed na ingestao); renderizar via textContent */
+  proposta: string | null;
+  /** paths de referencia (scrubbed); array derivado do CSV `referencias` do DB.
+   *  @untrusted leve — renderizar via textContent */
+  referencias: string[];
+  /** URL/numero da issue aberta no toolkit, ou null quando nao houver */
+  issueAberta: string | null;
+  /** ISO 8601 — `criada_em` no state.json (source_ts no DB) */
+  criadaEm: string | null;
+}
+
+// ---------------------------------------------------------------------------
 // Rollups para Overview (US1) e listas de Projects/Features (US3)
 // ---------------------------------------------------------------------------
 

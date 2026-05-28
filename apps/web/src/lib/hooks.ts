@@ -18,6 +18,7 @@ import {
   FeatureRollupSchema,
   FtsHitDTOSchema,
   MemoryDTOSchema,
+  SuggestionDTOSchema,
   type PeriodParam,
 } from '@cstk-panel/shared-types';
 import { z } from 'zod';
@@ -28,6 +29,7 @@ const EventListSchema = z.array(EventDTOSchema);
 const AlertListSchema = z.array(AlertSignalDTOSchema);
 const BloqueioListSchema = z.array(BloqueioDTOSchema);
 const SkillListSchema = z.array(SkillDTOSchema);
+const SuggestionListSchema = z.array(SuggestionDTOSchema);
 const ProjectListSchema = z.array(ProjectRollupSchema);
 const FeatureListSchema = z.array(FeatureRollupSchema);
 
@@ -220,6 +222,15 @@ export function useSkills(execucaoId: string) {
   return useQuery({
     queryKey: ['skills', execucaoId],
     queryFn: () => fetchApi(`/executions/${encodeURIComponent(execucaoId)}/skills`, SkillListSchema),
+    enabled: Boolean(execucaoId),
+  });
+}
+
+/** Sugestoes de melhoria da IA de uma execucao (schema v5). [] em bases v<5. */
+export function useSuggestions(execucaoId: string) {
+  return useQuery({
+    queryKey: ['suggestions', execucaoId],
+    queryFn: () => fetchApi(`/executions/${encodeURIComponent(execucaoId)}/suggestions`, SuggestionListSchema),
     enabled: Boolean(execucaoId),
   });
 }
