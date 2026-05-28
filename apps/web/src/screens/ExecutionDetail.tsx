@@ -14,6 +14,7 @@ import {
   useEvents, useAlertsByExecution, useBloqueios, useSkills, useScoreDistribution,
 } from '@/lib/hooks.js';
 import { useApiState } from '@/hooks/useApiState.js';
+import { stackDisplayItems } from '@/lib/stack-display.js';
 import { LoadingState, EmptyState, ErrorState, DegradedBanner } from '@/states/index.js';
 import { StatusBadge, ScoreChip, OutcomePill, TextRaw, Icon, BarH, MiniStat, PipelineProgress } from '@/components/index.js';
 import type { ExecutionDTO, WaveDTO, DecisionDTO, TaskDTO, EventDTO, AlertSignalDTO, BloqueioDTO, SkillDTO } from '@cstk-panel/shared-types';
@@ -746,9 +747,9 @@ export function ExecutionDetail() {
 
           <PipelineProgress etapa={exec.etapaCorrente} status={exec.status} labeled />
 
-          {exec.stackSugerida && (
-            <div style={{ marginTop: 10, display: 'flex', gap: 6 }}>
-              {exec.stackSugerida.split(',').map(s => s.trim()).filter(Boolean).map(s => (
+          {stackDisplayItems(exec.stackSugerida).length > 0 && (
+            <div style={{ marginTop: 10, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {stackDisplayItems(exec.stackSugerida).map(s => (
                 <span key={s} style={{
                   padding: '2px 7px', borderRadius: 8, fontSize: 11,
                   background: 'var(--bg-3)', color: 'var(--text-1)',

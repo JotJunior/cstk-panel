@@ -8,6 +8,7 @@ import { useApiState } from '@/hooks/useApiState.js';
 import { LoadingState, EmptyState, ErrorState } from '@/states/index.js';
 import { StatusBadge, MiniStat, PipelineProgress, Icon } from '@/components/index.js';
 import { fmtNum, fmtDur, fmtTimestamp } from '@/lib/format.js';
+import { stackDisplayItems } from '@/lib/stack-display.js';
 import type { ExecutionDTO, RetroDTO } from '@cstk-panel/shared-types';
 
 interface FeatureRollupShape {
@@ -39,7 +40,7 @@ export function FeatureDetail() {
 
   // Stack: primeira execucao com stack_sugerida (CARD-FTD-02)
   const stack = executions.find(e => e.stackSugerida)?.stackSugerida ?? null;
-  const stackItems = stack ? stack.split(',').map(s => s.trim()).filter(Boolean) : [];
+  const stackItems = stackDisplayItems(stack);
   // Execucao mais recente para "Ver execução" (CARD-FTD-03)
   const latestExecId = executions[0]?.execucaoId ?? null;
 
