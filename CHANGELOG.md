@@ -5,6 +5,49 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.4.0] - 2026-05-28
+
+### Adicionado
+
+#### Aba "Sugestões" no detalhe da execução (schema v5)
+- Nova aba **Sugestões** no detalhe da execução (ao lado de Decisões, Tarefas,
+  Eventos, Alertas e Bloqueios) que exibe a tabela `suggestions` introduzida no
+  **schema v5** da `knowledge.db` (feature `recall-suggestions` do cstk):
+  espelho de `state.json.sugestoes[]` — as melhorias que a IA propõe a alguma
+  skill durante a orquestração (`diagnóstico`, `proposta`, `referencias`,
+  `severidade` ∈ `informativa|aviso|impeditiva`, `skill_afetada`,
+  `issue_aberta`). Escopo por execução; chave natural `(execucao_id, source_id)`.
+  **Read-only** — o painel apenas exibe; a fonte canônica é o `state.json`.
+
+#### Backend (`@cstk-panel/server`)
+- `config`/`open` passam a aceitar `schema_version='5'` (mantendo v2/v3/v4). O
+  default de `CSTK_SCHEMA_VERSIONS` agora é `2,3,4,5`.
+- Novo `GET /executions/:execucaoId/suggestions` (`db/queries/suggestions` +
+  `mappers/suggestion`): apenas `SELECT` (passa no `lint:readonly-check`).
+  Tolerante a schema (Princípio II) — bases v<5 sem a tabela `suggestions`
+  **degradam para lista vazia** via `hasTable`, em vez de quebrar (`degraded=false`).
+  O mapper divide `referencias` (CSV) em array, coage `severidade` desconhecida
+  para `null` e normaliza `''`→`null`. `diagnóstico`/`proposta`/`referencias`
+  viajam crus (UNTRUSTED — defesa de XSS é do front-end).
+
+#### Tipos compartilhados (`@cstk-panel/shared-types`)
+- `SuggestionDTO` + `SuggestionDTOSchema` (Zod): `severidade` como enum
+  `informativa|aviso|impeditiva` (nullable); `diagnóstico`/`proposta`/
+  `referencias` marcados `@untrusted`; `referencias` como `string[]`.
+
+#### Front-end (`@cstk-panel/web`)
+- `useSuggestions(execucaoId)` (TanStack Query) + `SuggestionListSchema`.
+- `SuggestionsPanel`: cartões com badge de severidade (cor por nível), skill
+  afetada, diagnóstico/proposta e chips de referências. Todo campo livre é
+  renderizado via `TextRaw` (textContent — Princípio V, nunca `innerHTML`).
+  Estado vazio explica também o caso de base em schema < v5.
+
+#### Testes
+- `apps/server/test/lib/suggestions.test.ts`: base v5 mínima (listagem em ordem
+  cronológica, split de `referencias`, severidade conhecida, `issue_aberta`,
+  conteúdo UNTRUSTED cru) + base v3 sem a tabela (degradação para `[]` sem
+  `degraded`).
+
 ## [0.3.1] - 2026-05-27
 
 ### Corrigido
