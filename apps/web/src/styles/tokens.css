@@ -90,7 +90,22 @@
   --text-0: #0F1117;
   --text-1: #3D4554;
   --text-2: #5E6779;
-  --text-3: #8A93A2;
+  --text-3: #656D7B;
+
+  /* Semantic — escurecidos p/ WCAG AA sobre superficies claras (SC-001).
+     O dourado de marca (--accent) escurece SO no tema claro (texto/linha
+     ativa ilegiveis sobre branco); o dark theme preserva #E8B341. Tints
+     (--accent-soft) e categoricos do donut (--model-*) ficam invariantes. */
+  --accent: #7A5C00;
+  --success: #15803D;
+  --warning: #92400E;
+  --critical: #BE2A2F;
+  --info: #1D4ED8;
+  --inprogress: #0E7490;
+  --score-0: #BE2A2F;
+  --score-1: #92400E;
+  --score-2: #A16207;
+  --score-3: #15803D;
 }
 
 [data-theme="light"] ::-webkit-scrollbar-thumb {

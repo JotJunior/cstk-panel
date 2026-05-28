@@ -83,10 +83,8 @@ export function Sidebar({ alertCount = 0, freshness, schemaVersion }: SidebarPro
         <button
           className="ico-btn"
           onClick={toggleCollapsed}
-          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && toggleCollapsed()}
           aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'}
           aria-expanded={!collapsed}
-          tabIndex={0}
           style={{ borderRadius: 'var(--r-sm)', padding: '6px' }}
         >
           <Icon

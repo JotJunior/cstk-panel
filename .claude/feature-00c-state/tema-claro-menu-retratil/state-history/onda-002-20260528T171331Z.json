@@ -5,13 +5,13 @@
     "projeto_alvo_path": "/Users/jot/Projects/_lab/Jot/misc/cstk-panel",
     "projeto_alvo_descricao": "Criar a versão clara (atual só possui noturna) e fazer o switch da base do menu funcionar; fazer o menu ser retrátil com opção fina exibindo somente os ícones.",
     "stack_sugerida": null,
-    "status": "concluida",
-    "motivo_termino": "Feature concluida — smoke tests validados via Playwright MCP; 2 defeitos corrigidos (teclado, contraste WCAG AA).",
+    "status": "aguardando_humano",
+    "motivo_termino": null,
     "iniciada_em": "2026-05-28T16:00:14Z",
-    "terminada_em": "2026-05-28T17:13:45Z"
+    "terminada_em": null
   },
-  "etapa_corrente": "review-task",
-  "proxima_instrucao": "Feature concluida e merge-ready. Nenhuma proxima onda.",
+  "etapa_corrente": "execute-task",
+  "proxima_instrucao": "Iniciar execute-task — pipeline SDD: fases 1 e 2 paralelizaveis (tokens claro + sidebar retratil), depois fase 3 (integracao) e fase 4 (qualidade).",
   "ondas": [
     {
       "id": "onda-001",
@@ -439,9 +439,9 @@
         "Marcar concluida assumindo smoke tests (code-complete)",
         "Manter pausada — vou validar depois"
       ],
-      "status": "respondido",
-      "resposta_humana": "Validei via Playwright MCP. Todos os smoke tests passam; corrigidos 2 defeitos (teclado double-toggle + contraste WCAG AA no tema claro). Concluir feature.",
-      "respondido_em": "2026-05-28T17:13:31Z",
+      "status": "aguardando",
+      "resposta_humana": null,
+      "respondido_em": null,
       "disparado_em": "2026-05-28T16:28:49Z"
     }
   ],

@@ -11,7 +11,7 @@
     "terminada_em": "2026-05-28T17:13:45Z"
   },
   "etapa_corrente": "review-task",
-  "proxima_instrucao": "Feature concluida e merge-ready. Nenhuma proxima onda.",
+  "proxima_instrucao": "Iniciar execute-task — pipeline SDD: fases 1 e 2 paralelizaveis (tokens claro + sidebar retratil), depois fase 3 (integracao) e fase 4 (qualidade).",
   "ondas": [
     {
       "id": "onda-001",
