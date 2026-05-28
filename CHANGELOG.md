@@ -32,9 +32,11 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 #### Frontend (`@cstk-panel/web`)
 - Novo helper `lib/decision-options` (`decisionOptions` reaproveita o parser
-  defensivo de `stack-display`; `isChosenOption` faz match best-effort da escolha
-  contra cada opção, tolerando prefixo de namespace como `model:sonnet`).
-  Conteúdo renderizado via `textContent` (nunca `innerHTML`).
+  defensivo de `stack-display`; `chosenOptionIndex` faz match best-effort da
+  escolha contra as opções — exato, prefixo de namespace como `model:sonnet`, ou
+  elaboração por prefixo com fronteira de token — destacando **no máximo uma**
+  opção, para não marcar a alternativa errada). Conteúdo renderizado via
+  `textContent` (nunca `innerHTML`).
 
 ## [0.4.0] - 2026-05-28
 
