@@ -67,6 +67,107 @@
 
   /* Sidebar */
   --sidebar-width: 232px;
+  --sidebar-width-collapsed: 52px;
+}
+
+/* ---------- Tema Claro ---------- */
+[data-theme="light"] {
+  /* Surfaces */
+  --bg-0: #F4F6F9;
+  --bg-1: #FFFFFF;
+  --bg-2: #F0F2F5;
+  --bg-3: #E8EBF0;
+  --bg-4: #DDE1EA;
+  --bg-hover: rgba(0,0,0,0.04);
+  --bg-active: rgba(0,0,0,0.06);
+
+  /* Borders */
+  --border: #D1D5DE;
+  --border-strong: #B8BDC9;
+  --border-soft: rgba(0,0,0,0.06);
+
+  /* Text */
+  --text-0: #0F1117;
+  --text-1: #3D4554;
+  --text-2: #5E6779;
+  --text-3: #8A93A2;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: var(--bg-3);
+  border-radius: 10px;
+  border: 2px solid var(--bg-0);
+}
+
+/* ---------- Sidebar colapsada ---------- */
+.sidebar--collapsed {
+  width: var(--sidebar-width-collapsed) !important;
+}
+
+.sidebar {
+  width: var(--sidebar-width);
+  transition: width 0.2s ease;
+  overflow: hidden;
+}
+
+.sidebar--collapsed .brand-name,
+.sidebar--collapsed .brand-tag,
+.sidebar--collapsed .nav-label,
+.sidebar--collapsed .nav-item span:not(.nav-badge) {
+  display: none;
+}
+
+.sidebar--collapsed .brand {
+  justify-content: center;
+  padding: 18px 0 14px 0;
+}
+
+.sidebar--collapsed .nav-item {
+  justify-content: center;
+  padding: 8px 0;
+  position: relative;
+}
+
+.sidebar--collapsed .nav-section {
+  padding: 12px 6px;
+}
+
+.sidebar--collapsed .sidebar-foot {
+  padding: 8px 6px;
+}
+
+.sidebar--collapsed .nav-item.active::before {
+  left: 0;
+}
+
+/* Tooltip CSS puro no modo colapsado */
+.sidebar--collapsed .nav-item[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: calc(var(--sidebar-width-collapsed) + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--bg-3);
+  color: var(--text-0);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 4px 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+  z-index: 100;
+  box-shadow: var(--shadow-md);
+}
+
+.sidebar--collapsed .nav-item[data-tooltip]:hover::after {
+  opacity: 1;
+}
+
+/* Layout adapta dinamicamente ao estado da sidebar */
+.app:has(.sidebar--collapsed) {
+  grid-template-columns: var(--sidebar-width-collapsed) 1fr;
 }
 
 /* ---------- Reset & Base ---------- */

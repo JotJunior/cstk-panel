@@ -5,7 +5,7 @@
     "projeto_alvo_path": "/Users/jot/Projects/_lab/Jot/misc/cstk-panel",
     "projeto_alvo_descricao": "Criar a versão clara (atual só possui noturna) e fazer o switch da base do menu funcionar; fazer o menu ser retrátil com opção fina exibindo somente os ícones.",
     "stack_sugerida": null,
-    "status": "aguardando_humano",
+    "status": "em_andamento",
     "motivo_termino": null,
     "iniciada_em": "2026-05-28T16:00:14Z",
     "terminada_em": null
@@ -74,21 +74,13 @@
     {
       "id": "onda-002",
       "inicio": "2026-05-28T16:19:34Z",
-      "fim": "2026-05-28T16:25:30Z",
-      "etapas_executadas": [
-        "execute-task"
-      ],
+      "fim": null,
+      "etapas_executadas": [],
       "tool_calls": 0,
-      "wallclock_seconds": 356,
-      "motivo_termino": "etapa_concluida_avancando",
+      "wallclock_seconds": 0,
+      "motivo_termino": null,
       "proxima_onda_agendada_para": null,
-      "skills_invoked": [
-        {
-          "skill": "execute-task",
-          "timestamp": "2026-05-28T16:25:20Z",
-          "decisao_id": "dec-016"
-        }
-      ]
+      "skills_invoked": []
     }
   ],
   "decisoes": [
@@ -369,63 +361,9 @@
       "evidencia": null,
       "referencias": [],
       "artefato_originador": null
-    },
-    {
-      "id": "dec-016",
-      "onda_id": "onda-002",
-      "timestamp": "2026-05-28T16:24:44Z",
-      "etapa": "execute-task",
-      "agente": "agente-00c-feature-orchestrator",
-      "contexto": "Implementacao das fases 1 e 2 do backlog: tokens CSS tema claro + sidebar retratil",
-      "opcoes_consideradas": [
-        "implementar-todas-as-fases",
-        "implementar-parcial-fase1-apenas",
-        "bloquear-humano"
-      ],
-      "escolha": "implementar-todas-as-fases",
-      "justificativa": "Fases 1 e 2 sao ortogonais e implementadas em paralelo. Fases 3 (smoke tests manuais) e subtarefas de verificacao visual ficam pendentes para o humano. Typecheck, lint, build e 259 testes unitarios passando.",
-      "score_justificativa": 2,
-      "evidencia": null,
-      "referencias": [],
-      "artefato_originador": null
-    },
-    {
-      "id": "dec-017",
-      "onda_id": "onda-002",
-      "timestamp": "2026-05-28T16:28:37Z",
-      "etapa": "execute-task",
-      "agente": "feature-00c-command-pai",
-      "contexto": "Onda-002 fechou todo o trabalho autonomamente alcancavel (codigo completo, 259/259 testes, build+lint limpos, 33/49 subtarefas). As 16 subtarefas restantes (FASE 3 + 4 manuais) sao smoke tests VISUAIS que exigem navegador/humano e nao podem ser progredidas autonomamente. Orquestrador omitiu Schedule intent (defeito de bookkeeping conhecido).",
-      "opcoes_consideradas": [
-        "Agendar nova onda autonoma (giraria em falso — agente nao roda navegador)",
-        "Marcar concluido (prematuro — 33% das subtarefas nao verificadas)",
-        "Pausar para humano via bloqueio com checklist de smoke tests"
-      ],
-      "escolha": "Pausar para humano via bloqueio com checklist de smoke tests",
-      "justificativa": "Trabalho restante e exclusivamente verificacao visual manual; nenhuma onda autonoma adicional pode progredi-lo. Pausa honesta > spin ou conclusao prematura.",
-      "score_justificativa": 2,
-      "evidencia": null,
-      "referencias": [],
-      "artefato_originador": "docs/specs/tema-claro-menu-retratil/tasks.md"
     }
   ],
-  "bloqueios_humanos": [
-    {
-      "id": "block-001",
-      "decisao_id": "dec-017",
-      "pergunta": "Smoke tests visuais manuais pendentes (16 subtarefas, FASE 3 + alguns itens manuais das FASES 1/2/4). Confirma que validou no navegador para concluir a feature, ou deseja que eu marque concluida assumindo os smoke tests?",
-      "contexto_para_resposta": "Codigo 100% implementado e validado automaticamente: tokens tema claro + sidebar retratil (tokens.css), Sidebar.tsx (collapsed state + ARIA + persistencia), Icon.tsx (chevron-left), index.html (anti-FOUC), Sidebar.test.ts (14 testes). 259/259 testes passam, tsc+vite+lint limpos. Pendente APENAS verificacao visual em navegador: (1) tema claro nas 9 telas com data-theme=light; (2) anti-FOUC sob Slow 3G; (3) retorno de foco do botao de colapso (Tab/Enter); (4) coexistencia/persistencia (quickstart Scenarios 2,3,5,6,7); (5) cross-browser :has(). Rodar: npm run dev --prefix apps/web",
-      "opcoes_recomendadas": [
-        "Validei no navegador — concluir feature",
-        "Marcar concluida assumindo smoke tests (code-complete)",
-        "Manter pausada — vou validar depois"
-      ],
-      "status": "aguardando",
-      "resposta_humana": null,
-      "respondido_em": null,
-      "disparado_em": "2026-05-28T16:28:49Z"
-    }
-  ],
+  "bloqueios_humanos": [],
   "orcamentos": {
     "recursividade_max": 3,
     "profundidade_corrente_subagentes": 1,
@@ -440,13 +378,13 @@
     "inicio_onda_corrente": "2026-05-28T16:19:34Z"
   },
   "metricas_acumuladas": {
-    "ondas_total": 2,
+    "ondas_total": 1,
     "tool_calls_total": 0,
-    "tempo_wallclock_total_segundos": 1143,
+    "tempo_wallclock_total_segundos": 787,
     "profundidade_max_atingida": 2,
     "subagentes_spawned": 1,
-    "decisoes_total": 17,
-    "bloqueios_humanos_total": 1,
+    "decisoes_total": 15,
+    "bloqueios_humanos_total": 0,
     "sugestoes_skills_globais_total": 0,
     "issues_toolkit_abertas": 0
   },
@@ -477,11 +415,6 @@
       "event_type": "schedule_wait",
       "timestamp": "2026-05-28T16:15:33Z",
       "descricao": "onda-001 encerrada; proxima fase: execute-task"
-    },
-    {
-      "event_type": "schedule_wait",
-      "timestamp": "2026-05-28T16:25:20Z",
-      "descricao": "onda-002 concluida: fases 1+2+4 implementadas; fases 3 (smoke tests manuais) pendentes para humano"
     }
   ],
   "pre_requisitos": {
@@ -495,144 +428,5 @@
       "version": "1.0.0"
     }
   },
-  "short_name": "tema-claro-menu-retratil",
-  "tasks": [
-    {
-      "task_id": "1.1",
-      "titulo": "Fechar gaps de requisito do checklist",
-      "wave_id": "onda-002",
-      "outcome": "pass",
-      "testes_rodados": 0,
-      "testes_passados": 0,
-      "lint_ok": true,
-      "arquivos_tocados": [
-        "docs/specs/tema-claro-menu-retratil/spec.md"
-      ],
-      "recorded_at": "2026-05-28T16:25:09Z",
-      "origem": "execute-task"
-    },
-    {
-      "task_id": "1.2",
-      "titulo": "Implementar tokens CSS do tema claro",
-      "wave_id": "onda-002",
-      "outcome": "pass",
-      "testes_rodados": 0,
-      "testes_passados": 0,
-      "lint_ok": true,
-      "arquivos_tocados": [
-        "apps/web/src/styles/tokens.css"
-      ],
-      "recorded_at": "2026-05-28T16:25:09Z",
-      "origem": "execute-task"
-    },
-    {
-      "task_id": "1.3",
-      "titulo": "Script anti-FOUC no index.html",
-      "wave_id": "onda-002",
-      "outcome": "pass",
-      "testes_rodados": 0,
-      "testes_passados": 0,
-      "lint_ok": true,
-      "arquivos_tocados": [
-        "apps/web/index.html"
-      ],
-      "recorded_at": "2026-05-28T16:25:09Z",
-      "origem": "execute-task"
-    },
-    {
-      "task_id": "2.1",
-      "titulo": "Estado colapsado: CSS e tokens",
-      "wave_id": "onda-002",
-      "outcome": "pass",
-      "testes_rodados": 0,
-      "testes_passados": 0,
-      "lint_ok": true,
-      "arquivos_tocados": [
-        "apps/web/src/styles/tokens.css"
-      ],
-      "recorded_at": "2026-05-28T16:25:09Z",
-      "origem": "execute-task"
-    },
-    {
-      "task_id": "2.2",
-      "titulo": "Tooltips CSS puro no modo colapsado",
-      "wave_id": "onda-002",
-      "outcome": "pass",
-      "testes_rodados": 0,
-      "testes_passados": 0,
-      "lint_ok": true,
-      "arquivos_tocados": [
-        "apps/web/src/styles/tokens.css"
-      ],
-      "recorded_at": "2026-05-28T16:25:09Z",
-      "origem": "execute-task"
-    },
-    {
-      "task_id": "2.3",
-      "titulo": "Sidebar.tsx — collapsed state, botao e persistencia",
-      "wave_id": "onda-002",
-      "outcome": "pass",
-      "testes_rodados": 14,
-      "testes_passados": 14,
-      "lint_ok": true,
-      "arquivos_tocados": [
-        "apps/web/src/components/Sidebar.tsx",
-        "apps/web/src/components/Icon.tsx"
-      ],
-      "recorded_at": "2026-05-28T16:25:09Z",
-      "origem": "execute-task"
-    },
-    {
-      "task_id": "2.4",
-      "titulo": "Acessibilidade do botao de colapso",
-      "wave_id": "onda-002",
-      "outcome": "pass",
-      "testes_rodados": 0,
-      "testes_passados": 0,
-      "lint_ok": true,
-      "arquivos_tocados": [
-        "apps/web/src/components/Sidebar.tsx"
-      ],
-      "recorded_at": "2026-05-28T16:25:09Z",
-      "origem": "execute-task"
-    },
-    {
-      "task_id": "4.1",
-      "titulo": "Lint e typecheck",
-      "wave_id": "onda-002",
-      "outcome": "pass",
-      "testes_rodados": 0,
-      "testes_passados": 0,
-      "lint_ok": true,
-      "arquivos_tocados": [],
-      "recorded_at": "2026-05-28T16:25:09Z",
-      "origem": "execute-task"
-    },
-    {
-      "task_id": "4.2",
-      "titulo": "Testes unitarios",
-      "wave_id": "onda-002",
-      "outcome": "pass",
-      "testes_rodados": 259,
-      "testes_passados": 259,
-      "lint_ok": true,
-      "arquivos_tocados": [
-        "apps/web/src/components/Sidebar.test.ts"
-      ],
-      "recorded_at": "2026-05-28T16:25:09Z",
-      "origem": "execute-task"
-    },
-    {
-      "task_id": "4.3",
-      "titulo": "Validacao de renderizacao de docs",
-      "wave_id": "onda-002",
-      "outcome": "pass",
-      "testes_rodados": 0,
-      "testes_passados": 0,
-      "lint_ok": true,
-      "arquivos_tocados": [],
-      "recorded_at": "2026-05-28T16:25:09Z",
-      "origem": "execute-task"
-    }
-  ]
+  "short_name": "tema-claro-menu-retratil"
 }

@@ -5,7 +5,7 @@
     "projeto_alvo_path": "/Users/jot/Projects/_lab/Jot/misc/cstk-panel",
     "projeto_alvo_descricao": "Criar a versão clara (atual só possui noturna) e fazer o switch da base do menu funcionar; fazer o menu ser retrátil com opção fina exibindo somente os ícones.",
     "stack_sugerida": null,
-    "status": "aguardando_humano",
+    "status": "em_andamento",
     "motivo_termino": null,
     "iniciada_em": "2026-05-28T16:00:14Z",
     "terminada_em": null
@@ -74,13 +74,11 @@
     {
       "id": "onda-002",
       "inicio": "2026-05-28T16:19:34Z",
-      "fim": "2026-05-28T16:25:30Z",
-      "etapas_executadas": [
-        "execute-task"
-      ],
+      "fim": null,
+      "etapas_executadas": [],
       "tool_calls": 0,
-      "wallclock_seconds": 356,
-      "motivo_termino": "etapa_concluida_avancando",
+      "wallclock_seconds": 0,
+      "motivo_termino": null,
       "proxima_onda_agendada_para": null,
       "skills_invoked": [
         {
@@ -388,44 +386,9 @@
       "evidencia": null,
       "referencias": [],
       "artefato_originador": null
-    },
-    {
-      "id": "dec-017",
-      "onda_id": "onda-002",
-      "timestamp": "2026-05-28T16:28:37Z",
-      "etapa": "execute-task",
-      "agente": "feature-00c-command-pai",
-      "contexto": "Onda-002 fechou todo o trabalho autonomamente alcancavel (codigo completo, 259/259 testes, build+lint limpos, 33/49 subtarefas). As 16 subtarefas restantes (FASE 3 + 4 manuais) sao smoke tests VISUAIS que exigem navegador/humano e nao podem ser progredidas autonomamente. Orquestrador omitiu Schedule intent (defeito de bookkeeping conhecido).",
-      "opcoes_consideradas": [
-        "Agendar nova onda autonoma (giraria em falso — agente nao roda navegador)",
-        "Marcar concluido (prematuro — 33% das subtarefas nao verificadas)",
-        "Pausar para humano via bloqueio com checklist de smoke tests"
-      ],
-      "escolha": "Pausar para humano via bloqueio com checklist de smoke tests",
-      "justificativa": "Trabalho restante e exclusivamente verificacao visual manual; nenhuma onda autonoma adicional pode progredi-lo. Pausa honesta > spin ou conclusao prematura.",
-      "score_justificativa": 2,
-      "evidencia": null,
-      "referencias": [],
-      "artefato_originador": "docs/specs/tema-claro-menu-retratil/tasks.md"
     }
   ],
-  "bloqueios_humanos": [
-    {
-      "id": "block-001",
-      "decisao_id": "dec-017",
-      "pergunta": "Smoke tests visuais manuais pendentes (16 subtarefas, FASE 3 + alguns itens manuais das FASES 1/2/4). Confirma que validou no navegador para concluir a feature, ou deseja que eu marque concluida assumindo os smoke tests?",
-      "contexto_para_resposta": "Codigo 100% implementado e validado automaticamente: tokens tema claro + sidebar retratil (tokens.css), Sidebar.tsx (collapsed state + ARIA + persistencia), Icon.tsx (chevron-left), index.html (anti-FOUC), Sidebar.test.ts (14 testes). 259/259 testes passam, tsc+vite+lint limpos. Pendente APENAS verificacao visual em navegador: (1) tema claro nas 9 telas com data-theme=light; (2) anti-FOUC sob Slow 3G; (3) retorno de foco do botao de colapso (Tab/Enter); (4) coexistencia/persistencia (quickstart Scenarios 2,3,5,6,7); (5) cross-browser :has(). Rodar: npm run dev --prefix apps/web",
-      "opcoes_recomendadas": [
-        "Validei no navegador — concluir feature",
-        "Marcar concluida assumindo smoke tests (code-complete)",
-        "Manter pausada — vou validar depois"
-      ],
-      "status": "aguardando",
-      "resposta_humana": null,
-      "respondido_em": null,
-      "disparado_em": "2026-05-28T16:28:49Z"
-    }
-  ],
+  "bloqueios_humanos": [],
   "orcamentos": {
     "recursividade_max": 3,
     "profundidade_corrente_subagentes": 1,
@@ -440,13 +403,13 @@
     "inicio_onda_corrente": "2026-05-28T16:19:34Z"
   },
   "metricas_acumuladas": {
-    "ondas_total": 2,
+    "ondas_total": 1,
     "tool_calls_total": 0,
-    "tempo_wallclock_total_segundos": 1143,
+    "tempo_wallclock_total_segundos": 787,
     "profundidade_max_atingida": 2,
     "subagentes_spawned": 1,
-    "decisoes_total": 17,
-    "bloqueios_humanos_total": 1,
+    "decisoes_total": 16,
+    "bloqueios_humanos_total": 0,
     "sugestoes_skills_globais_total": 0,
     "issues_toolkit_abertas": 0
   },

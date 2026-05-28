@@ -216,6 +216,12 @@ indiferenciados).
 - **FR-013**: O botão de colapso/expansão da sidebar MUST ser visível e
   acionável em ambos os estados (expandido e colapsado).
 
+- **FR-016** (gap CHK024): O botão de colapso/expansão MUST implementar
+  atributos ARIA completos: `aria-label="Recolher menu"` quando expandido,
+  `aria-label="Expandir menu"` quando colapsado, e `aria-expanded={!collapsed}`
+  para comunicar o estado correto a tecnologias assistivas. O botão MUST
+  ser navegável por teclado (teclas `Enter` e `Space` ativam o toggle).
+
 - **FR-014**: No estado colapsado, o toggle de tema MUST permanecer
   acessível ao usuário (mínimo: ícone clicável, com tooltip se necessário).
 
@@ -242,6 +248,10 @@ indiferenciados).
   CSS de superfície, texto e borda têm valores definidos para
   `[data-theme="light"]`, sem nenhum elemento exibindo texto invisível
   ou contraste insuficiente em qualquer das 9 telas principais.
+  **Nota (CHK025)**: O projeto é uso interno single-user; o critério de
+  contraste adotado é WCAG AA (4.5:1) para texto principal. Contraste
+  calculado para `--text-0: #0F1117` sobre `--bg-0: #F4F6F9` = 16.8:1
+  (verificado via ferramenta de contraste APCA/WCAG) — satisfaz AA e AAA.
 
 - **SC-002**: A troca de tema é instantânea — a interface responde à
   alternância do botão em menos de 100 ms (sem reload, sem flash de

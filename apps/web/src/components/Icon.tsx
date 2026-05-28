@@ -53,6 +53,8 @@ export function Icon({ name, size = 16, className, style, 'aria-hidden': ariaHid
       return <svg {...props}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>;
     case 'chevron-down':
       return <svg {...props}><polyline points="6 9 12 15 18 9"/></svg>;
+    case 'chevron-left':
+      return <svg {...props}><polyline points="15 18 9 12 15 6"/></svg>;
     case 'chevron-right':
       return <svg {...props}><polyline points="9 6 15 12 9 18"/></svg>;
     case 'chevron-up':
