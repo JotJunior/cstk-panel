@@ -127,18 +127,38 @@ describe('mapDecision', () => {
   it('score=2 → 2 (tipo correto)', () => {
     const row = {
       wave: 'onda-001', execucao_id: 'e1', etapa: 'execute-task',
-      agente: 'orquestrador', escolha: 'ok', score: 2,
+      agente: 'orquestrador', escolha: 'ok', opcoes: null, score: 2,
       contexto: 'ctx UNTRUSTED', justificativa: 'just', evidencia: null,
     };
     const dto = mapDecision(row);
     expect(dto.score).toBe(2);
   });
 
+  it('opcoes JSON cru preservado sem transformacao (schema v6)', () => {
+    const OPCOES = '["haiku","sonnet","opus"]';
+    const row = {
+      wave: 'onda-001', execucao_id: 'e1', etapa: 'model-routing',
+      agente: 'orquestrador', escolha: 'model:sonnet', opcoes: OPCOES, score: 0,
+      contexto: 'ctx', justificativa: 'just', evidencia: null,
+    };
+    // Mapper repassa o array JSON cru — FE deriva os chips
+    expect(mapDecision(row).opcoes).toBe(OPCOES);
+  });
+
+  it('opcoes ausente em base v<6 → null (FR-V3-005)', () => {
+    const row = {
+      wave: 'onda-001', execucao_id: 'e1', etapa: 'execute-task',
+      agente: 'orquestrador', escolha: 'ok', opcoes: null, score: 1,
+      contexto: 'ctx', justificativa: 'just', evidencia: null,
+    };
+    expect(mapDecision(row).opcoes).toBeNull();
+  });
+
   it('campos UNTRUSTED preservados sem transformacao', () => {
     const HOSTIL = '<script>alert(1)</script>';
     const row = {
       wave: 'onda-001', execucao_id: 'e1', etapa: null, agente: null,
-      escolha: null, score: 0, contexto: HOSTIL, justificativa: HOSTIL, evidencia: null,
+      escolha: null, opcoes: null, score: 0, contexto: HOSTIL, justificativa: HOSTIL, evidencia: null,
     };
     const dto = mapDecision(row);
     // Mapper NAO sanitiza — preserva cru para FE renderizar via textContent
@@ -149,7 +169,7 @@ describe('mapDecision', () => {
   it('paridade round-trip: DecisionDTOSchema', () => {
     const row = {
       wave: 'onda-001', execucao_id: 'e1', etapa: 'execute-task',
-      agente: 'agente', escolha: 'ok', score: 3,
+      agente: 'agente', escolha: 'ok', opcoes: '["ok","cancelar"]', score: 3,
       contexto: 'ctx', justificativa: 'just', evidencia: 'ev',
     };
     const r = DecisionDTOSchema.safeParse(mapDecision(row));

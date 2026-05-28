@@ -5,6 +5,37 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [Não lançado]
+
+### Adicionado
+
+#### Opções consideradas nas decisões (schema v6)
+- A aba **Decisões** do detalhe da execução agora exibe, na linha expandida, as
+  **opções consideradas** antes da escolha — uma lista de chips em que a opção
+  escolhida aparece destacada (cor de acento + ✓). Espelha a coluna
+  `decisions.opcoes` introduzida no **schema v6** da `knowledge.db`
+  (JSON array cru de `state.json.decisoes[].opcoes_consideradas`). Antes só era
+  possível ver a escolha e a justificativa; agora dá para auditar o leque de
+  alternativas que a IA avaliou. **Read-only** — a fonte canônica é o `state.json`.
+
+#### Backend (`@cstk-panel/server`)
+- `config`/`open` passam a aceitar `schema_version='6'` (mantendo v2..v5). O
+  default de `CSTK_SCHEMA_VERSIONS` agora é `2,3,4,5,6`.
+- `db/queries/decisions` projeta `opcoes` de forma tolerante a schema
+  (Princípio II): bases v<6 sem a coluna **degradam para `opcoes=null`** via
+  `hasColumn` (`NULL as opcoes`), sem quebrar o `SELECT`. O valor é estruturado
+  (JSON cru, sem scrub) e repassado intacto pelo mapper. Continua só `SELECT`
+  (passa no `lint:readonly-check`).
+
+#### Tipos compartilhados (`@cstk-panel/shared-types`)
+- `DecisionDTO`/`DecisionDTOSchema` ganham `opcoes: string | null`.
+
+#### Frontend (`@cstk-panel/web`)
+- Novo helper `lib/decision-options` (`decisionOptions` reaproveita o parser
+  defensivo de `stack-display`; `isChosenOption` faz match best-effort da escolha
+  contra cada opção, tolerando prefixo de namespace como `model:sonnet`).
+  Conteúdo renderizado via `textContent` (nunca `innerHTML`).
+
 ## [0.4.0] - 2026-05-28
 
 ### Adicionado

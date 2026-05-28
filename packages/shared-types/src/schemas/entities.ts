@@ -54,6 +54,7 @@ export const DecisionDTOSchema = z.object({
   etapa: z.string().nullable(),
   agente: z.string().nullable(),
   escolha: z.string().nullable(),
+  opcoes: z.string().nullable(),
   score: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]).nullable(),
   contexto: z.string().nullable(),
   justificativa: z.string().nullable(),

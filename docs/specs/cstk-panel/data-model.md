@@ -91,6 +91,7 @@ Grão: 1 por decisão auditada.
 | `etapa` | TEXT | `etapa: string \| null` | |
 | `agente` | TEXT | `agente: string \| null` | |
 | `escolha` | TEXT | `escolha: string \| null` | |
+| `opcoes` | TEXT | `opcoes: string \| null` | **schema v6** — JSON array cru das opções consideradas; `null` em bases v<6 (FR-V3-005). Estruturado (sem scrub); FE deriva chips e destaca a escolhida |
 | `score` | INTEGER | `score: 0\|1\|2\|3 \| null` | escala de cor na UI |
 | `contexto` | TEXT | `contexto: string \| null` | **UNTRUSTED** — texto puro |
 | `justificativa` | TEXT | `justificativa: string \| null` | **UNTRUSTED** — texto puro |

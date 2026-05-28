@@ -15,11 +15,12 @@
 import { homedir } from 'node:os';
 import { resolve } from 'node:path';
 
-/** Default quando CSTK_SCHEMA_VERSIONS nao esta definido — aceita v2..v5.
+/** Default quando CSTK_SCHEMA_VERSIONS nao esta definido — aceita v2..v6.
  *  v4 (recall-memory-mirror) adiciona a tabela `memories`; v5 (recall-suggestions)
- *  adiciona a tabela `suggestions`. Ambas sao aditivas, entao as telas existentes
- *  seguem operando e os recursos novos aparecem so quando a tabela esta presente. */
-export const DEFAULT_SCHEMA_VERSIONS = ['2', '3', '4', '5'] as const;
+ *  adiciona a tabela `suggestions`; v6 adiciona a coluna `decisions.opcoes`.
+ *  Todas sao aditivas, entao as telas existentes seguem operando e os recursos
+ *  novos aparecem so quando a tabela/coluna esta presente (Principio II). */
+export const DEFAULT_SCHEMA_VERSIONS = ['2', '3', '4', '5', '6'] as const;
 
 export interface ServerConfig {
   /** Path absoluto canonicalizado para knowledge.db */

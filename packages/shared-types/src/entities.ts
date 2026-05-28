@@ -65,6 +65,14 @@ export interface DecisionDTO {
   etapa: string | null;
   agente: string | null;
   escolha: string | null;
+  /**
+   * Opcoes consideradas antes da escolha (schema v6 — decisions.opcoes).
+   * JSON array cru (ex.: `["haiku","sonnet","opus"]`), como gravado pela
+   * ingestao a partir de `.decisoes[].opcoes_consideradas`. `null` em bases
+   * v<6 sem a coluna (FR-V3-005). O FE deriva chips defensivamente e renderiza
+   * via textContent — tratar como conteudo estruturado, nunca innerHTML.
+   */
+  opcoes: string | null;
   score: 0 | 1 | 2 | 3 | null;
   /** @untrusted — renderizar via textContent, nunca innerHTML */
   contexto: string | null;

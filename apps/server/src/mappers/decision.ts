@@ -22,6 +22,8 @@ export function mapDecision(row: DecisionRow): DecisionDTO {
     etapa: row.etapa,
     agente: row.agente,
     escolha: row.escolha,
+    // JSON array cru (estruturado, sem scrub na ingestao) — FE deriva chips
+    opcoes: row.opcoes,
     score: toScore(row.score),
     // Campos UNTRUSTED — preservar crus, sem sanitizacao aqui
     // FE renderiza via textContent/pre, NUNCA innerHTML

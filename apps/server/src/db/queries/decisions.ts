@@ -8,6 +8,7 @@
  * O FE renderiza via textContent, nunca innerHTML.
  */
 import type Database from 'better-sqlite3';
+import { hasColumn } from '../columns.js';
 
 export interface DecisionRow {
   wave: string;
@@ -15,10 +16,20 @@ export interface DecisionRow {
   etapa: string | null;
   agente: string | null;
   escolha: string | null;
+  opcoes: string | null;              // schema v6; NULL em bases v<6 (FR-V3-005)
   score: number | null;
   contexto: string | null;
   justificativa: string | null;
   evidencia: string | null;
+}
+
+/**
+ * Projecao de `opcoes` tolerante a bases v<6 (recall schema v6 adicionou a
+ * coluna `decisions.opcoes`): coluna ausente → `NULL AS opcoes`, mantendo uma
+ * unica forma de Row (Principio II — degradar em vez de quebrar).
+ */
+function opcoesSelect(db: Database.Database): string {
+  return hasColumn(db, 'decisions', 'opcoes') ? 'opcoes' : 'NULL as opcoes';
 }
 
 export interface DecisionFilters {
@@ -58,7 +69,7 @@ export function listDecisions(
   const where = conditions.join(' AND ');
   return db
     .prepare(`
-      SELECT wave, execucao_id, etapa, agente, escolha, score,
+      SELECT wave, execucao_id, etapa, agente, escolha, ${opcoesSelect(db)}, score,
              contexto, justificativa, evidencia
       FROM decisions
       WHERE ${where}

@@ -87,6 +87,7 @@ const REAL_DECISION_PAYLOAD = {
   etapa: 'execute-task',
   agente: 'agente-00c-orchestrator',
   escolha: 'manter-tipo',
+  opcoes: '["manter-tipo","refatorar","ignorar"]',
   score: 2 as const,
   contexto: 'Tipo incompativel em src/foo.ts',
   justificativa: 'tsc indica TS2322',

@@ -16,6 +16,7 @@ import {
 } from '@/lib/hooks.js';
 import { useApiState } from '@/hooks/useApiState.js';
 import { stackDisplayItems } from '@/lib/stack-display.js';
+import { decisionOptions, chosenOptionIndex } from '@/lib/decision-options.js';
 import { LoadingState, EmptyState, ErrorState, DegradedBanner } from '@/states/index.js';
 import { StatusBadge, ScoreChip, OutcomePill, TextRaw, Icon, BarH, MiniStat, PipelineProgress } from '@/components/index.js';
 import type { ExecutionDTO, WaveDTO, DecisionDTO, TaskDTO, EventDTO, AlertSignalDTO, BloqueioDTO, SkillDTO, SuggestionDTO } from '@cstk-panel/shared-types';
@@ -274,6 +275,39 @@ function DecisionsPanel({ execucaoId, waveFilter }: { execucaoId: string; waveFi
                   <tr>
                     <td colSpan={6} style={{ background: 'var(--bg-2)', padding: '14px 16px' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        {(() => {
+                          const opts = decisionOptions(d.opcoes);
+                          if (opts.length === 0) return null;
+                          const chosenIdx = chosenOptionIndex(opts, d.escolha);
+                          return (
+                          <div>
+                            <div style={{ fontSize: 10.5, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontFamily: 'var(--font-mono)' }}>opcoes consideradas</div>
+                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                              {opts.map((opt, i) => {
+                                const chosen = i === chosenIdx;
+                                return (
+                                  <span
+                                    key={`${opt}-${i}`}
+                                    title={chosen ? 'opcao escolhida' : undefined}
+                                    style={{
+                                      display: 'inline-flex', alignItems: 'center', gap: 4,
+                                      padding: '2px 8px', borderRadius: 8, fontSize: 11,
+                                      fontFamily: 'var(--font-mono)',
+                                      background: chosen ? 'var(--accent-soft)' : 'var(--bg-1)',
+                                      color: chosen ? 'var(--accent)' : 'var(--text-2)',
+                                      border: `1px solid ${chosen ? 'var(--accent-line)' : 'var(--border)'}`,
+                                      fontWeight: chosen ? 600 : 400,
+                                    }}
+                                  >
+                                    {chosen && <Icon name="check" size={11} />}
+                                    <TextRaw value={opt} maxLength={48} />
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          </div>
+                          );
+                        })()}
                         <div>
                           <div style={{ fontSize: 10.5, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 3, fontFamily: 'var(--font-mono)' }}>contexto</div>
                           <TextRaw value={d.contexto} />
