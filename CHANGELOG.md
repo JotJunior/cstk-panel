@@ -5,6 +5,24 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.3.1] - 2026-05-27
+
+### Corrigido
+
+#### Front-end (`@cstk-panel/web`)
+- **Stack sugerida renderizada como fragmentos quebrados** nas telas de execução
+  e de feature. O agente-00c grava `executions.stack_sugerida` como **JSON** —
+  ora array de strings (`["react 19","vite","nodejs"]`), ora objeto chave/valor
+  (`{"language":"TypeScript 5.4",…}`) — mas `ExecutionDetail` e `FeatureDetail`
+  faziam `split(',')`, tratando-o como CSV. Um objeto JSON estilhaçava em chips
+  inúteis (`{ "language": …`, `"runtime": …`, … `… }`) e arrays carregavam `[`,
+  `"` e `]` literais.
+- Novo helper **defensivo** `stackDisplayItems` (`lib/stack-display`): array →
+  um chip por item; objeto → chips `chave: valor`; _fallback_ para CSV no
+  formato legado; JSON malformado não lança. O painel segue **read-only** — a
+  normalização ocorre apenas na exibição (mesmo princípio de `memory-display`),
+  sem reescrever a base. Inclui 8 testes unitários.
+
 ## [0.3.0] - 2026-05-27
 
 ### Adicionado
@@ -202,6 +220,7 @@ execuções dos orquestradores `agente-00c` / `feature-00c`, lido diretamente da
 - Invariantes constitucionais I–VI verificáveis por scripts de _lint_.
 - `npm run lint:readonly-check` garante zero verbos de mutação SQL em `apps/server/src`.
 
+[0.3.1]: https://github.com/JotJunior/cstk-panel/compare/v0.3.0...v0.3.1
 [0.2.1]: https://github.com/JotJunior/cstk-panel/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/JotJunior/cstk-panel/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/JotJunior/cstk-panel/compare/v0.1.1...v0.1.2
