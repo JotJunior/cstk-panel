@@ -5,6 +5,42 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.6.0] - 2026-05-28
+
+### Adicionado
+
+#### Tema claro + alternância de tema
+- Novo **tema claro** além do tema escuro existente, alternável pelo botão de
+  sol/lua no rodapé da sidebar. A preferência persiste em `localStorage`
+  (`cstk-theme`) e é aplicada **antes do primeiro paint** por um script inline
+  anti-FOUC no `index.html` (sem flash do tema na carga). Sem preferência salva,
+  cai em `prefers-color-scheme` (`try/catch` → fallback `dark` se `localStorage`
+  estiver bloqueado).
+- Paleta de superfícies, bordas e texto dedicada ao tema claro. As cores
+  semânticas (`success`/`warning`/`critical`/`info`/`inprogress`/`score-*`) e o
+  dourado de marca (`accent`) são recalibrados sob `[data-theme="light"]` para
+  atender **contraste WCAG AA** sobre fundos claros (auditoria: 0 falhas AA nas
+  10 telas). O tema escuro permanece inalterado (overrides escopados).
+
+#### Sidebar retrátil
+- A sidebar agora **recolhe para um modo fino (52px)** exibindo apenas os ícones,
+  com transição suave. O estado persiste em `localStorage`
+  (`cstk-sidebar-collapsed`). No modo recolhido: cada item exibe **tooltip** (CSS
+  puro) no hover, o indicador âmbar do item ativo continua visível, e o rodapé
+  reduz ao botão de tema. A área de conteúdo se expande automaticamente via
+  `:has()` (sem prop-drilling).
+- Botão recolher/expandir acessível — `aria-label`/`aria-expanded` dinâmicos e
+  ativação por teclado (Enter/Space) com retorno de foco.
+
+### Corrigido
+- **Sidebar — ativação por teclado:** o botão de recolher (`<button>` nativo)
+  tinha um `onKeyDown` redundante que fazia Enter/Space dispararem o toggle duas
+  vezes (cancelando-se). Handler removido; teclado volta a funcionar (WCAG 2.1.1).
+- **Métricas — card "Decisões por score":** decisões com `score` nulo (linha do
+  `GROUP BY score` com `score=null`) colidiam a `key` do React com o score 0 e
+  eram rotuladas erroneamente como "0". O bucket sem-score agora usa key estável,
+  exibe "—" e cor neutra.
+
 ## [0.5.0] - 2026-05-28
 
 ### Adicionado
@@ -296,6 +332,7 @@ execuções dos orquestradores `agente-00c` / `feature-00c`, lido diretamente da
 - Invariantes constitucionais I–VI verificáveis por scripts de _lint_.
 - `npm run lint:readonly-check` garante zero verbos de mutação SQL em `apps/server/src`.
 
+[0.6.0]: https://github.com/JotJunior/cstk-panel/compare/v0.5.0...v0.6.0
 [0.3.1]: https://github.com/JotJunior/cstk-panel/compare/v0.3.0...v0.3.1
 [0.2.1]: https://github.com/JotJunior/cstk-panel/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/JotJunior/cstk-panel/compare/v0.1.2...v0.2.0
