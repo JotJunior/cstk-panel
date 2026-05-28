@@ -408,21 +408,23 @@ export function Metrics({ period }: MetricsProps) {
             const COLORS = ['var(--score-0)', 'var(--score-1)', 'var(--score-2)', 'var(--score-3)'];
             return (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {arr.map((d, i) => {
-                  const score = (d.score as number | null) ?? i;
+                {arr.map((d) => {
+                  const rawScore = d.score as number | null;
+                  const hasScore = rawScore != null && !Number.isNaN(rawScore);
                   const count = ((d.count ?? (d as Record<string, unknown>).value) as number | null) ?? 0;
+                  const color = (hasScore ? COLORS[rawScore] : undefined) ?? 'var(--text-2)';
                   return (
-                    <div key={score} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div key={hasScore ? rawScore : 'sem-score'} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <span style={{
                         width: 20, height: 20, borderRadius: 4, fontSize: 11, fontWeight: 700,
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontFamily: 'var(--font-mono)', background: `${COLORS[score]}22`, color: COLORS[score],
+                        fontFamily: 'var(--font-mono)', background: `${color}22`, color,
                         flexShrink: 0,
                       }}>
-                        {score}
+                        {hasScore ? rawScore : '—'}
                       </span>
                       <div style={{ flex: 1, height: 8, background: 'var(--bg-3)', borderRadius: 3, overflow: 'hidden' }}>
-                        <div style={{ width: `${(count / max) * 100}%`, height: '100%', background: COLORS[score], borderRadius: 3 }} />
+                        <div style={{ width: `${(count / max) * 100}%`, height: '100%', background: color, borderRadius: 3 }} />
                       </div>
                       <span style={{ width: 30, textAlign: 'right', fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-0)', fontWeight: 600, flexShrink: 0 }}>
                         {count}
