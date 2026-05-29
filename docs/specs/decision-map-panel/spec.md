@@ -14,6 +14,16 @@
 > **Decisões de infraestrutura**: N/A — feature stateless, sem scheduling,
 > sem persistência própria, sem tokens externos. Read-only sobre API existente.
 
+## Clarifications
+
+### Session 2026-05-29
+
+- Q: O mapa é exibido inline dentro do card de tabs, como overlay/modal, ou como layout split? → A: Layout split horizontal dentro do card de conteúdo (abaixo das tabs): mapa ocupa coluna esquerda (~60%) e o painel de detalhe de decisão ocupa coluna direita (~40%), ambos visíveis simultaneamente. Ao fechar o painel de detalhe, o mapa expande para largura total. Padrão consistente com o `exec-grid` existente.
+
+- Q: A renderização de nós e arestas usa SVG manual ou biblioteca de grafo externa (ReactFlow, D3, etc.)? → A: SVG manual com `<foreignObject>` para nós React — sem nenhuma dependência nova de grafo. Nós são `<g>/<foreignObject>` com `tabIndex` e `role="button"` para FR-010; arestas são `<line>` ou `<path>` com `marker-end` para seta direcional. Layout de nós: fluxo vertical (top→bottom) agrupado por onda, calculado em JS puro.
+
+- Q: Como os nós são identificados de forma estável (chave React, navegação anterior/próxima do US4)? → A: Chave sintética `${wave}::${index}` onde `index` é a posição 0-based no array flat retornado pelo hook `useDecisions` (já ordenado por wave + posição pela API). A navegação anterior/próxima no painel de detalhe usa esse array flat; sem campo `id` novo no `DecisionDTO`.
+
 ---
 
 ## User Scenarios & Testing
@@ -178,7 +188,11 @@ conexão entre nós.
 - **FR-002**: O sistema DEVE exibir um mapa visual de decisões composto por
   nós e conexões direcionadas, derivado exclusivamente dos dados já disponíveis
   via o endpoint de decisões da execução — sem nenhuma nova fonte de dados ou
-  endpoint adicional.
+  endpoint adicional. O mapa é renderizado via SVG manual (sem biblioteca
+  externa de grafo); nós são implementados como `<foreignObject>` React com
+  `tabIndex` e `role="button"`; arestas são `<path>` com `marker-end` para
+  indicação direcional. Layout vertical (top→bottom) agrupado por onda,
+  calculado em JS puro.
 
 - **FR-003**: Cada nó do mapa DEVE representar uma decisão individual e
   exibir, no mínimo: a escolha feita, o score (com cor semântica) e a onda
@@ -190,12 +204,18 @@ conexão entre nós.
 
 - **FR-005**: O sistema DEVE conectar nós de decisões pela sequência de
   ocorrência — ordenados por onda e pela posição dentro da onda — com
-  arestas direcionadas indicando progressão.
+  arestas direcionadas indicando progressão. A identidade de cada nó é a
+  chave sintética `${wave}::${index}` (index = posição 0-based no array
+  retornado pela API); não há campo `id` no `DecisionDTO`. A navegação
+  anterior/próxima (US4 SC3) opera sobre o array flat ordenado carregado
+  pelo hook `useDecisions`.
 
 - **FR-006**: Ao clicar num nó do mapa, o sistema DEVE abrir um painel
   lateral no lado direito da tela exibindo todos os campos disponíveis da
   decisão selecionada: escolha, opções, contexto, justificativa, evidência,
-  etapa, onda, agente e score.
+  etapa, onda, agente e score. O painel ocupa ~40% da largura do card de
+  conteúdo (coluna direita do split horizontal); o mapa ocupa ~60% (coluna
+  esquerda). Ao fechar o painel, o mapa expande para 100% da largura.
 
 - **FR-007**: O painel lateral DEVE renderizar todos os campos textuais
   originados de agentes (`contexto`, `justificativa`, `evidência`, `escolha`,
@@ -232,14 +252,18 @@ conexão entre nós.
   `wave` + posição na lista; possui `escolha`, `opcoes`, `score`, `contexto`,
   `justificativa`, `evidencia`, `etapa`, `agente`.
 
-- **Nó do mapa**: representação visual de uma decisão; estado: neutro,
-  selecionado (clicado), em foco (teclado). Rótulo principal = `escolha`.
+- **Nó do mapa**: representação visual de uma decisão implementada via
+  `<foreignObject>` dentro de SVG. Estado: neutro, selecionado (clicado),
+  em foco (teclado). Rótulo principal = `escolha`. Chave de identidade:
+  `${wave}::${index}` (index = posição 0-based no array flat da API).
 
 - **Aresta**: conexão direcional entre dois nós consecutivos na sequência de
   decisões. Não carrega dados próprios — é derivada da ordenação.
 
 - **Painel lateral de detalhe**: exibe os campos completos de um `DecisionDTO`
   selecionado. Estado: fechado, aberto com decisão N. Conteúdo UNTRUSTED.
+  Ocupa coluna direita (~40%) do split horizontal dentro do card de conteúdo;
+  ao fechar, o mapa (coluna esquerda) expande para largura total.
 
 ---
 

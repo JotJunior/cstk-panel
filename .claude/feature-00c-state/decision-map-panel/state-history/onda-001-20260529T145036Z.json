@@ -10,8 +10,8 @@
     "iniciada_em": "2026-05-29T14:37:15Z",
     "terminada_em": null
   },
-  "etapa_corrente": "checklist",
-  "proxima_instrucao": "Iniciar etapa checklist — gerar quality gate de requisitos (dominio ux/requirements) para decision-map-panel a partir de spec.md+plan.md; depois create-tasks.",
+  "etapa_corrente": "clarify",
+  "proxima_instrucao": "Iniciar etapa clarify — revisar spec.md de decision-map-panel via Q&A estruturado (max 5 perguntas), integrar respostas; depois plan.",
   "ondas": [
     {
       "id": "onda-001",
@@ -28,31 +28,6 @@
         {
           "skill": "specify",
           "timestamp": "2026-05-29T14:42:06Z",
-          "decisao_id": null
-        }
-      ]
-    },
-    {
-      "id": "onda-002",
-      "inicio": "2026-05-29T14:51:38Z",
-      "fim": "2026-05-29T15:01:28Z",
-      "etapas_executadas": [
-        "clarify",
-        "plan"
-      ],
-      "tool_calls": 77,
-      "wallclock_seconds": 590,
-      "motivo_termino": "etapa_concluida_avancando",
-      "proxima_onda_agendada_para": "2026-05-29T15:05:58Z",
-      "skills_invoked": [
-        {
-          "skill": "clarify",
-          "timestamp": "2026-05-29T14:53:00Z",
-          "decisao_id": null
-        },
-        {
-          "skill": "plan",
-          "timestamp": "2026-05-29T14:55:54Z",
           "decisao_id": null
         }
       ]
@@ -114,63 +89,6 @@
       "evidencia": null,
       "referencias": [],
       "artefato_originador": null
-    },
-    {
-      "id": "dec-004",
-      "onda_id": "onda-001",
-      "timestamp": "2026-05-29T14:50:36Z",
-      "etapa": "model-routing",
-      "agente": "agente-00c-feature-orchestrator",
-      "contexto": "Selecao de modelo para onda 1 (fase clarify)",
-      "opcoes_consideradas": [
-        "haiku",
-        "sonnet",
-        "opus",
-        "manter-atual"
-      ],
-      "escolha": "model:sonnet",
-      "justificativa": "sugerido=sonnet aplicado=sonnet origem=mapa | faixa=media fase=clarify (mapa primario)",
-      "score_justificativa": 0,
-      "evidencia": null,
-      "referencias": [],
-      "artefato_originador": null
-    },
-    {
-      "id": "dec-005",
-      "onda_id": "onda-002",
-      "timestamp": "2026-05-29T14:55:01Z",
-      "etapa": "clarify",
-      "agente": "agente-00c-feature-orchestrator",
-      "contexto": "Fase clarify concluída: 3 ambiguidades resolvidas inline (layout split, SVG manual, chave sintética de nó)",
-      "opcoes_consideradas": [
-        "integrar-respostas-inline",
-        "bloquear-humano",
-        "pular-clarify"
-      ],
-      "escolha": "integrar-respostas-inline",
-      "justificativa": "Spec tinha 0 NEEDS CLARIFICATION explícitos; scan identificou 3 ambiguidades de implementação (layout, renderização, identidade de nó) resolvidas com score 2-3 por evidência no codebase existente (exec-grid, package.json sem libs de grafo, DecisionDTO sem id)",
-      "score_justificativa": 3,
-      "evidencia": "package.json web: zero deps de grafo (reactflow/d3/vis); exec-grid já usa layout 2-col; DecisionDTO confirmado sem campo id em shared-types/entities.ts",
-      "referencias": [],
-      "artefato_originador": null
-    },
-    {
-      "id": "dec-006",
-      "onda_id": "onda-002",
-      "timestamp": "2026-05-29T14:55:48Z",
-      "etapa": "plan",
-      "agente": "agente-00c-feature-orchestrator",
-      "contexto": "read-back PRE-DECISÃO: K=25 achados injetados (anti-eco feature=decision-map-panel)",
-      "opcoes_consideradas": [
-        "injetar-achados",
-        "no-op"
-      ],
-      "escolha": "injetar-achados",
-      "justificativa": "termos derivados da feature: painel botao Arvore de decisoes skill decision-map programaticamente montar opcoes marcar escolha vincular proxima decisao exibir detalhes painel direito",
-      "score_justificativa": 2,
-      "evidencia": null,
-      "referencias": [],
-      "artefato_originador": null
     }
   ],
   "bloqueios_humanos": [],
@@ -184,16 +102,16 @@
     "tool_calls_threshold_onda": 80,
     "wallclock_threshold_segundos": 5400,
     "estado_size_threshold_bytes": 1048576,
-    "tool_calls_onda_corrente": 77,
-    "inicio_onda_corrente": "2026-05-29T14:51:38Z"
+    "tool_calls_onda_corrente": 43,
+    "inicio_onda_corrente": "2026-05-29T14:38:36Z"
   },
   "metricas_acumuladas": {
-    "ondas_total": 2,
-    "tool_calls_total": 120,
-    "tempo_wallclock_total_segundos": 929,
+    "ondas_total": 1,
+    "tool_calls_total": 43,
+    "tempo_wallclock_total_segundos": 339,
     "profundidade_max_atingida": 1,
     "subagentes_spawned": 0,
-    "decisoes_total": 6,
+    "decisoes_total": 3,
     "bloqueios_humanos_total": 0,
     "sugestoes_skills_globais_total": 0,
     "issues_toolkit_abertas": 0
@@ -206,11 +124,6 @@
       "event_type": "recall_consulted",
       "timestamp": "2026-05-29T14:39:01Z",
       "descricao": "etapa=specify hits=12"
-    },
-    {
-      "event_type": "recall_consulted",
-      "timestamp": "2026-05-29T14:55:36Z",
-      "descricao": "etapa=plan hits=25"
     }
   ],
   "pre_requisitos": {

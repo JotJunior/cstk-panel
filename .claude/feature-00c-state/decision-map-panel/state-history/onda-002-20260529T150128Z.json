@@ -11,7 +11,7 @@
     "terminada_em": null
   },
   "etapa_corrente": "checklist",
-  "proxima_instrucao": "Iniciar etapa checklist — gerar quality gate de requisitos (dominio ux/requirements) para decision-map-panel a partir de spec.md+plan.md; depois create-tasks.",
+  "proxima_instrucao": "Iniciar etapa plan — gerar plano técnico de implementação para decision-map-panel (arquitetura, data model, API contracts, test scenarios, research).",
   "ondas": [
     {
       "id": "onda-001",
