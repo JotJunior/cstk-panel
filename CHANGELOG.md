@@ -5,6 +5,40 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.7.0] - 2026-05-29
+
+### Adicionado
+
+#### Mapa de decisões (árvore de decisões) na execução
+- O botão **"árvore de decisões"** no detalhe da execução agora está **funcional**:
+  alterna entre a tabela de decisões e um **mapa visual** em SVG, montado
+  programaticamente a partir das decisões já carregadas — sem depender de skill
+  externa nem de nova fonte de dados. Cada **nó** representa uma decisão, exibe a
+  **opção escolhida** destacada e conecta-se ao próximo nó pela sequência da
+  cadeia de decisões. Ao **clicar num nó**, abre-se um **painel lateral à direita**
+  com os detalhes completos da decisão (todos os campos textuais).
+- **100% read-only**: nenhum endpoint novo no back-end (consome os dados já
+  disponíveis em memória, via a API existente). O painel detalhe abre sem request
+  adicional. Verificado por diff do servidor (SC-007) e pelo gate
+  `lint:readonly-check`.
+- **Segurança de conteúdo (UNTRUSTED):** todo campo textual de decisão é
+  renderizado como **texto literal** via `TextRaw` (tags HTML, scripts e
+  diretivas de agente não são interpretados) — coberto por testes com payloads
+  adversariais (XSS, SQL injection, HTML).
+- **Acessível por teclado:** navegação entre nós por setas/Tab, abrir com
+  Enter/Espaço, fechar painel/mapa com Escape, com retorno de foco e
+  `aria-label`/`aria-pressed` apropriados. `aria-label` tem fallback para
+  decisões sem escolha registrada.
+- **Estados robustos:** o mapa trata explicitamente os estados fechado, vazio,
+  carregando, erro e degradado, e respeita o filtro de onda ativo na tela. O
+  estado de visibilidade do mapa é resetado ao trocar de aba ou de execução.
+
+#### Frontend (`@cstk-panel/web`)
+- Novo motor de layout puro `lib/decision-map-layout.ts` (determinístico,
+  `computeLayout` < 10ms para 100 decisões) e componentes `DecisionMapPanel`,
+  `DecisionMapSvg`, `DecisionMapNode` e `DecisionDetailPane`. Integração no
+  `ExecutionDetail` (botão habilitado, toggle, reset por aba/execução).
+
 ## [0.6.0] - 2026-05-28
 
 ### Adicionado
