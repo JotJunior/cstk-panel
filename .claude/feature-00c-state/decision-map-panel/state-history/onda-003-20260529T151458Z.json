@@ -10,8 +10,8 @@
     "iniciada_em": "2026-05-29T14:37:15Z",
     "terminada_em": null
   },
-  "etapa_corrente": "execute-task",
-  "proxima_instrucao": "Iniciar FASE 0: resolver gaps/ambiguidades do checklist (tasks 0.1, 0.2, 0.3) antes de implementar. Em seguida, iniciar FASE 1: engine de layout (decision-map-layout.ts + testes). Consultar tasks.md para lista completa.",
+  "etapa_corrente": "checklist",
+  "proxima_instrucao": "Iniciar etapa checklist — gerar quality gate de requisitos (dominio ux/requirements) para decision-map-panel a partir de spec.md+plan.md; depois create-tasks.",
   "ondas": [
     {
       "id": "onda-001",
@@ -60,14 +60,11 @@
     {
       "id": "onda-003",
       "inicio": "2026-05-29T15:08:13Z",
-      "fim": "2026-05-29T15:15:21Z",
-      "etapas_executadas": [
-        "checklist",
-        "create-tasks"
-      ],
-      "tool_calls": 38,
-      "wallclock_seconds": 428,
-      "motivo_termino": "concluido",
+      "fim": null,
+      "etapas_executadas": [],
+      "tool_calls": 0,
+      "wallclock_seconds": 0,
+      "motivo_termino": null,
       "proxima_onda_agendada_para": null,
       "skills_invoked": [
         {
@@ -255,25 +252,6 @@
       "evidencia": null,
       "referencias": [],
       "artefato_originador": null
-    },
-    {
-      "id": "dec-010",
-      "onda_id": "onda-003",
-      "timestamp": "2026-05-29T15:14:58Z",
-      "etapa": "create-tasks",
-      "agente": "agente-00c-feature-orchestrator",
-      "contexto": "create-tasks: backlog gerado com 8 FASES, 17 tarefas, 118 subtarefas; consumiu 13 gaps/ambiguidades dos checklists",
-      "opcoes_consideradas": [
-        "gerar-backlog-completo",
-        "gerar-backlog-minimo-mvp",
-        "solicitar-aprovacao-humana"
-      ],
-      "escolha": "gerar-backlog-completo",
-      "justificativa": "FASE 0 consiste gaps antes de implementar; FASEs 1-4 são o MVP; FASEs 5-7 são qualidade/hardening; estrutura reflete 6 fases do plan mais FASE 0 de spec-refinement e FASE 7 de review; caminho crítico documentado; paralelismo identificado",
-      "score_justificativa": 2,
-      "evidencia": null,
-      "referencias": [],
-      "artefato_originador": null
     }
   ],
   "bloqueios_humanos": [],
@@ -291,12 +269,12 @@
     "inicio_onda_corrente": "2026-05-29T15:08:13Z"
   },
   "metricas_acumuladas": {
-    "ondas_total": 3,
-    "tool_calls_total": 158,
-    "tempo_wallclock_total_segundos": 1357,
+    "ondas_total": 2,
+    "tool_calls_total": 120,
+    "tempo_wallclock_total_segundos": 929,
     "profundidade_max_atingida": 1,
     "subagentes_spawned": 0,
-    "decisoes_total": 10,
+    "decisoes_total": 9,
     "bloqueios_humanos_total": 0,
     "sugestoes_skills_globais_total": 0,
     "issues_toolkit_abertas": 0
@@ -314,11 +292,6 @@
       "event_type": "recall_consulted",
       "timestamp": "2026-05-29T14:55:36Z",
       "descricao": "etapa=plan hits=25"
-    },
-    {
-      "event_type": "schedule_wait",
-      "timestamp": "2026-05-29T15:15:50Z",
-      "descricao": "onda-003 encerrada; proxima: execute-task FASE 0→1"
     }
   ],
   "pre_requisitos": {

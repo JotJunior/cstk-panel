@@ -65,7 +65,7 @@
         "checklist",
         "create-tasks"
       ],
-      "tool_calls": 38,
+      "tool_calls": 0,
       "wallclock_seconds": 428,
       "motivo_termino": "concluido",
       "proxima_onda_agendada_para": null,
@@ -292,7 +292,7 @@
   },
   "metricas_acumuladas": {
     "ondas_total": 3,
-    "tool_calls_total": 158,
+    "tool_calls_total": 120,
     "tempo_wallclock_total_segundos": 1357,
     "profundidade_max_atingida": 1,
     "subagentes_spawned": 0,
@@ -314,11 +314,6 @@
       "event_type": "recall_consulted",
       "timestamp": "2026-05-29T14:55:36Z",
       "descricao": "etapa=plan hits=25"
-    },
-    {
-      "event_type": "schedule_wait",
-      "timestamp": "2026-05-29T15:15:50Z",
-      "descricao": "onda-003 encerrada; proxima: execute-task FASE 0→1"
     }
   ],
   "pre_requisitos": {

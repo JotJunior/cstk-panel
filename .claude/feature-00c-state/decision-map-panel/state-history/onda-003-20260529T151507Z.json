@@ -11,7 +11,7 @@
     "terminada_em": null
   },
   "etapa_corrente": "execute-task",
-  "proxima_instrucao": "Iniciar FASE 0: resolver gaps/ambiguidades do checklist (tasks 0.1, 0.2, 0.3) antes de implementar. Em seguida, iniciar FASE 1: engine de layout (decision-map-layout.ts + testes). Consultar tasks.md para lista completa.",
+  "proxima_instrucao": "Iniciar etapa checklist — gerar quality gate de requisitos (dominio ux/requirements) para decision-map-panel a partir de spec.md+plan.md; depois create-tasks.",
   "ondas": [
     {
       "id": "onda-001",
@@ -60,14 +60,11 @@
     {
       "id": "onda-003",
       "inicio": "2026-05-29T15:08:13Z",
-      "fim": "2026-05-29T15:15:21Z",
-      "etapas_executadas": [
-        "checklist",
-        "create-tasks"
-      ],
-      "tool_calls": 38,
-      "wallclock_seconds": 428,
-      "motivo_termino": "concluido",
+      "fim": null,
+      "etapas_executadas": [],
+      "tool_calls": 0,
+      "wallclock_seconds": 0,
+      "motivo_termino": null,
       "proxima_onda_agendada_para": null,
       "skills_invoked": [
         {
@@ -291,9 +288,9 @@
     "inicio_onda_corrente": "2026-05-29T15:08:13Z"
   },
   "metricas_acumuladas": {
-    "ondas_total": 3,
-    "tool_calls_total": 158,
-    "tempo_wallclock_total_segundos": 1357,
+    "ondas_total": 2,
+    "tool_calls_total": 120,
+    "tempo_wallclock_total_segundos": 929,
     "profundidade_max_atingida": 1,
     "subagentes_spawned": 0,
     "decisoes_total": 10,
@@ -314,11 +311,6 @@
       "event_type": "recall_consulted",
       "timestamp": "2026-05-29T14:55:36Z",
       "descricao": "etapa=plan hits=25"
-    },
-    {
-      "event_type": "schedule_wait",
-      "timestamp": "2026-05-29T15:15:50Z",
-      "descricao": "onda-003 encerrada; proxima: execute-task FASE 0→1"
     }
   ],
   "pre_requisitos": {
