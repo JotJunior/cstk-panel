@@ -8,7 +8,7 @@
     "status": "concluida",
     "motivo_termino": "review-task_concluido",
     "iniciada_em": "2026-05-29T14:37:15Z",
-    "terminada_em": "2026-05-29T15:59:34Z"
+    "terminada_em": null
   },
   "etapa_corrente": "review-task",
   "proxima_instrucao": "Backlog 115/115 completo. Executar review-task: verificar cobertura de gates, artefatos finais, sumário de feature.",

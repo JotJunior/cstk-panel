@@ -5,10 +5,10 @@
     "projeto_alvo_path": "/Users/jot/Projects/_lab/Jot/misc/cstk-panel",
     "projeto_alvo_descricao": "No painel, o botao \"Arvore de decisoes\" usa o resultado da skill decision-map. Implementar programaticamente (montar opcoes, marcar a escolha, vincular com a proxima decisao; ao clicar na caixa da decisao exibir detalhes em painel no lado direito) e fazer o botao funcionar, sem depender de skill.",
     "stack_sugerida": null,
-    "status": "concluida",
-    "motivo_termino": "review-task_concluido",
+    "status": "em_andamento",
+    "motivo_termino": null,
     "iniciada_em": "2026-05-29T14:37:15Z",
-    "terminada_em": "2026-05-29T15:59:34Z"
+    "terminada_em": null
   },
   "etapa_corrente": "review-task",
   "proxima_instrucao": "Backlog 115/115 completo. Executar review-task: verificar cobertura de gates, artefatos finais, sumário de feature.",
@@ -113,19 +113,6 @@
           "decisao_id": null
         }
       ]
-    },
-    {
-      "id": "onda-006",
-      "inicio": "2026-05-29T15:58:19Z",
-      "fim": "2026-05-29T15:59:14Z",
-      "etapas_executadas": [
-        "review-task"
-      ],
-      "tool_calls": 0,
-      "wallclock_seconds": 55,
-      "motivo_termino": "concluido",
-      "proxima_onda_agendada_para": null,
-      "skills_invoked": []
     }
   ],
   "decisoes": [
@@ -522,26 +509,6 @@
       "evidencia": "npx vitest run 2>&1 | tail -5 → 325 passed (325), 26 Test Files, 1.23s",
       "referencias": [],
       "artefato_originador": null
-    },
-    {
-      "id": "dec-022",
-      "onda_id": "onda-005",
-      "timestamp": "2026-05-29T15:57:22Z",
-      "etapa": "model-routing",
-      "agente": "agente-00c-feature-orchestrator",
-      "contexto": "Selecao de modelo para onda 5 (fase review-task)",
-      "opcoes_consideradas": [
-        "haiku",
-        "sonnet",
-        "opus",
-        "manter-atual"
-      ],
-      "escolha": "model:haiku",
-      "justificativa": "sugerido=haiku aplicado=haiku origem=mapa | faixa=rasa fase=review-task (mapa primario)",
-      "score_justificativa": 0,
-      "evidencia": null,
-      "referencias": [],
-      "artefato_originador": null
     }
   ],
   "bloqueios_humanos": [],
@@ -556,15 +523,15 @@
     "wallclock_threshold_segundos": 5400,
     "estado_size_threshold_bytes": 1048576,
     "tool_calls_onda_corrente": 0,
-    "inicio_onda_corrente": "2026-05-29T15:58:19Z"
+    "inicio_onda_corrente": "2026-05-29T15:21:02Z"
   },
   "metricas_acumuladas": {
-    "ondas_total": 6,
+    "ondas_total": 5,
     "tool_calls_total": 352,
-    "tempo_wallclock_total_segundos": 2834,
+    "tempo_wallclock_total_segundos": 2779,
     "profundidade_max_atingida": 1,
     "subagentes_spawned": 0,
-    "decisoes_total": 22,
+    "decisoes_total": 21,
     "bloqueios_humanos_total": 0,
     "sugestoes_skills_globais_total": 0,
     "issues_toolkit_abertas": 0
@@ -808,42 +775,6 @@
       ],
       "recorded_at": "2026-05-29T15:50:14Z",
       "origem": "execute-task"
-    },
-    {
-      "task_id": "6.3",
-      "titulo": "Testes de estados do mapa (SC-005)",
-      "wave_id": "onda-006",
-      "outcome": "pass",
-      "testes_rodados": 0,
-      "testes_passados": 0,
-      "lint_ok": null,
-      "arquivos_tocados": [],
-      "recorded_at": "2026-05-29T15:58:40Z",
-      "origem": "reconcile"
-    },
-    {
-      "task_id": "6.4",
-      "titulo": "Smoke test de renderização SVG",
-      "wave_id": "onda-006",
-      "outcome": "pass",
-      "testes_rodados": 0,
-      "testes_passados": 0,
-      "lint_ok": null,
-      "arquivos_tocados": [],
-      "recorded_at": "2026-05-29T15:58:40Z",
-      "origem": "reconcile"
-    },
-    {
-      "task_id": "7.2",
-      "titulo": "Revisão de acessibilidade final",
-      "wave_id": "onda-006",
-      "outcome": "pass",
-      "testes_rodados": 0,
-      "testes_passados": 0,
-      "lint_ok": null,
-      "arquivos_tocados": [],
-      "recorded_at": "2026-05-29T15:58:40Z",
-      "origem": "reconcile"
     }
   ]
 }

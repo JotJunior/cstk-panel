@@ -5,10 +5,10 @@
     "projeto_alvo_path": "/Users/jot/Projects/_lab/Jot/misc/cstk-panel",
     "projeto_alvo_descricao": "No painel, o botao \"Arvore de decisoes\" usa o resultado da skill decision-map. Implementar programaticamente (montar opcoes, marcar a escolha, vincular com a proxima decisao; ao clicar na caixa da decisao exibir detalhes em painel no lado direito) e fazer o botao funcionar, sem depender de skill.",
     "stack_sugerida": null,
-    "status": "concluida",
-    "motivo_termino": "review-task_concluido",
+    "status": "em_andamento",
+    "motivo_termino": null,
     "iniciada_em": "2026-05-29T14:37:15Z",
-    "terminada_em": "2026-05-29T15:59:34Z"
+    "terminada_em": null
   },
   "etapa_corrente": "review-task",
   "proxima_instrucao": "Backlog 115/115 completo. Executar review-task: verificar cobertura de gates, artefatos finais, sumário de feature.",
@@ -117,13 +117,11 @@
     {
       "id": "onda-006",
       "inicio": "2026-05-29T15:58:19Z",
-      "fim": "2026-05-29T15:59:14Z",
-      "etapas_executadas": [
-        "review-task"
-      ],
+      "fim": null,
+      "etapas_executadas": [],
       "tool_calls": 0,
-      "wallclock_seconds": 55,
-      "motivo_termino": "concluido",
+      "wallclock_seconds": 0,
+      "motivo_termino": null,
       "proxima_onda_agendada_para": null,
       "skills_invoked": []
     }
@@ -559,9 +557,9 @@
     "inicio_onda_corrente": "2026-05-29T15:58:19Z"
   },
   "metricas_acumuladas": {
-    "ondas_total": 6,
+    "ondas_total": 5,
     "tool_calls_total": 352,
-    "tempo_wallclock_total_segundos": 2834,
+    "tempo_wallclock_total_segundos": 2779,
     "profundidade_max_atingida": 1,
     "subagentes_spawned": 0,
     "decisoes_total": 22,

@@ -6,9 +6,9 @@
     "projeto_alvo_descricao": "No painel, o botao \"Arvore de decisoes\" usa o resultado da skill decision-map. Implementar programaticamente (montar opcoes, marcar a escolha, vincular com a proxima decisao; ao clicar na caixa da decisao exibir detalhes em painel no lado direito) e fazer o botao funcionar, sem depender de skill.",
     "stack_sugerida": null,
     "status": "concluida",
-    "motivo_termino": "review-task_concluido",
+    "motivo_termino": null,
     "iniciada_em": "2026-05-29T14:37:15Z",
-    "terminada_em": "2026-05-29T15:59:34Z"
+    "terminada_em": null
   },
   "etapa_corrente": "review-task",
   "proxima_instrucao": "Backlog 115/115 completo. Executar review-task: verificar cobertura de gates, artefatos finais, sumário de feature.",
