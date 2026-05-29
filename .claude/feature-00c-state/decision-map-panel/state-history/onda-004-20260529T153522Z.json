@@ -11,7 +11,7 @@
     "terminada_em": null
   },
   "etapa_corrente": "execute-task",
-  "proxima_instrucao": "Continuar execute-task: FASE 5 (acessibilidade e teclado - tasks 5.1.1-5.1.8) e FASE 6 (testes automatizados - tasks 6.1-6.4). FASE 0-4 concluídas (44/118 subtarefas). Validar comportamento de Arrow keys, Tab order, Escape. Implementar testes de estados e segurança de conteúdo.",
+  "proxima_instrucao": "Iniciar FASE 0: resolver gaps/ambiguidades do checklist (tasks 0.1, 0.2, 0.3) antes de implementar. Em seguida, iniciar FASE 1: engine de layout (decision-map-layout.ts + testes). Consultar tasks.md para lista completa.",
   "ondas": [
     {
       "id": "onda-001",
@@ -85,14 +85,12 @@
     {
       "id": "onda-004",
       "inicio": "2026-05-29T15:21:02Z",
-      "fim": "2026-05-29T15:35:39Z",
-      "etapas_executadas": [
-        "execute-task"
-      ],
+      "fim": null,
+      "etapas_executadas": [],
       "tool_calls": 0,
-      "wallclock_seconds": 877,
-      "motivo_termino": "etapa_concluida_avancando",
-      "proxima_onda_agendada_para": "2026-05-29T15:45:39Z",
+      "wallclock_seconds": 0,
+      "motivo_termino": null,
+      "proxima_onda_agendada_para": null,
       "skills_invoked": []
     }
   ],
@@ -433,24 +431,6 @@
       "evidencia": "vitest run: 30 tests passed (30), 0 failed. Benchmark: <10ms para 100 itens. Arquivo: apps/web/src/lib/decision-map-layout.ts",
       "referencias": [],
       "artefato_originador": null
-    },
-    {
-      "id": "dec-019",
-      "onda_id": "onda-004",
-      "timestamp": "2026-05-29T15:35:22Z",
-      "etapa": "execute-task",
-      "agente": "agente-00c-feature-orchestrator",
-      "contexto": "FASE 2-4 concluídas: DecisionMapNode, DecisionMapSvg, DecisionDetailPane, DecisionMapPanel, integração ExecutionDetail",
-      "opcoes_consideradas": [
-        "avançar para FASE 5 (acessibilidade)",
-        "avançar para FASE 6 (testes de estados)"
-      ],
-      "escolha": "avançar para FASE 5 (acessibilidade)",
-      "justificativa": "Fases 2-4 implementadas e validadas. FASE 5 (acessibilidade) verificará Tab/Arrow/Escape já implementados no código. As subtarefas 5.1.1-5.1.8 são verificações de comportamento — algumas cobertas pelo código existente, outras requerem smoke test visual. Próxima onda pode completar FASE 5 e FASE 6 (testes automatizados).",
-      "score_justificativa": 3,
-      "evidencia": "vitest run --reporter=verbose: 289 tests passed (289). tsc --noEmit: 0 errors. git diff --stat HEAD apps/server/: 0 files. grep innerHTML/dangerouslySetInnerHTML novos arquivos: 0 usos reais.",
-      "referencias": [],
-      "artefato_originador": null
     }
   ],
   "bloqueios_humanos": [],
@@ -468,12 +448,12 @@
     "inicio_onda_corrente": "2026-05-29T15:21:02Z"
   },
   "metricas_acumuladas": {
-    "ondas_total": 4,
+    "ondas_total": 3,
     "tool_calls_total": 158,
-    "tempo_wallclock_total_segundos": 2234,
+    "tempo_wallclock_total_segundos": 1357,
     "profundidade_max_atingida": 1,
     "subagentes_spawned": 0,
-    "decisoes_total": 19,
+    "decisoes_total": 18,
     "bloqueios_humanos_total": 0,
     "sugestoes_skills_globais_total": 0,
     "issues_toolkit_abertas": 0

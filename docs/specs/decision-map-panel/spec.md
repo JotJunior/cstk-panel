@@ -162,8 +162,14 @@ conexão entre nós.
 
 ### Edge Cases
 
-- O que acontece quando a execução tem centenas de decisões? O mapa deve
-  carregar progressivamente ou paginado, sem travar o navegador.
+- O que acontece quando a execução tem centenas de decisões? O mapa aplica
+  `limit=100` (teto máximo do backend). Quando `pagination.hasMore = true`,
+  exibe banner de aviso informando que apenas as primeiras 100 decisões são
+  exibidas. (dec-012 clarifica CHK044)
+- Estado `mapVisible` é gerenciado em `ExecutionDetail.tsx` (state elevado):
+  reset ao trocar de aba (`handleTabChange`) e ao trocar de execução
+  (useEffect com `execucaoId` como dep). `DecisionMapPanel` recebe
+  `mapVisible` e `onToggle` como props. (dec-012, CHK049, CHK055)
 - Como o mapa se comporta quando filtrado por onda (o `waveFilter` já
   disponível na tela)? O mapa deve refletir o filtro ativo.
 - O que acontece quando a decisão não tem `contexto`, `justificativa` e
@@ -196,7 +202,9 @@ conexão entre nós.
 
 - **FR-003**: Cada nó do mapa DEVE representar uma decisão individual e
   exibir, no mínimo: a escolha feita, o score (com cor semântica) e a onda
-  de origem.
+  de origem. Quando `escolha = null`, o nó exibe o placeholder `—` (hífen
+  em dash) via `TextRaw` (valor null retorna "-" por padrão); o `aria-label`
+  do `<g>` usa "decisão sem escolha" como fallback acessível. (dec-017)
 
 - **FR-004**: O sistema DEVE marcar visualmente a opção escolhida em cada
   nó, distinguindo-a das opções descartadas, usando a lógica já existente de
@@ -230,8 +238,12 @@ conexão entre nós.
   exibe apenas decisões daquela onda.
 
 - **FR-010**: O mapa DEVE ser acessível por teclado: navegação entre nós por
-  Tab/setas, ativação de nó por Enter/Espaço, fechamento do painel lateral
-  por Escape.
+  Tab e Arrow keys (Up/Down para nós na mesma coluna de onda, Left/Right
+  entre colunas), ativação de nó por Enter/Espaço, fechamento do painel
+  lateral por Escape. Tab order: botão toggle → container SVG → primeiro nó
+  → demais nós (Tab) → painel lateral (se aberto) → botão fechar. Foco
+  inicial ao abrir o mapa: primeiro nó do SVG (nodes[0]). Foco ao fechar
+  painel: nó selecionado no SVG. (dec-014, dec-015, dec-016)
 
 - **FR-011**: O sistema NÃO DEVE consultar o `state.json` diretamente, NÃO
   DEVE invocar a skill `decision-tree` e NÃO DEVE criar nenhum endpoint

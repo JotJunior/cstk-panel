@@ -102,10 +102,15 @@ apps/web/src/
 
 ### DecisionMapPanel (componente orquestrador)
 
+> **Decisão 0.1.1 (dec-012)**: `mapVisible` é gerenciado em `ExecutionDetail`
+> (state elevado), não em `DecisionMapPanel`. Isso facilita reset ao trocar
+> de aba e ao trocar de execução. `DecisionMapPanel` recebe `mapVisible` e
+> `onToggle` como props.
+
 ```
 DecisionMapPanel
-  props: execucaoId, waveFilter
-  state: mapVisible, selectedKey
+  props: execucaoId, waveFilter, mapVisible, onToggle
+  state: selectedKey (apenas)
 
   query: useDecisions(execucaoId, { limit: 100, wave?: waveFilter })
 
@@ -205,10 +210,21 @@ export function computeLayout(items: DecisionDTO[]): MapLayout
 | Interação | Mecanismo |
 |-----------|-----------|
 | Navegar entre nós | `tabIndex={0}` em cada `<g>` de nó; Tab normal |
+| Arrow keys Up/Down | navegar nós na mesma coluna de onda |
+| Arrow keys Left/Right | navegar entre colunas de onda |
 | Ativar nó | `onKeyDown`: `Enter` ou `Space` → `onNodeSelect` |
-| Fechar painel | `onKeyDown` no painel: `Escape` → `setSelectedKey(null)` |
-| Labels | `aria-label={decision.escolha}` no `<g>` de nó |
+| Fechar painel | `onKeyDown` no painel: `Escape` → `setSelectedKey(null)` + foco retorna ao nó selecionado |
+| Labels | `aria-label={escolha ?? 'decisão sem escolha'}` no `<g>` de nó |
 | SVG label | `role="img"` + `aria-label="Mapa de decisões"` no `<svg>` |
+| Foco inicial | ao abrir mapa (`mapVisible=true`): focar `nodes[0]` automaticamente |
+| Prev/Next extremos | botões disabled (visíveis, não ocultos) na primeira/última decisão |
+
+> Decisões: dec-014 (Arrow keys), dec-015 (foco inicial), dec-016 (foco ao fechar), dec-016 (prev/next disabled)
+
+### SVG overflow/scroll (dec-018, CHK006, CHK007)
+
+Container wrapper do SVG usa `max-height: 60vh; overflow: auto` para evitar que
+mapas com muitas decisões quebrem o layout da tela.
 
 ---
 

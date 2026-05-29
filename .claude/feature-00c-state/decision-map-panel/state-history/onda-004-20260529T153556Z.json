@@ -11,7 +11,7 @@
     "terminada_em": null
   },
   "etapa_corrente": "execute-task",
-  "proxima_instrucao": "Continuar execute-task: FASE 5 (acessibilidade e teclado - tasks 5.1.1-5.1.8) e FASE 6 (testes automatizados - tasks 6.1-6.4). FASE 0-4 concluídas (44/118 subtarefas). Validar comportamento de Arrow keys, Tab order, Escape. Implementar testes de estados e segurança de conteúdo.",
+  "proxima_instrucao": "Iniciar FASE 0: resolver gaps/ambiguidades do checklist (tasks 0.1, 0.2, 0.3) antes de implementar. Em seguida, iniciar FASE 1: engine de layout (decision-map-layout.ts + testes). Consultar tasks.md para lista completa.",
   "ondas": [
     {
       "id": "onda-001",

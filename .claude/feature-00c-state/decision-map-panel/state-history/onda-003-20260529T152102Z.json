@@ -11,7 +11,7 @@
     "terminada_em": null
   },
   "etapa_corrente": "execute-task",
-  "proxima_instrucao": "Continuar execute-task: FASE 5 (acessibilidade e teclado - tasks 5.1.1-5.1.8) e FASE 6 (testes automatizados - tasks 6.1-6.4). FASE 0-4 concluídas (44/118 subtarefas). Validar comportamento de Arrow keys, Tab order, Escape. Implementar testes de estados e segurança de conteúdo.",
+  "proxima_instrucao": "Iniciar FASE 0: resolver gaps/ambiguidades do checklist (tasks 0.1, 0.2, 0.3) antes de implementar. Em seguida, iniciar FASE 1: engine de layout (decision-map-layout.ts + testes). Consultar tasks.md para lista completa.",
   "ondas": [
     {
       "id": "onda-001",
@@ -81,19 +81,6 @@
           "decisao_id": null
         }
       ]
-    },
-    {
-      "id": "onda-004",
-      "inicio": "2026-05-29T15:21:02Z",
-      "fim": "2026-05-29T15:35:39Z",
-      "etapas_executadas": [
-        "execute-task"
-      ],
-      "tool_calls": 0,
-      "wallclock_seconds": 877,
-      "motivo_termino": "etapa_concluida_avancando",
-      "proxima_onda_agendada_para": "2026-05-29T15:45:39Z",
-      "skills_invoked": []
     }
   ],
   "decisoes": [
@@ -307,150 +294,6 @@
       "evidencia": null,
       "referencias": [],
       "artefato_originador": null
-    },
-    {
-      "id": "dec-012",
-      "onda_id": "onda-004",
-      "timestamp": "2026-05-29T15:21:28Z",
-      "etapa": "execute-task",
-      "agente": "agente-00c-feature-orchestrator",
-      "contexto": "FASE 0 - 0.1.1: dono do estado mapVisible (CHK049)",
-      "opcoes_consideradas": [
-        "DecisionMapPanel (state interno)",
-        "ExecutionDetail (state elevado)"
-      ],
-      "escolha": "ExecutionDetail (state elevado)",
-      "justificativa": "Plan §Modificação em ExecutionDetail especifica: 'Estado mapVisible: useState(false) em ExecutionDetail (ou delegado ao componente). Reset ao trocar de aba ou de execução.' Elevado ao ExecutionDetail facilita reset ao trocar aba/execução, que é um req explícito (CHK055). DecisionMapPanel recebe mapVisible como prop. Isso é mais simples para resets controlados.",
-      "score_justificativa": 2,
-      "evidencia": null,
-      "referencias": [],
-      "artefato_originador": null
-    },
-    {
-      "id": "dec-013",
-      "onda_id": "onda-004",
-      "timestamp": "2026-05-29T15:21:28Z",
-      "etapa": "execute-task",
-      "agente": "agente-00c-feature-orchestrator",
-      "contexto": "FASE 0 - 0.1.2: mecanismo de retry após erro de API (CHK054)",
-      "opcoes_consideradas": [
-        "botão Tentar novamente explícito",
-        "retry automático TanStack Query"
-      ],
-      "escolha": "botão Tentar novamente explícito",
-      "justificativa": "Spec §FR-008 define estado de erro com 'possibilidade de retry'. Padrão do projeto (ErrorState existente em screens) usa botão explícito. TanStack Query retry automático silencioso não satisfaz FR-008 'exibir mensagem' — o usuário não vê feedback. Botão explícito + refetch() é mais transparente e consistente com outros componentes do projeto.",
-      "score_justificativa": 2,
-      "evidencia": null,
-      "referencias": [],
-      "artefato_originador": null
-    },
-    {
-      "id": "dec-014",
-      "onda_id": "onda-004",
-      "timestamp": "2026-05-29T15:21:46Z",
-      "etapa": "execute-task",
-      "agente": "agente-00c-feature-orchestrator",
-      "contexto": "FASE 0 - 0.1.3: navegação FR-010 - Tab vs Tab+Arrow keys (CHK017)",
-      "opcoes_consideradas": [
-        "apenas Tab",
-        "Tab + Arrow keys com onKeyDown"
-      ],
-      "escolha": "Tab + Arrow keys com onKeyDown",
-      "justificativa": "Spec §FR-010 lista 'navegação por setas' explicitamente. CHK017 questiona 'como as setas funcionam' implicando que devem estar implementadas. Tab sozinho não atende 'navegação por setas' prometida no FR-010. Implementar Arrow keys (Up/Down para nós na mesma coluna, Left/Right entre colunas) com onKeyDown nos <g> de nó.",
-      "score_justificativa": 2,
-      "evidencia": null,
-      "referencias": [],
-      "artefato_originador": null
-    },
-    {
-      "id": "dec-015",
-      "onda_id": "onda-004",
-      "timestamp": "2026-05-29T15:21:46Z",
-      "etapa": "execute-task",
-      "agente": "agente-00c-feature-orchestrator",
-      "contexto": "FASE 0 - 0.2.1: foco inicial ao abrir mapa (CHK021)",
-      "opcoes_consideradas": [
-        "primeiro nó do SVG",
-        "container do SVG"
-      ],
-      "escolha": "primeiro nó do SVG",
-      "justificativa": "Focar o container SVG sem nó ativo é menos útil — usuário precisaria Tab adicional para chegar ao primeiro nó. Focar diretamente o primeiro nó (nodes[0]) ao abrir mapVisible=true é mais eficiente e segue padrão de a11y de modais/dialogs que focam no primeiro elemento interativo.",
-      "score_justificativa": 2,
-      "evidencia": null,
-      "referencias": [],
-      "artefato_originador": null
-    },
-    {
-      "id": "dec-016",
-      "onda_id": "onda-004",
-      "timestamp": "2026-05-29T15:21:46Z",
-      "etapa": "execute-task",
-      "agente": "agente-00c-feature-orchestrator",
-      "contexto": "FASE 0 - 0.2.2: retorno de foco ao fechar painel (CHK022)",
-      "opcoes_consideradas": [
-        "nó selecionado no SVG",
-        "botão toggle"
-      ],
-      "escolha": "nó selecionado no SVG",
-      "justificativa": "Ao fechar o painel lateral (Escape ou botão X), o contexto visual está no nó que gerou a abertura. Retornar foco ao nó selecionado mantém a continuidade de navegação — usuário pode navegar para o próximo nó sem perder posição. Retornar ao botão toggle seria confuso (botão fica fora do mapa).",
-      "score_justificativa": 2,
-      "evidencia": null,
-      "referencias": [],
-      "artefato_originador": null
-    },
-    {
-      "id": "dec-017",
-      "onda_id": "onda-004",
-      "timestamp": "2026-05-29T15:22:17Z",
-      "etapa": "execute-task",
-      "agente": "agente-00c-feature-orchestrator",
-      "contexto": "FASE 0 - 0.3.5: CHK040 wont-fix performance computeLayout",
-      "opcoes_consideradas": [
-        "budget separado de performance",
-        "wont-fix coberto por SC-002"
-      ],
-      "escolha": "wont-fix coberto por SC-002",
-      "justificativa": "Tasks.md nota explícita: performance budget isolado para computeLayout coberto pelo SC-002 global (CHK040 wont-fix). JS puro sem DOM, 100 nos = operacoes O(n). SC-002 do quickstart exige benchmark <10ms como caso 6.4.4. Budget separado seria duplicacao.",
-      "score_justificativa": 2,
-      "evidencia": null,
-      "referencias": [],
-      "artefato_originador": null
-    },
-    {
-      "id": "dec-018",
-      "onda_id": "onda-004",
-      "timestamp": "2026-05-29T15:26:23Z",
-      "etapa": "execute-task",
-      "agente": "agente-00c-feature-orchestrator",
-      "contexto": "FASE 1 - implementação decision-map-layout.ts concluída",
-      "opcoes_consideradas": [
-        "implementar helpers prevKey/nextKey/waveLabels inline",
-        "implementar como funções exportadas separadas"
-      ],
-      "escolha": "implementar como funções exportadas separadas",
-      "justificativa": "Helpers prevKey/nextKey/waveLabels exportados permitem uso em DecisionDetailPane e DecisionMapSvg sem acoplamento. DecisionMapPanel pode importar apenas o que precisa.",
-      "score_justificativa": 3,
-      "evidencia": "vitest run: 30 tests passed (30), 0 failed. Benchmark: <10ms para 100 itens. Arquivo: apps/web/src/lib/decision-map-layout.ts",
-      "referencias": [],
-      "artefato_originador": null
-    },
-    {
-      "id": "dec-019",
-      "onda_id": "onda-004",
-      "timestamp": "2026-05-29T15:35:22Z",
-      "etapa": "execute-task",
-      "agente": "agente-00c-feature-orchestrator",
-      "contexto": "FASE 2-4 concluídas: DecisionMapNode, DecisionMapSvg, DecisionDetailPane, DecisionMapPanel, integração ExecutionDetail",
-      "opcoes_consideradas": [
-        "avançar para FASE 5 (acessibilidade)",
-        "avançar para FASE 6 (testes de estados)"
-      ],
-      "escolha": "avançar para FASE 5 (acessibilidade)",
-      "justificativa": "Fases 2-4 implementadas e validadas. FASE 5 (acessibilidade) verificará Tab/Arrow/Escape já implementados no código. As subtarefas 5.1.1-5.1.8 são verificações de comportamento — algumas cobertas pelo código existente, outras requerem smoke test visual. Próxima onda pode completar FASE 5 e FASE 6 (testes automatizados).",
-      "score_justificativa": 3,
-      "evidencia": "vitest run --reporter=verbose: 289 tests passed (289). tsc --noEmit: 0 errors. git diff --stat HEAD apps/server/: 0 files. grep innerHTML/dangerouslySetInnerHTML novos arquivos: 0 usos reais.",
-      "referencias": [],
-      "artefato_originador": null
     }
   ],
   "bloqueios_humanos": [],
@@ -465,15 +308,15 @@
     "wallclock_threshold_segundos": 5400,
     "estado_size_threshold_bytes": 1048576,
     "tool_calls_onda_corrente": 0,
-    "inicio_onda_corrente": "2026-05-29T15:21:02Z"
+    "inicio_onda_corrente": "2026-05-29T15:08:13Z"
   },
   "metricas_acumuladas": {
-    "ondas_total": 4,
+    "ondas_total": 3,
     "tool_calls_total": 158,
-    "tempo_wallclock_total_segundos": 2234,
+    "tempo_wallclock_total_segundos": 1357,
     "profundidade_max_atingida": 1,
     "subagentes_spawned": 0,
-    "decisoes_total": 19,
+    "decisoes_total": 11,
     "bloqueios_humanos_total": 0,
     "sugestoes_skills_globais_total": 0,
     "issues_toolkit_abertas": 0
@@ -508,150 +351,5 @@
       "sha256": "a1b278d4c9a573463325688f5962b666bfa071befc40b57be266bcb2efa53e66",
       "version": "1.0.0"
     }
-  },
-  "tasks": [
-    {
-      "task_id": "0.1",
-      "titulo": "Resolver ambiguidades e conflitos bloqueantes",
-      "wave_id": "onda-004",
-      "outcome": "pass",
-      "testes_rodados": 0,
-      "testes_passados": 0,
-      "lint_ok": true,
-      "arquivos_tocados": [
-        "docs/specs/decision-map-panel/spec.md",
-        "docs/specs/decision-map-panel/plan.md"
-      ],
-      "recorded_at": "2026-05-29T15:26:23Z",
-      "origem": "execute-task"
-    },
-    {
-      "task_id": "0.2",
-      "titulo": "Documentar gaps de acessibilidade e UX",
-      "wave_id": "onda-004",
-      "outcome": "pass",
-      "testes_rodados": 0,
-      "testes_passados": 0,
-      "lint_ok": true,
-      "arquivos_tocados": [
-        "docs/specs/decision-map-panel/spec.md",
-        "docs/specs/decision-map-panel/plan.md"
-      ],
-      "recorded_at": "2026-05-29T15:26:23Z",
-      "origem": "execute-task"
-    },
-    {
-      "task_id": "0.3",
-      "titulo": "Documentar gaps de layout e compatibilidade",
-      "wave_id": "onda-004",
-      "outcome": "pass",
-      "testes_rodados": 0,
-      "testes_passados": 0,
-      "lint_ok": true,
-      "arquivos_tocados": [
-        "docs/specs/decision-map-panel/spec.md",
-        "docs/specs/decision-map-panel/plan.md"
-      ],
-      "recorded_at": "2026-05-29T15:26:23Z",
-      "origem": "execute-task"
-    },
-    {
-      "task_id": "1.1",
-      "titulo": "Implementar decision-map-layout.ts",
-      "wave_id": "onda-004",
-      "outcome": "pass",
-      "testes_rodados": 30,
-      "testes_passados": 30,
-      "lint_ok": true,
-      "arquivos_tocados": [
-        "apps/web/src/lib/decision-map-layout.ts"
-      ],
-      "recorded_at": "2026-05-29T15:26:23Z",
-      "origem": "execute-task"
-    },
-    {
-      "task_id": "1.2",
-      "titulo": "Testes unitários do engine de layout",
-      "wave_id": "onda-004",
-      "outcome": "pass",
-      "testes_rodados": 30,
-      "testes_passados": 30,
-      "lint_ok": true,
-      "arquivos_tocados": [
-        "apps/web/src/lib/decision-map-layout.test.ts"
-      ],
-      "recorded_at": "2026-05-29T15:26:23Z",
-      "origem": "execute-task"
-    },
-    {
-      "task_id": "2.1",
-      "titulo": "Implementar DecisionMapNode.tsx",
-      "wave_id": "onda-004",
-      "outcome": "pass",
-      "testes_rodados": 0,
-      "testes_passados": 0,
-      "lint_ok": true,
-      "arquivos_tocados": [
-        "apps/web/src/components/DecisionMapNode.tsx"
-      ],
-      "recorded_at": "2026-05-29T15:35:09Z",
-      "origem": "execute-task"
-    },
-    {
-      "task_id": "2.2",
-      "titulo": "Implementar DecisionMapSvg.tsx",
-      "wave_id": "onda-004",
-      "outcome": "pass",
-      "testes_rodados": 0,
-      "testes_passados": 0,
-      "lint_ok": true,
-      "arquivos_tocados": [
-        "apps/web/src/components/DecisionMapSvg.tsx"
-      ],
-      "recorded_at": "2026-05-29T15:35:09Z",
-      "origem": "execute-task"
-    },
-    {
-      "task_id": "2.3",
-      "titulo": "Implementar DecisionDetailPane.tsx",
-      "wave_id": "onda-004",
-      "outcome": "pass",
-      "testes_rodados": 0,
-      "testes_passados": 0,
-      "lint_ok": true,
-      "arquivos_tocados": [
-        "apps/web/src/components/DecisionDetailPane.tsx"
-      ],
-      "recorded_at": "2026-05-29T15:35:09Z",
-      "origem": "execute-task"
-    },
-    {
-      "task_id": "3.1",
-      "titulo": "Implementar DecisionMapPanel.tsx",
-      "wave_id": "onda-004",
-      "outcome": "pass",
-      "testes_rodados": 289,
-      "testes_passados": 289,
-      "lint_ok": true,
-      "arquivos_tocados": [
-        "apps/web/src/components/DecisionMapPanel.tsx"
-      ],
-      "recorded_at": "2026-05-29T15:35:09Z",
-      "origem": "execute-task"
-    },
-    {
-      "task_id": "4.1",
-      "titulo": "Modificar ExecutionDetail.tsx - integrar DecisionMapPanel",
-      "wave_id": "onda-004",
-      "outcome": "pass",
-      "testes_rodados": 289,
-      "testes_passados": 289,
-      "lint_ok": true,
-      "arquivos_tocados": [
-        "apps/web/src/screens/ExecutionDetail.tsx"
-      ],
-      "recorded_at": "2026-05-29T15:35:09Z",
-      "origem": "execute-task"
-    }
-  ]
+  }
 }
