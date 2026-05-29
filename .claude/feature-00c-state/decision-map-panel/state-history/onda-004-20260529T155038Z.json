@@ -94,25 +94,6 @@
       "motivo_termino": "etapa_concluida_avancando",
       "proxima_onda_agendada_para": "2026-05-29T15:45:39Z",
       "skills_invoked": []
-    },
-    {
-      "id": "onda-005",
-      "inicio": "2026-05-29T15:41:33Z",
-      "fim": "2026-05-29T15:50:38Z",
-      "etapas_executadas": [
-        "execute-task"
-      ],
-      "tool_calls": 64,
-      "wallclock_seconds": 545,
-      "motivo_termino": "etapa_concluida_avancando",
-      "proxima_onda_agendada_para": "2026-05-29T15:57:49Z",
-      "skills_invoked": [
-        {
-          "skill": "execute-task",
-          "timestamp": "2026-05-29T15:50:38Z",
-          "decisao_id": null
-        }
-      ]
     }
   ],
   "decisoes": [
@@ -526,9 +507,9 @@
     "inicio_onda_corrente": "2026-05-29T15:21:02Z"
   },
   "metricas_acumuladas": {
-    "ondas_total": 5,
-    "tool_calls_total": 352,
-    "tempo_wallclock_total_segundos": 2779,
+    "ondas_total": 4,
+    "tool_calls_total": 288,
+    "tempo_wallclock_total_segundos": 2234,
     "profundidade_max_atingida": 1,
     "subagentes_spawned": 0,
     "decisoes_total": 21,
@@ -554,11 +535,6 @@
       "event_type": "schedule_wait",
       "timestamp": "2026-05-29T15:15:50Z",
       "descricao": "onda-003 encerrada; proxima: execute-task FASE 0→1"
-    },
-    {
-      "event_type": "schedule_wait",
-      "timestamp": "2026-05-29T15:51:22Z",
-      "descricao": "onda-004 concluida; etapa=review-task; 325/325 PASS; backlog 115/115"
     }
   ],
   "pre_requisitos": {

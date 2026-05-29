@@ -10,8 +10,8 @@
     "iniciada_em": "2026-05-29T14:37:15Z",
     "terminada_em": null
   },
-  "etapa_corrente": "review-task",
-  "proxima_instrucao": "Backlog 115/115 completo. Executar review-task: verificar cobertura de gates, artefatos finais, sumário de feature.",
+  "etapa_corrente": "execute-task",
+  "proxima_instrucao": "Continuar execute-task: FASE 5 (acessibilidade e teclado - tasks 5.1.1-5.1.8) e FASE 6 (testes automatizados - tasks 6.1-6.4). FASE 0-4 concluídas (44/118 subtarefas). Validar comportamento de Arrow keys, Tab order, Escape. Implementar testes de estados e segurança de conteúdo.",
   "ondas": [
     {
       "id": "onda-001",
@@ -94,25 +94,6 @@
       "motivo_termino": "etapa_concluida_avancando",
       "proxima_onda_agendada_para": "2026-05-29T15:45:39Z",
       "skills_invoked": []
-    },
-    {
-      "id": "onda-005",
-      "inicio": "2026-05-29T15:41:33Z",
-      "fim": "2026-05-29T15:50:38Z",
-      "etapas_executadas": [
-        "execute-task"
-      ],
-      "tool_calls": 64,
-      "wallclock_seconds": 545,
-      "motivo_termino": "etapa_concluida_avancando",
-      "proxima_onda_agendada_para": "2026-05-29T15:57:49Z",
-      "skills_invoked": [
-        {
-          "skill": "execute-task",
-          "timestamp": "2026-05-29T15:50:38Z",
-          "decisao_id": null
-        }
-      ]
     }
   ],
   "decisoes": [
@@ -470,45 +451,6 @@
       "evidencia": "vitest run --reporter=verbose: 289 tests passed (289). tsc --noEmit: 0 errors. git diff --stat HEAD apps/server/: 0 files. grep innerHTML/dangerouslySetInnerHTML novos arquivos: 0 usos reais.",
       "referencias": [],
       "artefato_originador": null
-    },
-    {
-      "id": "dec-020",
-      "onda_id": "onda-004",
-      "timestamp": "2026-05-29T15:42:20Z",
-      "etapa": "model-routing",
-      "agente": "agente-00c-feature-orchestrator",
-      "contexto": "Selecao de modelo para onda 4 (fase execute-task)",
-      "opcoes_consideradas": [
-        "haiku",
-        "sonnet",
-        "opus",
-        "manter-atual"
-      ],
-      "escolha": "model:sonnet",
-      "justificativa": "sugerido=sonnet aplicado=sonnet origem=mapa | faixa=rasa fase=execute-task (mapa primario)",
-      "score_justificativa": 0,
-      "evidencia": null,
-      "referencias": [],
-      "artefato_originador": null
-    },
-    {
-      "id": "dec-021",
-      "onda_id": "onda-004",
-      "timestamp": "2026-05-29T15:49:51Z",
-      "etapa": "execute-task",
-      "agente": "agente-00c-feature-orchestrator",
-      "contexto": "Escolha de abordagem para testes FASES 5 e 6: análise estática de fonte vs jsdom",
-      "opcoes_consideradas": [
-        "jsdom-component-rendering",
-        "analise-estatica-fonte-puro",
-        "hibrido"
-      ],
-      "escolha": "analise-estatica-fonte-puro",
-      "justificativa": "vitest.config.ts usa environment=node sem jsdom; testes existentes (PipelineProgress, decision-options) são puramente unitários sem DOM; análise estática (readFileSync + codeOnly) cobre 100% dos requisitos de FASES 5/6 sem deps extras; padrão do projeto preservado; 36 novos testes adicionados, suite 325/325 PASS",
-      "score_justificativa": 3,
-      "evidencia": "npx vitest run 2>&1 | tail -5 → 325 passed (325), 26 Test Files, 1.23s",
-      "referencias": [],
-      "artefato_originador": null
     }
   ],
   "bloqueios_humanos": [],
@@ -526,12 +468,12 @@
     "inicio_onda_corrente": "2026-05-29T15:21:02Z"
   },
   "metricas_acumuladas": {
-    "ondas_total": 5,
-    "tool_calls_total": 352,
-    "tempo_wallclock_total_segundos": 2779,
+    "ondas_total": 4,
+    "tool_calls_total": 288,
+    "tempo_wallclock_total_segundos": 2234,
     "profundidade_max_atingida": 1,
     "subagentes_spawned": 0,
-    "decisoes_total": 21,
+    "decisoes_total": 19,
     "bloqueios_humanos_total": 0,
     "sugestoes_skills_globais_total": 0,
     "issues_toolkit_abertas": 0
@@ -554,11 +496,6 @@
       "event_type": "schedule_wait",
       "timestamp": "2026-05-29T15:15:50Z",
       "descricao": "onda-003 encerrada; proxima: execute-task FASE 0→1"
-    },
-    {
-      "event_type": "schedule_wait",
-      "timestamp": "2026-05-29T15:51:22Z",
-      "descricao": "onda-004 concluida; etapa=review-task; 325/325 PASS; backlog 115/115"
     }
   ],
   "pre_requisitos": {
@@ -714,66 +651,6 @@
         "apps/web/src/screens/ExecutionDetail.tsx"
       ],
       "recorded_at": "2026-05-29T15:35:09Z",
-      "origem": "execute-task"
-    },
-    {
-      "task_id": "5.1",
-      "titulo": "Acessibilidade e teclado (FASE 5: 5.1.1-5.1.8)",
-      "wave_id": "onda-004",
-      "outcome": "pass",
-      "testes_rodados": 8,
-      "testes_passados": 8,
-      "lint_ok": true,
-      "arquivos_tocados": [
-        "apps/web/src/components/DecisionMapPanel.test.ts",
-        "docs/specs/decision-map-panel/tasks.md"
-      ],
-      "recorded_at": "2026-05-29T15:50:14Z",
-      "origem": "execute-task"
-    },
-    {
-      "task_id": "6.1",
-      "titulo": "Testes unitários do engine (FASE 6.1)",
-      "wave_id": "onda-004",
-      "outcome": "pass",
-      "testes_rodados": 30,
-      "testes_passados": 30,
-      "lint_ok": true,
-      "arquivos_tocados": [
-        "apps/web/src/components/DecisionMapPanel.test.ts",
-        "docs/specs/decision-map-panel/tasks.md"
-      ],
-      "recorded_at": "2026-05-29T15:50:14Z",
-      "origem": "execute-task"
-    },
-    {
-      "task_id": "6.2",
-      "titulo": "Segurança de conteúdo + estados + smoke SVG (FASE 6.2-6.4)",
-      "wave_id": "onda-004",
-      "outcome": "pass",
-      "testes_rodados": 36,
-      "testes_passados": 36,
-      "lint_ok": true,
-      "arquivos_tocados": [
-        "apps/web/src/components/DecisionMapPanel.test.ts",
-        "docs/specs/decision-map-panel/tasks.md"
-      ],
-      "recorded_at": "2026-05-29T15:50:14Z",
-      "origem": "execute-task"
-    },
-    {
-      "task_id": "7.1",
-      "titulo": "Revisão final e cleanup (FASE 7.1-7.2)",
-      "wave_id": "onda-004",
-      "outcome": "pass",
-      "testes_rodados": 325,
-      "testes_passados": 325,
-      "lint_ok": true,
-      "arquivos_tocados": [
-        "apps/web/src/components/DecisionMapPanel.test.ts",
-        "docs/specs/decision-map-panel/tasks.md"
-      ],
-      "recorded_at": "2026-05-29T15:50:14Z",
       "origem": "execute-task"
     }
   ]
