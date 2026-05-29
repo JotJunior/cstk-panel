@@ -469,7 +469,7 @@
   },
   "metricas_acumuladas": {
     "ondas_total": 4,
-    "tool_calls_total": 288,
+    "tool_calls_total": 158,
     "tempo_wallclock_total_segundos": 2234,
     "profundidade_max_atingida": 1,
     "subagentes_spawned": 0,
