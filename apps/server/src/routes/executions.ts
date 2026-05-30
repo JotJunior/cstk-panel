@@ -26,13 +26,13 @@ import { listDecisions, countDecisions, getDecisionScoreDistribution } from '../
 import { listTasksByExecution } from '../db/queries/tasks.js';
 import { listEventsByExecution } from '../db/queries/events.js';
 import { listAlertsByExecution } from '../db/queries/alerts.js';
-import { listBloqueiosByExecution } from '../db/queries/bloqueios.js';
+import { listBlocksByExecution } from '../db/queries/blocks.js';
 import { listSkillsByExecution } from '../db/queries/skills.js';
 import { listSuggestionsByExecution } from '../db/queries/suggestions.js';
 import {
   mapExecution, mapExecutions, mapWave, mapWaves, mapDecision, mapDecisions,
   mapTask, mapTasks, mapEvent, mapEvents,
-  mapAlert, mapAlerts, mapBloqueio, mapBloqueios,
+  mapAlert, mapAlerts, mapBlock, mapBlocks,
   mapSkill, mapSkills, mapSuggestions,
 } from '../mappers/index.js';
 
@@ -165,11 +165,12 @@ export async function executionRoutes(server: FastifyInstance): Promise<void> {
     const { execucaoId } = paramResult.data;
     const pagination = safeParsePagination(request.query as Record<string, string | undefined>);
     const { wave, etapa, score } = qResult.data;
+    // `etapa` (query param name kept for URL back-compat) maps to `stage` in DecisionFilters
     const filters: import('../db/queries/decisions.js').DecisionFilters = {
       limit: pagination.limit,
       offset: pagination.offset,
       ...(wave !== undefined ? { wave } : {}),
-      ...(etapa !== undefined ? { etapa } : {}),
+      ...(etapa !== undefined ? { stage: etapa } : {}),
       ...(score !== undefined ? { score } : {}),
     };
 
@@ -183,7 +184,7 @@ export async function executionRoutes(server: FastifyInstance): Promise<void> {
         limit: pagination.limit,
         offset: pagination.offset,
         ...(wave !== undefined ? { wave } : {}),
-        ...(etapa !== undefined ? { etapa } : {}),
+        ...(etapa !== undefined ? { stage: etapa } : {}),
         ...(score !== undefined ? { score } : {}),
       };
       const total = countDecisions(db, execucaoId, countFilters);
@@ -280,8 +281,8 @@ export async function executionRoutes(server: FastifyInstance): Promise<void> {
 
     const { db } = openResult;
     try {
-      const rows = listBloqueiosByExecution(db, execucaoId);
-      const bloqueios = mapBloqueios(rows);
+      const rows = listBlocksByExecution(db, execucaoId);
+      const bloqueios = mapBlocks(rows);
       const envelope = wrap(bloqueios, {}, config.dbPath, db);
       return reply.status(200).send(envelope);
     } finally { db.close(); }
@@ -352,4 +353,4 @@ function emptyMeta() {
 }
 
 // Re-export individual mappers used only internally (suppress unused import warning)
-void mapExecution; void mapWave; void mapDecision; void mapTask; void mapEvent; void mapAlert; void mapBloqueio; void mapSkill;
+void mapExecution; void mapWave; void mapDecision; void mapTask; void mapEvent; void mapAlert; void mapBlock; void mapSkill;

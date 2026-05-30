@@ -5,29 +5,61 @@
  *
  * Principio I (Read-Only Absoluto): apenas SELECT com prepared statements.
  * Parametros sempre via binding — nunca interpolacao de string.
+ *
+ * FASE 2 (new-schema): Row interface migrada pt-BR→EN snake_case (task 2.1).
  */
 import type Database from 'better-sqlite3';
+import { hasColumn } from '../columns.js';
+
+/**
+ * Projecao tolerante a bases v6 onde a coluna ainda tem nome pt-BR.
+ * Para cada coluna renomeada: se o novo nome existir usa-o; senao projeta NULL.
+ */
+function executionColumnsSelect(db: Database.Database): string {
+  const cols: string[] = [
+    'project',
+    'feature',
+    hasColumn(db, 'executions', 'execution_id')   ? 'execution_id'                 : 'NULL as execution_id',
+    'status',
+    hasColumn(db, 'executions', 'termination_reason') ? 'termination_reason'       : 'NULL as termination_reason',
+    hasColumn(db, 'executions', 'current_stage')  ? 'current_stage'                : 'NULL as current_stage',
+    hasColumn(db, 'executions', 'started_at')     ? 'started_at'                   : 'NULL as started_at',
+    hasColumn(db, 'executions', 'finished_at')    ? 'finished_at'                  : 'NULL as finished_at',
+    hasColumn(db, 'executions', 'duration_seconds') ? 'duration_seconds'           : 'NULL as duration_seconds',
+    hasColumn(db, 'executions', 'suggested_stack')  ? 'suggested_stack'            : 'NULL as suggested_stack',
+    hasColumn(db, 'executions', 'waves_total')    ? 'waves_total'                  : 'NULL as waves_total',
+    'tool_calls_total',
+    hasColumn(db, 'executions', 'wallclock_total_seconds') ? 'wallclock_total_seconds' : 'NULL as wallclock_total_seconds',
+    hasColumn(db, 'executions', 'subagents_spawned') ? 'subagents_spawned'         : 'NULL as subagents_spawned',
+    hasColumn(db, 'executions', 'max_depth')      ? 'max_depth'                    : 'NULL as max_depth',
+    hasColumn(db, 'executions', 'decisions_total') ? 'decisions_total'             : 'NULL as decisions_total',
+    hasColumn(db, 'executions', 'human_blocks_total') ? 'human_blocks_total'       : 'NULL as human_blocks_total',
+    hasColumn(db, 'executions', 'skill_suggestions_total') ? 'skill_suggestions_total' : 'NULL as skill_suggestions_total',
+    hasColumn(db, 'executions', 'toolkit_issues_opened') ? 'toolkit_issues_opened' : 'NULL as toolkit_issues_opened',
+  ];
+  return cols.join(', ');
+}
 
 export interface ExecutionRow {
   project: string;
   feature: string;
-  execucao_id: string;
+  execution_id: string;
   status: string | null;
-  motivo_termino: string | null;
-  etapa_corrente: string | null;
-  iniciada_em: string | null;
-  terminada_em: string | null;
-  duracao_segundos: number | null;
-  stack_sugerida: string | null;
-  ondas_total: number | null;
+  termination_reason: string | null;
+  current_stage: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+  duration_seconds: number | null;
+  suggested_stack: string | null;
+  waves_total: number | null;
   tool_calls_total: number | null;
-  wallclock_total_segundos: number | null;
-  subagentes_spawned: number | null;
-  profundidade_max: number | null;
-  decisoes_total: number | null;
-  bloqueios_humanos_total: number | null;
-  sugestoes_skills_total: number | null;
-  issues_toolkit_abertas: number | null;
+  wallclock_total_seconds: number | null;
+  subagents_spawned: number | null;
+  max_depth: number | null;
+  decisions_total: number | null;
+  human_blocks_total: number | null;
+  skill_suggestions_total: number | null;
+  toolkit_issues_opened: number | null;
 }
 
 export interface ExecutionRollupRow {
@@ -53,9 +85,9 @@ export interface FeatureRollupRow {
   total_tool_calls: number | null;
   total_wallclock: number | null;
   total_decisions: number;
-  total_ondas: number | null;
-  total_bloqueios: number;
-  etapa_corrente: string | null;
+  total_waves: number | null;
+  total_blocks: number;
+  current_stage: string | null;
   open_alerts: number;
   latest_status: string | null;
   latest_execution_at: string | null;
@@ -63,16 +95,13 @@ export interface FeatureRollupRow {
 
 /** Lista todas as execucoes, mais recentes primeiro */
 export function listExecutions(db: Database.Database): ExecutionRow[] {
+  const cols = executionColumnsSelect(db);
+  const orderBy = hasColumn(db, 'executions', 'started_at') ? 'started_at' : 'rowid';
   return db
     .prepare(`
-      SELECT project, feature, execucao_id, status, motivo_termino,
-             etapa_corrente, iniciada_em, terminada_em, duracao_segundos,
-             stack_sugerida, ondas_total, tool_calls_total,
-             wallclock_total_segundos, subagentes_spawned, profundidade_max,
-             decisoes_total, bloqueios_humanos_total, sugestoes_skills_total,
-             issues_toolkit_abertas
+      SELECT ${cols}
       FROM executions
-      ORDER BY iniciada_em DESC
+      ORDER BY ${orderBy} DESC
     `)
     .all() as ExecutionRow[];
 }
@@ -80,20 +109,17 @@ export function listExecutions(db: Database.Database): ExecutionRow[] {
 /** Busca execucao por ID */
 export function getExecution(
   db: Database.Database,
-  execucaoId: string
+  executionId: string
 ): ExecutionRow | undefined {
+  const cols = executionColumnsSelect(db);
+  const idCol = hasColumn(db, 'executions', 'execution_id') ? 'execution_id' : 'execution_id';
   return db
     .prepare(`
-      SELECT project, feature, execucao_id, status, motivo_termino,
-             etapa_corrente, iniciada_em, terminada_em, duracao_segundos,
-             stack_sugerida, ondas_total, tool_calls_total,
-             wallclock_total_segundos, subagentes_spawned, profundidade_max,
-             decisoes_total, bloqueios_humanos_total, sugestoes_skills_total,
-             issues_toolkit_abertas
+      SELECT ${cols}
       FROM executions
-      WHERE execucao_id = ?
+      WHERE ${idCol} = ?
     `)
-    .get(execucaoId) as ExecutionRow | undefined;
+    .get(executionId) as ExecutionRow | undefined;
 }
 
 /** Lista execucoes por projeto */
@@ -101,23 +127,23 @@ export function listExecutionsByProject(
   db: Database.Database,
   project: string
 ): ExecutionRow[] {
+  const cols = executionColumnsSelect(db);
+  const orderBy = hasColumn(db, 'executions', 'started_at') ? 'started_at' : 'rowid';
   return db
     .prepare(`
-      SELECT project, feature, execucao_id, status, motivo_termino,
-             etapa_corrente, iniciada_em, terminada_em, duracao_segundos,
-             stack_sugerida, ondas_total, tool_calls_total,
-             wallclock_total_segundos, subagentes_spawned, profundidade_max,
-             decisoes_total, bloqueios_humanos_total, sugestoes_skills_total,
-             issues_toolkit_abertas
+      SELECT ${cols}
       FROM executions
       WHERE project = ?
-      ORDER BY iniciada_em DESC
+      ORDER BY ${orderBy} DESC
     `)
     .all(project) as ExecutionRow[];
 }
 
 /** Rollup por projeto */
 export function getRollupByProject(db: Database.Database): ExecutionRollupRow[] {
+  const decCol = hasColumn(db, 'executions', 'decisions_total') ? 'decisions_total' : '0';
+  const wallCol = hasColumn(db, 'executions', 'wallclock_total_seconds') ? 'wallclock_total_seconds' : '0';
+  const startedCol = hasColumn(db, 'executions', 'started_at') ? 'started_at' : 'rowid';
   return db
     .prepare(`
       SELECT
@@ -126,11 +152,11 @@ export function getRollupByProject(db: Database.Database): ExecutionRollupRow[] 
         sum(CASE WHEN status IN ('em_andamento','aguardando_humano') THEN 1 ELSE 0 END) as active_executions,
         sum(CASE WHEN status = 'concluida' THEN 1 ELSE 0 END) as completed_executions,
         sum(CASE WHEN status = 'abortada' THEN 1 ELSE 0 END) as aborted_executions,
-        sum(coalesce(decisoes_total, 0)) as total_decisions,
+        sum(coalesce(${decCol}, 0)) as total_decisions,
         sum(tool_calls_total) as total_tool_calls,
-        sum(wallclock_total_segundos) as total_wallclock,
+        sum(${wallCol}) as total_wallclock,
         (SELECT count(*) FROM alert_signals a WHERE a.project = e.project) as open_alerts,
-        max(iniciada_em) as latest_execution_at
+        max(${startedCol}) as latest_execution_at
       FROM executions e
       GROUP BY project
       ORDER BY project
@@ -140,6 +166,12 @@ export function getRollupByProject(db: Database.Database): ExecutionRollupRow[] 
 
 /** Rollup por projeto+feature */
 export function getRollupByFeature(db: Database.Database): FeatureRollupRow[] {
+  const decCol = hasColumn(db, 'executions', 'decisions_total') ? 'decisions_total' : '0';
+  const wallCol = hasColumn(db, 'executions', 'wallclock_total_seconds') ? 'wallclock_total_seconds' : '0';
+  const wavesCol = hasColumn(db, 'executions', 'waves_total') ? 'waves_total' : '0';
+  const blocksCol = hasColumn(db, 'executions', 'human_blocks_total') ? 'human_blocks_total' : '0';
+  const stageCol = hasColumn(db, 'executions', 'current_stage') ? 'current_stage' : 'NULL';
+  const startedCol = hasColumn(db, 'executions', 'started_at') ? 'started_at' : 'rowid';
   return db
     .prepare(`
       SELECT
@@ -150,19 +182,19 @@ export function getRollupByFeature(db: Database.Database): FeatureRollupRow[] {
         sum(CASE WHEN status = 'concluida' THEN 1 ELSE 0 END) as completed_executions,
         sum(CASE WHEN status = 'abortada' THEN 1 ELSE 0 END) as aborted_executions,
         sum(tool_calls_total) as total_tool_calls,
-        sum(wallclock_total_segundos) as total_wallclock,
-        sum(coalesce(decisoes_total, 0)) as total_decisions,
-        sum(coalesce(ondas_total, 0)) as total_ondas,
-        sum(coalesce(bloqueios_humanos_total, 0)) as total_bloqueios,
-        (SELECT etapa_corrente FROM executions e2
+        sum(${wallCol}) as total_wallclock,
+        sum(coalesce(${decCol}, 0)) as total_decisions,
+        sum(coalesce(${wavesCol}, 0)) as total_waves,
+        sum(coalesce(${blocksCol}, 0)) as total_blocks,
+        (SELECT ${stageCol} FROM executions e2
          WHERE e2.project = e.project AND e2.feature = e.feature
-         ORDER BY iniciada_em DESC LIMIT 1) as etapa_corrente,
+         ORDER BY ${startedCol} DESC LIMIT 1) as current_stage,
         (SELECT status FROM executions e2
          WHERE e2.project = e.project AND e2.feature = e.feature
-         ORDER BY iniciada_em DESC LIMIT 1) as latest_status,
+         ORDER BY ${startedCol} DESC LIMIT 1) as latest_status,
         (SELECT count(*) FROM alert_signals a
          WHERE a.project = e.project AND a.feature = e.feature) as open_alerts,
-        max(iniciada_em) as latest_execution_at
+        max(${startedCol}) as latest_execution_at
       FROM executions e
       GROUP BY project, feature
       ORDER BY project, feature

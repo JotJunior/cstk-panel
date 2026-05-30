@@ -12,7 +12,7 @@
     "short_name": "new-schema"
   },
   "current_stage": "execute-task",
-  "next_instruction": "execute-task FASE 3: server mappers (execution.ts, wave.ts, decision.ts, task.ts, event.ts, alert.ts, skill.ts, suggestion.ts, retro.ts) — update mappers to read EN Row fields and write EN DTO fields. Gate: tsc server 0 errors (FASE 2+3 complete).",
+  "next_instruction": "execute-task FASE 2: server queries (waves.ts, decisions.ts, tasks.ts, events.ts, alert_signals.ts, blocks.ts rename, retros.ts, skills.ts, suggestions.ts) — renames Row interfaces pt-BR->EN snake_case, update SQL SELECTs, adicionar hasColumn guards, renomear tabela bloqueios->blocks. Gate: tsc server 0 erros.",
   "waves": [
     {
       "id": "onda-001",
@@ -122,13 +122,11 @@
     {
       "id": "onda-006",
       "started_at": "2026-05-30T14:34:19Z",
-      "finished_at": "2026-05-30T14:42:34Z",
-      "executed_stages": [
-        "execute-task"
-      ],
+      "finished_at": null,
+      "executed_stages": [],
       "tool_calls": 0,
-      "wallclock_seconds": 495,
-      "termination_reason": "etapa_concluida_avancando",
+      "wallclock_seconds": 0,
+      "termination_reason": null,
       "next_wave_scheduled_for": null,
       "skills_invoked": [
         {
@@ -479,9 +477,9 @@
     "current_wave_start": "2026-05-30T14:34:19Z"
   },
   "accumulated_metrics": {
-    "waves_total": 6,
+    "waves_total": 5,
     "tool_calls_total": 0,
-    "wallclock_total_seconds": 2300,
+    "wallclock_total_seconds": 1805,
     "max_depth_reached": 1,
     "subagents_spawned": 0,
     "decisions_total": 17,

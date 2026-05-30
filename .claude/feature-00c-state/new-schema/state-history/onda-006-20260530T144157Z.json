@@ -12,7 +12,7 @@
     "short_name": "new-schema"
   },
   "current_stage": "execute-task",
-  "next_instruction": "execute-task FASE 3: server mappers (execution.ts, wave.ts, decision.ts, task.ts, event.ts, alert.ts, skill.ts, suggestion.ts, retro.ts) — update mappers to read EN Row fields and write EN DTO fields. Gate: tsc server 0 errors (FASE 2+3 complete).",
+  "next_instruction": "execute-task FASE 2: server queries (waves.ts, decisions.ts, tasks.ts, events.ts, alert_signals.ts, blocks.ts rename, retros.ts, skills.ts, suggestions.ts) — renames Row interfaces pt-BR->EN snake_case, update SQL SELECTs, adicionar hasColumn guards, renomear tabela bloqueios->blocks. Gate: tsc server 0 erros.",
   "waves": [
     {
       "id": "onda-001",
@@ -122,21 +122,13 @@
     {
       "id": "onda-006",
       "started_at": "2026-05-30T14:34:19Z",
-      "finished_at": "2026-05-30T14:42:34Z",
-      "executed_stages": [
-        "execute-task"
-      ],
+      "finished_at": null,
+      "executed_stages": [],
       "tool_calls": 0,
-      "wallclock_seconds": 495,
-      "termination_reason": "etapa_concluida_avancando",
+      "wallclock_seconds": 0,
+      "termination_reason": null,
       "next_wave_scheduled_for": null,
-      "skills_invoked": [
-        {
-          "skill": "execute-task",
-          "timestamp": "2026-05-30T14:42:08Z",
-          "decision_id": null
-        }
-      ]
+      "skills_invoked": []
     }
   ],
   "decisions": [
@@ -443,25 +435,6 @@
       "evidence": null,
       "references": [],
       "originating_artifact": null
-    },
-    {
-      "id": "dec-017",
-      "wave_id": "onda-006",
-      "timestamp": "2026-05-30T14:41:57Z",
-      "stage": "execute-task",
-      "agent": "agente-00c-feature-orchestrator",
-      "context": "FASE 2 server queries concluida: Row interfaces EN, SQL EN, hasColumn guards, bloqueios.ts→blocks.ts",
-      "options_considered": [
-        "concluir-fase2",
-        "parar-por-budget",
-        "abortar"
-      ],
-      "choice": "concluir-fase2",
-      "rationale": "Todos 14 query files atualizados pt-BR→EN snake_case. tsc db/queries=0 errors. Erros remanescentes apenas em mappers e routes (FASE 3 scope)",
-      "justification_score": 3,
-      "evidence": "tsc server: queries=0 errors (gate OK), mappers=59 errors (expected FASE 3), routes=35 errors (expected FASE 3). grep vocab gate: 0 pt-BR in db/queries",
-      "references": [],
-      "originating_artifact": null
     }
   ],
   "human_blocks": [],
@@ -479,12 +452,12 @@
     "current_wave_start": "2026-05-30T14:34:19Z"
   },
   "accumulated_metrics": {
-    "waves_total": 6,
+    "waves_total": 5,
     "tool_calls_total": 0,
-    "wallclock_total_seconds": 2300,
+    "wallclock_total_seconds": 1805,
     "max_depth_reached": 1,
     "subagents_spawned": 0,
-    "decisions_total": 17,
+    "decisions_total": 16,
     "human_blocks_total": 0,
     "global_skill_suggestions_total": 0,
     "toolkit_issues_opened": 0,
@@ -549,150 +522,6 @@
         "packages/shared-types/src/schemas/entities.ts"
       ],
       "recorded_at": "2026-05-30T14:27:47Z",
-      "source": "execute-task"
-    },
-    {
-      "task_id": "2.1",
-      "title": "FASE 2 task 2.1 — server queries EN migration",
-      "wave_id": "onda-006",
-      "outcome": "pass",
-      "tests_run": 0,
-      "tests_passed": 0,
-      "lint_ok": true,
-      "touched_files": [],
-      "recorded_at": "2026-05-30T14:42:16Z",
-      "source": "execute-task"
-    },
-    {
-      "task_id": "2.2",
-      "title": "FASE 2 task 2.2 — server queries EN migration",
-      "wave_id": "onda-006",
-      "outcome": "pass",
-      "tests_run": 0,
-      "tests_passed": 0,
-      "lint_ok": true,
-      "touched_files": [],
-      "recorded_at": "2026-05-30T14:42:16Z",
-      "source": "execute-task"
-    },
-    {
-      "task_id": "2.3",
-      "title": "FASE 2 task 2.3 — server queries EN migration",
-      "wave_id": "onda-006",
-      "outcome": "pass",
-      "tests_run": 0,
-      "tests_passed": 0,
-      "lint_ok": true,
-      "touched_files": [],
-      "recorded_at": "2026-05-30T14:42:16Z",
-      "source": "execute-task"
-    },
-    {
-      "task_id": "2.4",
-      "title": "FASE 2 task 2.4 — server queries EN migration",
-      "wave_id": "onda-006",
-      "outcome": "pass",
-      "tests_run": 0,
-      "tests_passed": 0,
-      "lint_ok": true,
-      "touched_files": [],
-      "recorded_at": "2026-05-30T14:42:17Z",
-      "source": "execute-task"
-    },
-    {
-      "task_id": "2.5",
-      "title": "FASE 2 task 2.5 — server queries EN migration",
-      "wave_id": "onda-006",
-      "outcome": "pass",
-      "tests_run": 0,
-      "tests_passed": 0,
-      "lint_ok": true,
-      "touched_files": [],
-      "recorded_at": "2026-05-30T14:42:17Z",
-      "source": "execute-task"
-    },
-    {
-      "task_id": "2.6",
-      "title": "FASE 2 task 2.6 — server queries EN migration",
-      "wave_id": "onda-006",
-      "outcome": "pass",
-      "tests_run": 0,
-      "tests_passed": 0,
-      "lint_ok": true,
-      "touched_files": [],
-      "recorded_at": "2026-05-30T14:42:17Z",
-      "source": "execute-task"
-    },
-    {
-      "task_id": "2.7",
-      "title": "FASE 2 task 2.7 — server queries EN migration",
-      "wave_id": "onda-006",
-      "outcome": "pass",
-      "tests_run": 0,
-      "tests_passed": 0,
-      "lint_ok": true,
-      "touched_files": [],
-      "recorded_at": "2026-05-30T14:42:17Z",
-      "source": "execute-task"
-    },
-    {
-      "task_id": "2.8",
-      "title": "FASE 2 task 2.8 — server queries EN migration",
-      "wave_id": "onda-006",
-      "outcome": "pass",
-      "tests_run": 0,
-      "tests_passed": 0,
-      "lint_ok": true,
-      "touched_files": [],
-      "recorded_at": "2026-05-30T14:42:17Z",
-      "source": "execute-task"
-    },
-    {
-      "task_id": "2.9",
-      "title": "FASE 2 task 2.9 — server queries EN migration",
-      "wave_id": "onda-006",
-      "outcome": "pass",
-      "tests_run": 0,
-      "tests_passed": 0,
-      "lint_ok": true,
-      "touched_files": [],
-      "recorded_at": "2026-05-30T14:42:17Z",
-      "source": "execute-task"
-    },
-    {
-      "task_id": "2.10",
-      "title": "FASE 2 task 2.10 — server queries EN migration",
-      "wave_id": "onda-006",
-      "outcome": "pass",
-      "tests_run": 0,
-      "tests_passed": 0,
-      "lint_ok": true,
-      "touched_files": [],
-      "recorded_at": "2026-05-30T14:42:17Z",
-      "source": "execute-task"
-    },
-    {
-      "task_id": "2.11",
-      "title": "FASE 2 task 2.11 — server queries EN migration",
-      "wave_id": "onda-006",
-      "outcome": "pass",
-      "tests_run": 0,
-      "tests_passed": 0,
-      "lint_ok": true,
-      "touched_files": [],
-      "recorded_at": "2026-05-30T14:42:17Z",
-      "source": "execute-task"
-    },
-    {
-      "task_id": "2.12",
-      "title": "FASE 2 task 2.12 — server queries EN migration",
-      "wave_id": "onda-006",
-      "outcome": "pass",
-      "tests_run": 0,
-      "tests_passed": 0,
-      "lint_ok": true,
-      "touched_files": [],
-      "recorded_at": "2026-05-30T14:42:17Z",
       "source": "execute-task"
     }
   ]

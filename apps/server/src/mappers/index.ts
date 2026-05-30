@@ -9,6 +9,6 @@ export { mapDecision, mapDecisions } from './decision.js';
 export { mapTask, mapTasks } from './task.js';
 export { mapEvent, mapEvents } from './event.js';
 export { mapAlert, mapAlerts } from './alert.js';
-export { mapBloqueio, mapBloqueios } from './bloqueio.js';
+export { mapBlock, mapBlocks } from './bloqueio.js';
 export { mapSkill, mapSkills } from './skill.js';
 export { mapSuggestion, mapSuggestions } from './suggestion.js';

@@ -7,12 +7,15 @@
  * Todos os filtros via binding parametrizado — nunca interpolacao de string.
  *
  * Filtros suportados:
- * - alerts: tipo, project, feature, period (24h/7d/30d/all)
+ * - alerts: type, project, feature, period (24h/7d/30d/all)
  * - tasks:  project, feature, outcome
  * - events: event_type, project, period
+ *
+ * FASE 2 (new-schema): todos os nomes pt-BR→EN snake_case (task 2.11).
  */
 import type Database from 'better-sqlite3';
-import { tituloSelect } from './tasks.js';
+import { hasColumn } from '../columns.js';
+import { titleSelect } from './tasks.js';
 
 // ─────────────────────────────────────────────────────────
 // Tipos de filtro
@@ -31,7 +34,7 @@ function periodToSqlFilter(period: Period | undefined): string | null {
 }
 
 export interface CrossAlertFilters {
-  tipo?: string;
+  type?: string;
   project?: string;
   feature?: string;
   period?: Period;
@@ -60,37 +63,37 @@ export interface CrossEventFilters {
 // ─────────────────────────────────────────────────────────
 
 export interface CrossAlertRow {
-  execucao_id: string;
+  execution_id: string;
   project: string;
   feature: string;
-  tipo: string;
-  subtipo: string | null;
-  valor_consumido: number | null;
-  valor_threshold: number | null;
-  descricao: string | null;
+  type: string;
+  subtype: string | null;
+  consumed_value: number | null;
+  threshold_value: number | null;
+  description: string | null;
   wave: string;
 }
 
 export interface CrossTaskRow {
   wave: string;
-  execucao_id: string;
+  execution_id: string;
   project: string;
   feature: string;
-  titulo: string;                     // schema v3; '' em bases v2 (FR-V3-005)
+  title: string;                    // schema v3; '' em bases v2 (FR-V3-005)
   outcome: string | null;
-  testes_rodados: number | null;
-  testes_passados: number | null;
+  tests_run: number | null;
+  tests_passed: number | null;
   lint_ok: number | null;
-  arquivos_tocados: number | null;
+  touched_files: number | null;
 }
 
 export interface CrossEventRow {
-  execucao_id: string;
+  execution_id: string;
   project: string;
   feature: string;
   event_type: string;
   timestamp: string;
-  descricao: string | null;
+  description: string | null;
 }
 
 // ─────────────────────────────────────────────────────────
@@ -105,12 +108,21 @@ export function listCrossAlerts(
   db: Database.Database,
   filters: CrossAlertFilters = {}
 ): CrossAlertRow[] {
+  const typeCol = hasColumn(db, 'alert_signals', 'type') ? 'a.type' : "'' as type";
+  const subtypeCol = hasColumn(db, 'alert_signals', 'subtype') ? 'a.subtype' : 'NULL as subtype';
+  const consumedCol = hasColumn(db, 'alert_signals', 'consumed_value') ? 'a.consumed_value' : 'NULL as consumed_value';
+  const thresholdCol = hasColumn(db, 'alert_signals', 'threshold_value') ? 'a.threshold_value' : 'NULL as threshold_value';
+  const descCol = hasColumn(db, 'alert_signals', 'description') ? 'a.description' : 'NULL as description';
+  const alertExecIdCol = hasColumn(db, 'alert_signals', 'execution_id') ? 'a.execution_id' : 'NULL as execution_id';
+  const execIdCol = hasColumn(db, 'executions', 'execution_id') ? 'execution_id' : 'rowid';
+  const startedCol = hasColumn(db, 'executions', 'started_at') ? 'started_at' : 'rowid';
+
   const conditions: string[] = [];
   const params: unknown[] = [];
 
-  if (filters.tipo !== undefined) {
-    conditions.push('a.tipo = ?');
-    params.push(filters.tipo);
+  if (filters.type !== undefined) {
+    conditions.push(`${hasColumn(db, 'alert_signals', 'type') ? 'a.type' : "''"}  = ?`);
+    params.push(filters.type);
   }
   if (filters.project !== undefined) {
     conditions.push('e.project = ?');
@@ -123,8 +135,8 @@ export function listCrossAlerts(
 
   const periodFilter = periodToSqlFilter(filters.period);
   if (periodFilter) {
-    // alert_signals nao tem timestamp proprio — usar executions.iniciada_em
-    conditions.push(`e.iniciada_em >= ${periodFilter}`);
+    // alert_signals nao tem timestamp proprio — usar executions.started_at
+    conditions.push(`e.${startedCol} >= ${periodFilter}`);
   }
 
   const limit = filters.limit ?? 50;
@@ -135,11 +147,11 @@ export function listCrossAlerts(
 
   return db
     .prepare(`
-      SELECT a.execucao_id, e.project, e.feature,
-             a.tipo, a.subtipo, a.valor_consumido, a.valor_threshold,
-             a.descricao, a.wave
+      SELECT ${alertExecIdCol}, e.project, e.feature,
+             ${typeCol}, ${subtypeCol}, ${consumedCol}, ${thresholdCol},
+             ${descCol}, a.wave
       FROM alert_signals a
-      JOIN executions e ON e.execucao_id = a.execucao_id
+      JOIN executions e ON e.${execIdCol} = a.${hasColumn(db, 'alert_signals', 'execution_id') ? 'execution_id' : 'rowid'}
       ${where}
       ORDER BY a.rowid DESC
       LIMIT ? OFFSET ?
@@ -152,12 +164,16 @@ export function countCrossAlerts(
   db: Database.Database,
   filters: Omit<CrossAlertFilters, 'limit' | 'offset'> = {}
 ): number {
+  const execIdCol = hasColumn(db, 'executions', 'execution_id') ? 'execution_id' : 'rowid';
+  const startedCol = hasColumn(db, 'executions', 'started_at') ? 'started_at' : 'rowid';
+  const alertExecIdCol = hasColumn(db, 'alert_signals', 'execution_id') ? 'execution_id' : 'rowid';
+
   const conditions: string[] = [];
   const params: unknown[] = [];
 
-  if (filters.tipo !== undefined) {
-    conditions.push('a.tipo = ?');
-    params.push(filters.tipo);
+  if (filters.type !== undefined) {
+    conditions.push(`${hasColumn(db, 'alert_signals', 'type') ? 'a.type' : "''"} = ?`);
+    params.push(filters.type);
   }
   if (filters.project !== undefined) {
     conditions.push('e.project = ?');
@@ -170,7 +186,7 @@ export function countCrossAlerts(
 
   const periodFilter = periodToSqlFilter(filters.period);
   if (periodFilter) {
-    conditions.push(`e.iniciada_em >= ${periodFilter}`);
+    conditions.push(`e.${startedCol} >= ${periodFilter}`);
   }
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -179,7 +195,7 @@ export function countCrossAlerts(
     .prepare(`
       SELECT count(*) as n
       FROM alert_signals a
-      JOIN executions e ON e.execucao_id = a.execucao_id
+      JOIN executions e ON e.${execIdCol} = a.${alertExecIdCol}
       ${where}
     `)
     .get(...params) as { n: number };
@@ -198,6 +214,12 @@ export function listCrossTasks(
   db: Database.Database,
   filters: CrossTaskFilters = {}
 ): CrossTaskRow[] {
+  const execIdCol = hasColumn(db, 'executions', 'execution_id') ? 'execution_id' : 'rowid';
+  const taskExecIdCol = hasColumn(db, 'tasks', 'execution_id') ? 'execution_id' : 'rowid';
+  const testsRunCol = hasColumn(db, 'tasks', 'tests_run') ? 't.tests_run' : 'NULL as tests_run';
+  const testsPassedCol = hasColumn(db, 'tasks', 'tests_passed') ? 't.tests_passed' : 'NULL as tests_passed';
+  const touchedCol = hasColumn(db, 'tasks', 'touched_files') ? 't.touched_files' : 'NULL as touched_files';
+
   const conditions: string[] = [];
   const params: unknown[] = [];
 
@@ -222,12 +244,12 @@ export function listCrossTasks(
 
   return db
     .prepare(`
-      SELECT t.wave, t.execucao_id, e.project, e.feature,
-             ${tituloSelect(db, 't.')},
-             t.outcome, t.testes_rodados, t.testes_passados,
-             t.lint_ok, t.arquivos_tocados
+      SELECT t.wave, t.${taskExecIdCol} as execution_id, e.project, e.feature,
+             ${titleSelect(db, 't.')},
+             t.outcome, ${testsRunCol}, ${testsPassedCol},
+             t.lint_ok, ${touchedCol}
       FROM tasks t
-      JOIN executions e ON e.execucao_id = t.execucao_id
+      JOIN executions e ON e.${execIdCol} = t.${taskExecIdCol}
       ${where}
       ORDER BY t.rowid ASC
       LIMIT ? OFFSET ?
@@ -247,6 +269,10 @@ export function listCrossEvents(
   db: Database.Database,
   filters: CrossEventFilters = {}
 ): CrossEventRow[] {
+  const execIdCol = hasColumn(db, 'executions', 'execution_id') ? 'execution_id' : 'rowid';
+  const evExecIdCol = hasColumn(db, 'events', 'execution_id') ? 'execution_id' : 'rowid';
+  const descCol = hasColumn(db, 'events', 'description') ? 'ev.description' : 'NULL as description';
+
   const conditions: string[] = [];
   const params: unknown[] = [];
 
@@ -272,10 +298,10 @@ export function listCrossEvents(
 
   return db
     .prepare(`
-      SELECT ev.execucao_id, e.project, e.feature,
-             ev.event_type, ev.timestamp, ev.descricao
+      SELECT ev.${evExecIdCol} as execution_id, e.project, e.feature,
+             ev.event_type, ev.timestamp, ${descCol}
       FROM events ev
-      JOIN executions e ON e.execucao_id = ev.execucao_id
+      JOIN executions e ON e.${execIdCol} = ev.${evExecIdCol}
       ${where}
       ORDER BY ev.timestamp ASC
       LIMIT ? OFFSET ?

@@ -1,12 +1,15 @@
 /**
  * Queries read-only para entidade retros (retrospectivas).
  * Usado no detalhe de feature (CARD-FTD-06).
+ *
+ * FASE 2 (new-schema): Row interface migrada pt-BR→EN snake_case (task 2.8).
  */
 import type Database from 'better-sqlite3';
+import { hasColumn } from '../columns.js';
 
 export interface RetroRow {
-  execucaoId: string;
-  texto: string | null;
+  execution_id: string;
+  text: string | null;
   wave: string;
 }
 
@@ -16,9 +19,11 @@ export function listRetrosByFeature(
   project: string,
   feature: string
 ): RetroRow[] {
+  const execIdCol = hasColumn(db, 'retros', 'execution_id') ? 'execution_id' : 'NULL as execution_id';
+  const textCol = hasColumn(db, 'retros', 'text') ? 'text' : 'NULL as text';
   return db
     .prepare(`
-      SELECT execucao_id as execucaoId, texto, wave
+      SELECT ${execIdCol}, ${textCol}, wave
       FROM retros
       WHERE project = ? AND feature = ?
       ORDER BY source_ts DESC

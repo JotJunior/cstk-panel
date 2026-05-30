@@ -9,8 +9,11 @@
  * - mix de modelos: nao tem endpoint — card "indisponivel nesta fonte" na UI.
  *
  * Todos os filtros via binding parametrizado.
+ *
+ * FASE 2 (new-schema): todos os nomes pt-BR→EN snake_case (task 2.10).
  */
 import type Database from 'better-sqlite3';
+import { hasColumn } from '../columns.js';
 
 export type MetricPeriod = '24h' | '7d' | '30d' | 'all';
 
@@ -29,7 +32,7 @@ function periodToFilter(period: MetricPeriod | undefined): string | null {
 // ─────────────────────────────────────────────────────────
 
 export interface CostOverTimeRow {
-  day: string;       // date(iniciada_em) → 'YYYY-MM-DD'
+  day: string;       // date(started_at) → 'YYYY-MM-DD'
   toolCalls: number; // proxy de custo — NUNCA rotular como "$" na UI
 }
 
@@ -37,6 +40,7 @@ export function getCostOverTime(
   db: Database.Database,
   filters: { project?: string; period?: MetricPeriod } = {}
 ): CostOverTimeRow[] {
+  const startedAtCol = hasColumn(db, 'executions', 'started_at') ? 'started_at' : 'rowid';
   const conditions: string[] = ["tool_calls_total IS NOT NULL"];
   const params: unknown[] = [];
 
@@ -47,38 +51,39 @@ export function getCostOverTime(
 
   const pf = periodToFilter(filters.period);
   if (pf) {
-    conditions.push(`iniciada_em >= ${pf}`);
+    conditions.push(`${startedAtCol} >= ${pf}`);
   }
 
   const where = `WHERE ${conditions.join(' AND ')}`;
   return db
     .prepare(`
-      SELECT date(iniciada_em) as day,
+      SELECT date(${startedAtCol}) as day,
              sum(tool_calls_total) as toolCalls
       FROM executions
       ${where}
-      GROUP BY date(iniciada_em)
+      GROUP BY date(${startedAtCol})
       ORDER BY day ASC
     `)
     .all(...params) as CostOverTimeRow[];
 }
 
 // ─────────────────────────────────────────────────────────
-// 2. throughput-by-stage — decisoes por etapa
+// 2. throughput-by-stage — decisoes por stage
 // ─────────────────────────────────────────────────────────
 
 export interface ThroughputByStageRow {
-  etapa: string;
+  stage: string;
   count: number;
 }
 
 export function getThroughputByStage(db: Database.Database): ThroughputByStageRow[] {
+  const stageCol = hasColumn(db, 'decisions', 'stage') ? 'stage' : 'NULL';
   return db
     .prepare(`
-      SELECT etapa, count(*) as count
+      SELECT ${stageCol} as stage, count(*) as count
       FROM decisions
-      WHERE etapa IS NOT NULL
-      GROUP BY etapa
+      WHERE ${stageCol} IS NOT NULL
+      GROUP BY ${stageCol}
       ORDER BY count DESC
     `)
     .all() as ThroughputByStageRow[];
@@ -115,7 +120,7 @@ export function getTestPassRate(db: Database.Database): TestPassRateResult {
 
 // ─────────────────────────────────────────────────────────
 // 3b. test-pass-rate-series — taxa de testes passando por DIA
-//     (tasks nao tem timestamp; agrupa por date(executions.iniciada_em))
+//     (tasks nao tem timestamp; agrupa por date(executions.started_at))
 // ─────────────────────────────────────────────────────────
 
 export interface TestPassRateSeriesRow {
@@ -129,18 +134,21 @@ export function getTestPassRateSeries(
   db: Database.Database,
   filters: { period?: MetricPeriod } = {}
 ): TestPassRateSeriesRow[] {
+  const startedAtCol = hasColumn(db, 'executions', 'started_at') ? 'started_at' : 'rowid';
+  const execIdCol = hasColumn(db, 'executions', 'execution_id') ? 'execution_id' : 'rowid';
+  const taskExecIdCol = hasColumn(db, 'tasks', 'execution_id') ? 'execution_id' : 'rowid';
   const conditions: string[] = ['t.outcome IS NOT NULL'];
   const pf = periodToFilter(filters.period);
-  if (pf) conditions.push(`e.iniciada_em >= ${pf}`);
+  if (pf) conditions.push(`e.${startedAtCol} >= ${pf}`);
   const where = `WHERE ${conditions.join(' AND ')}`;
 
   const rows = db
     .prepare(`
-      SELECT date(e.iniciada_em) as day,
+      SELECT date(e.${startedAtCol}) as day,
              sum(CASE WHEN t.outcome = 'pass' THEN 1 ELSE 0 END) as pass,
              sum(CASE WHEN t.outcome = 'fail' THEN 1 ELSE 0 END) as fail
       FROM tasks t
-      JOIN executions e ON e.execucao_id = t.execucao_id
+      JOIN executions e ON e.${execIdCol} = t.${taskExecIdCol}
       ${where}
       GROUP BY day
       ORDER BY day ASC
@@ -162,24 +170,27 @@ export function getTestPassRateSeries(
 // ─────────────────────────────────────────────────────────
 
 export interface HumanLatencyRow {
-  execucaoId: string;
-  latenciaSegundos: number | null;
+  executionId: string;
+  latencySeconds: number | null;
 }
 
 export function getHumanLatency(db: Database.Database): HumanLatencyRow[] {
-  // Estimar latencia como duracao_segundos / bloqueios_humanos_total
+  const execIdCol = hasColumn(db, 'executions', 'execution_id') ? 'execution_id' : 'rowid';
+  const blocksCol = hasColumn(db, 'executions', 'human_blocks_total') ? 'human_blocks_total' : '0';
+  const durCol = hasColumn(db, 'executions', 'duration_seconds') ? 'duration_seconds' : 'NULL';
+  // Estimar latencia como duration_seconds / human_blocks_total
   // (aproximacao — dados reais de timestamps de bloqueio nao estao no schema v2)
   return db
     .prepare(`
-      SELECT execucao_id as execucaoId,
+      SELECT ${execIdCol} as executionId,
              CASE
-               WHEN bloqueios_humanos_total > 0 AND duracao_segundos IS NOT NULL
-               THEN round(duracao_segundos / bloqueios_humanos_total, 2)
+               WHEN ${blocksCol} > 0 AND ${durCol} IS NOT NULL
+               THEN round(${durCol} / ${blocksCol}, 2)
                ELSE NULL
-             END as latenciaSegundos
+             END as latencySeconds
       FROM executions
-      WHERE bloqueios_humanos_total > 0
-      ORDER BY latenciaSegundos DESC
+      WHERE ${blocksCol} > 0
+      ORDER BY latencySeconds DESC
       LIMIT 50
     `)
     .all() as HumanLatencyRow[];
@@ -199,11 +210,12 @@ export interface ClarifyResolutionResult {
 
 /**
  * ATENCAO: este resultado e APPROXIMATE (Principio III).
- * A taxa e derivada contando decisoes score>=2 em etapa=clarify.
+ * A taxa e derivada contando decisoes score>=2 em stage=clarify.
  * Isso e uma estimativa — nao ha dado exato de "clarify resolvido autonomamente".
  * O caller DEVE retornar meta.approximate=true.
  */
 export function getClarifyResolution(db: Database.Database): ClarifyResolutionResult {
+  const stageCol = hasColumn(db, 'decisions', 'stage') ? 'stage' : 'NULL';
   const row = db
     .prepare(`
       SELECT
@@ -211,7 +223,7 @@ export function getClarifyResolution(db: Database.Database): ClarifyResolutionRe
         sum(CASE WHEN score >= 2 THEN 1 ELSE 0 END) as autonomous,
         sum(CASE WHEN score = 0 THEN 1 ELSE 0 END) as human_paused
       FROM decisions
-      WHERE etapa = 'clarify'
+      WHERE ${stageCol} = 'clarify'
     `)
     .get() as { total: number | null; autonomous: number | null; human_paused: number | null };
 
@@ -253,18 +265,22 @@ export function getDecisionsByScore(db: Database.Database): DecisionsByScoreRow[
 // ─────────────────────────────────────────────────────────
 
 export interface ExecutionDurationRow {
-  execucaoId: string;
+  executionId: string;
   project: string;
   feature: string;
-  duracaoSegundos: number | null;
-  ondas: number | null;
+  durationSeconds: number | null;
+  waves: number | null;
 }
 
 export function getExecutionDuration(
   db: Database.Database,
   filters: { project?: string; period?: MetricPeriod } = {}
 ): ExecutionDurationRow[] {
-  const conditions: string[] = ['duracao_segundos IS NOT NULL'];
+  const execIdCol = hasColumn(db, 'executions', 'execution_id') ? 'execution_id' : 'rowid';
+  const durCol = hasColumn(db, 'executions', 'duration_seconds') ? 'duration_seconds' : 'NULL';
+  const wavesCol = hasColumn(db, 'executions', 'waves_total') ? 'waves_total' : 'NULL';
+  const startedAtCol = hasColumn(db, 'executions', 'started_at') ? 'started_at' : 'rowid';
+  const conditions: string[] = [`${durCol} IS NOT NULL`];
   const params: unknown[] = [];
 
   if (filters.project !== undefined) {
@@ -274,17 +290,17 @@ export function getExecutionDuration(
 
   const pf = periodToFilter(filters.period);
   if (pf) {
-    conditions.push(`iniciada_em >= ${pf}`);
+    conditions.push(`${startedAtCol} >= ${pf}`);
   }
 
   const where = `WHERE ${conditions.join(' AND ')}`;
   return db
     .prepare(`
-      SELECT execucao_id as execucaoId, project, feature,
-             duracao_segundos as duracaoSegundos, ondas_total as ondas
+      SELECT ${execIdCol} as executionId, project, feature,
+             ${durCol} as durationSeconds, ${wavesCol} as waves
       FROM executions
       ${where}
-      ORDER BY duracao_segundos DESC
+      ORDER BY ${durCol} DESC
       LIMIT 100
     `)
     .all(...params) as ExecutionDurationRow[];
@@ -295,59 +311,65 @@ export function getExecutionDuration(
 // ─────────────────────────────────────────────────────────
 
 export interface DepthSubagentsRow {
-  execucaoId: string;
+  executionId: string;
   project: string;
   feature: string;
-  profundidadeMax: number | null;
-  subagentesSpawned: number | null;
+  maxDepth: number | null;
+  subagentsSpawned: number | null;
 }
 
 export function getDepthSubagents(db: Database.Database): DepthSubagentsRow[] {
+  const execIdCol = hasColumn(db, 'executions', 'execution_id') ? 'execution_id' : 'rowid';
+  const maxDepthCol = hasColumn(db, 'executions', 'max_depth') ? 'max_depth' : 'NULL';
+  const subagentsCol = hasColumn(db, 'executions', 'subagents_spawned') ? 'subagents_spawned' : 'NULL';
   return db
     .prepare(`
-      SELECT execucao_id as execucaoId, project, feature,
-             profundidade_max as profundidadeMax,
-             subagentes_spawned as subagentesSpawned
+      SELECT ${execIdCol} as executionId, project, feature,
+             ${maxDepthCol} as maxDepth,
+             ${subagentsCol} as subagentsSpawned
       FROM executions
-      WHERE profundidade_max IS NOT NULL
-         OR subagentes_spawned IS NOT NULL
-      ORDER BY profundidade_max DESC NULLS LAST
+      WHERE ${maxDepthCol} IS NOT NULL
+         OR ${subagentsCol} IS NOT NULL
+      ORDER BY ${maxDepthCol} DESC NULLS LAST
       LIMIT 100
     `)
     .all() as DepthSubagentsRow[];
 }
 
 // ─────────────────────────────────────────────────────────
-// 9. model-mix — DERIVADO das decisoes de roteamento (escolha='model:%')
+// 9. model-mix — DERIVADO das decisoes de roteamento (choice='model:%')
 //    Intenção do roteador, NAO confirmação da harness. Dono canônico
 //    do relatorio: model-routing-report.sh (FR-010 — UI rotula como derivado).
 // ─────────────────────────────────────────────────────────
 
 export interface ModelMixRow { modelo: string; n: number; }
-export interface ModelMixByStageRow { etapa: string; modelo: string; n: number; }
+export interface ModelMixByStageRow { stage: string; modelo: string; n: number; }
 
 /** Mix total de modelos (donut). */
 export function getModelMix(db: Database.Database): ModelMixRow[] {
+  const choiceCol = hasColumn(db, 'decisions', 'choice') ? 'choice' : 'NULL';
   return db
     .prepare(`
-      SELECT replace(escolha, 'model:', '') as modelo, count(*) as n
+      SELECT replace(${choiceCol}, 'model:', '') as modelo, count(*) as n
       FROM decisions
-      WHERE escolha LIKE 'model:%'
+      WHERE ${choiceCol} LIKE 'model:%'
       GROUP BY modelo
       ORDER BY n DESC
     `)
     .all() as ModelMixRow[];
 }
 
-/** Mix de modelos por etapa SDD (barras empilhadas). */
+/** Mix de modelos por stage SDD (barras empilhadas). */
 export function getModelMixByStage(db: Database.Database): ModelMixByStageRow[] {
+  const choiceCol = hasColumn(db, 'decisions', 'choice') ? 'choice' : 'NULL';
+  const stageCol = hasColumn(db, 'decisions', 'stage') ? 'stage' : 'NULL';
   return db
     .prepare(`
-      SELECT etapa, replace(escolha, 'model:', '') as modelo, count(*) as n
+      SELECT ${stageCol} as stage, replace(${choiceCol}, 'model:', '') as modelo, count(*) as n
       FROM decisions
-      WHERE escolha LIKE 'model:%' AND etapa IS NOT NULL
-      GROUP BY etapa, modelo
-      ORDER BY etapa ASC
+      WHERE ${choiceCol} LIKE 'model:%' AND ${stageCol} IS NOT NULL
+      GROUP BY ${stageCol}, modelo
+      ORDER BY ${stageCol} ASC
     `)
     .all() as ModelMixByStageRow[];
 }
@@ -355,33 +377,34 @@ export function getModelMixByStage(db: Database.Database): ModelMixByStageRow[] 
 // ─────────────────────────────────────────────────────────
 // 10. recall-consultations — consultas ao histórico (read-back loop, schema v3)
 //     Evento `recall_consulted` gravado a cada `cstk recall --context` no
-//     início de specify/plan, INCLUSIVE com hits=0. A `descricao` carrega
+//     início de specify/plan, INCLUSIVE com hits=0. A `description` carrega
 //     `etapa=… hits=N`. Contagem EXATA (Princípio III — não proxy/aproximada).
-//     produtivas = hits>0; vazias = total - produtivas (inclui descricao sem
+//     produtivas = hits>0; vazias = total - produtivas (inclui description sem
 //     `hits=` parseável, que degrada para vazia sem quebrar — FR-V3-007).
 // ─────────────────────────────────────────────────────────
 
 export interface RecallConsultationsResult {
   total: number;
   produtivas: number; // hits > 0
-  vazias: number;     // hits = 0 ou descricao sem hits parseável
+  vazias: number;     // hits = 0 ou description sem hits parseável
 }
 
 const HITS_RE = /hits=(\d+)/;
 
 export function getRecallConsultations(db: Database.Database): RecallConsultationsResult {
+  const descCol = hasColumn(db, 'events', 'description') ? 'description' : 'NULL';
   const rows = db
     .prepare(`
-      SELECT descricao
+      SELECT ${descCol} as description
       FROM events
       WHERE event_type = 'recall_consulted'
     `)
-    .all() as { descricao: string | null }[];
+    .all() as { description: string | null }[];
 
   const total = rows.length;
   let produtivas = 0;
   for (const r of rows) {
-    const m = r.descricao ? HITS_RE.exec(r.descricao) : null;
+    const m = r.description ? HITS_RE.exec(r.description) : null;
     if (m && Number(m[1]) > 0) produtivas++;
   }
   return { total, produtivas, vazias: total - produtivas };

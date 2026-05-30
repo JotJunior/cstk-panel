@@ -145,110 +145,110 @@ Ref: spec.md FR-013; quickstart.md §Scenario A
 
 Ref: spec.md FR-001, FR-007, FR-011; data-model.md §Entity: executions
 
-- [ ] 2.1.1 Em `apps/server/src/db/queries/executions.ts`: renomear todos os campos de `ExecutionRow` de pt-BR para EN snake_case (ex: `execucao_id→execution_id`, `motivo_termino→termination_reason`, `etapa_corrente→current_stage`, `iniciada_em→started_at`, `terminada_em→finished_at`, `duracao_segundos→duration_seconds`, `stack_sugerida→suggested_stack`, `ondas_total→waves_total`, `wallclock_total_segundos→wallclock_total_seconds`, `subagentes_spawned→subagents_spawned`, `profundidade_max→max_depth`, `decisoes_total→decisions_total`, `bloqueios_humanos_total→human_blocks_total`, `sugestoes_skills_total→skill_suggestions_total`, `issues_toolkit_abertas→toolkit_issues_opened`)
-- [ ] 2.1.2 Atualizar o SELECT em `listExecutions` e `getExecution` para usar os novos nomes de coluna EN
-- [ ] 2.1.3 Adicionar helpers `hasColumn` para cada coluna renomeada (espelhando padrão existente para `opcoes` em decisions.ts) — colunas ausentes retornam `NULL AS <new_en_name>`
-- [ ] 2.1.4 Atualizar `getRollupByProject` e `getRollupByFeature` (FR-011): renomear `etapa_corrente`, `iniciada_em`, `ondas_total` nas queries SQL e na interface `FeatureRollupRow`
-- [ ] 2.1.5 Teste: confirmar que `ExecutionRow` não contém nenhum campo em pt-BR (`grep -n "execucao_id\|motivo_termino\|etapa_corrente\|iniciada_em" apps/server/src/db/queries/executions.ts` deve retornar zero fora de comentários)
+- [x] 2.1.1 Em `apps/server/src/db/queries/executions.ts`: renomear todos os campos de `ExecutionRow` de pt-BR para EN snake_case (ex: `execucao_id→execution_id`, `motivo_termino→termination_reason`, `etapa_corrente→current_stage`, `iniciada_em→started_at`, `terminada_em→finished_at`, `duracao_segundos→duration_seconds`, `stack_sugerida→suggested_stack`, `ondas_total→waves_total`, `wallclock_total_segundos→wallclock_total_seconds`, `subagentes_spawned→subagents_spawned`, `profundidade_max→max_depth`, `decisoes_total→decisions_total`, `bloqueios_humanos_total→human_blocks_total`, `sugestoes_skills_total→skill_suggestions_total`, `issues_toolkit_abertas→toolkit_issues_opened`)
+- [x] 2.1.2 Atualizar o SELECT em `listExecutions` e `getExecution` para usar os novos nomes de coluna EN
+- [x] 2.1.3 Adicionar helpers `hasColumn` para cada coluna renomeada (espelhando padrão existente para `opcoes` em decisions.ts) — colunas ausentes retornam `NULL AS <new_en_name>`
+- [x] 2.1.4 Atualizar `getRollupByProject` e `getRollupByFeature` (FR-011): renomear `etapa_corrente`, `iniciada_em`, `ondas_total` nas queries SQL e na interface `FeatureRollupRow`
+- [x] 2.1.5 Teste: confirmar que `ExecutionRow` não contém nenhum campo em pt-BR (`grep -n "execucao_id\|motivo_termino\|etapa_corrente\|iniciada_em" apps/server/src/db/queries/executions.ts` deve retornar zero fora de comentários)
 
 ### 2.2 Atualizar waves.ts: WaveRow + SQL + hasColumn guards [C]
 
 Ref: spec.md FR-001, FR-007; data-model.md §Entity: waves
 
-- [ ] 2.2.1 Em `apps/server/src/db/queries/waves.ts`: renomear campos de `WaveRow` — `execucao_id→execution_id`, `etapas→stages`, `inicio→started_at`, `fim→finished_at`, `motivo_termino→termination_reason`, `n_etapas→n_stages`
-- [ ] 2.2.2 Atualizar o SELECT em `listWavesByExecution` para usar os novos nomes de coluna EN
-- [ ] 2.2.3 Adicionar guards `hasColumn` para cada coluna renomeada (v6 back-compat): `stages`, `started_at`, `finished_at`, `termination_reason`, `n_stages`
-- [ ] 2.2.4 Teste: confirmar que `WaveRow` não contém pt-BR e que a query usa apenas EN
+- [x] 2.2.1 Em `apps/server/src/db/queries/waves.ts`: renomear campos de `WaveRow` — `execucao_id→execution_id`, `etapas→stages`, `inicio→started_at`, `fim→finished_at`, `motivo_termino→termination_reason`, `n_etapas→n_stages`
+- [x] 2.2.2 Atualizar o SELECT em `listWavesByExecution` para usar os novos nomes de coluna EN
+- [x] 2.2.3 Adicionar guards `hasColumn` para cada coluna renomeada (v6 back-compat): `stages`, `started_at`, `finished_at`, `termination_reason`, `n_stages`
+- [x] 2.2.4 Teste: confirmar que `WaveRow` não contém pt-BR e que a query usa apenas EN
 
 ### 2.3 Atualizar decisions.ts: DecisionRow + SQL + hasColumn guards [C]
 
 Ref: spec.md FR-001, FR-003, FR-007; data-model.md §Entity: decisions
 
-- [ ] 2.3.1 Em `apps/server/src/db/queries/decisions.ts`: renomear campos de `DecisionRow` — `execucao_id→execution_id`, `etapa→stage`, `agente→agent`, `escolha→choice`, `opcoes→options`, `contexto→context`, `justificativa→rationale` (manter `evidencia→evidence` se já não estiver renomeado)
-- [ ] 2.3.2 Atualizar todos os SELECTs e filtros em `listDecisions` e `countDecisions` para usar os novos nomes (ex: `WHERE stage = ?`, `ORDER BY stage`)
-- [ ] 2.3.3 Atualizar a função `opcoesSelect` para referenciar `options` (novo nome) em vez de `opcoes`; renomear a função para `optionsSelect` para manter consistência
-- [ ] 2.3.4 Adicionar guard `hasColumn` para `evidence` se ausente em bases mais antigas
-- [ ] 2.3.5 Teste: verificar que `DecisionFilters` e todos os filtros dinâmicos usam EN
+- [x] 2.3.1 Em `apps/server/src/db/queries/decisions.ts`: renomear campos de `DecisionRow` — `execucao_id→execution_id`, `etapa→stage`, `agente→agent`, `escolha→choice`, `opcoes→options`, `contexto→context`, `justificativa→rationale` (manter `evidencia→evidence` se já não estiver renomeado)
+- [x] 2.3.2 Atualizar todos os SELECTs e filtros em `listDecisions` e `countDecisions` para usar os novos nomes (ex: `WHERE stage = ?`, `ORDER BY stage`)
+- [x] 2.3.3 Atualizar a função `opcoesSelect` para referenciar `options` (novo nome) em vez de `opcoes`; renomear a função para `optionsSelect` para manter consistência
+- [x] 2.3.4 Adicionar guard `hasColumn` para `evidence` se ausente em bases mais antigas
+- [x] 2.3.5 Teste: verificar que `DecisionFilters` e todos os filtros dinâmicos usam EN
 
 ### 2.4 Atualizar tasks.ts: TaskRow + SQL + titleSelect helper [C]
 
 Ref: spec.md FR-001, FR-003, FR-007, FR-010; data-model.md §Entity: tasks
 
-- [ ] 2.4.1 Em `apps/server/src/db/queries/tasks.ts`: renomear campos de `TaskRow` — `execucao_id→execution_id`, `titulo→title`, `testes_rodados→tests_run`, `testes_passados→tests_passed`, `arquivos_tocados→touched_files`
-- [ ] 2.4.2 Renomear a função `tituloSelect` para `titleSelect`; atualizar o guard para checar coluna `title` (nova) em vez de `titulo`; a projeção de fallback passa a ser `'' AS title`
-- [ ] 2.4.3 Atualizar o SELECT em `listTasksByExecution` para usar os novos nomes (inclusive chamar `titleSelect` renomeada)
-- [ ] 2.4.4 Adicionar guards `hasColumn` para `tests_run`, `tests_passed`, `touched_files`
-- [ ] 2.4.5 Atualizar todos os imports de `tituloSelect` em outros arquivos (`cross.ts`) para usar `titleSelect`
+- [x] 2.4.1 Em `apps/server/src/db/queries/tasks.ts`: renomear campos de `TaskRow` — `execucao_id→execution_id`, `titulo→title`, `testes_rodados→tests_run`, `testes_passados→tests_passed`, `arquivos_tocados→touched_files`
+- [x] 2.4.2 Renomear a função `tituloSelect` para `titleSelect`; atualizar o guard para checar coluna `title` (nova) em vez de `titulo`; a projeção de fallback passa a ser `'' AS title`
+- [x] 2.4.3 Atualizar o SELECT em `listTasksByExecution` para usar os novos nomes (inclusive chamar `titleSelect` renomeada)
+- [x] 2.4.4 Adicionar guards `hasColumn` para `tests_run`, `tests_passed`, `touched_files`
+- [x] 2.4.5 Atualizar todos os imports de `tituloSelect` em outros arquivos (`cross.ts`) para usar `titleSelect`
 
 ### 2.5 Renomear bloqueios.ts → atualizar para blocks: BlockRow + tabela blocks [C]
 
 Ref: spec.md FR-002, FR-003, FR-007; data-model.md §Entity: blocks
 
-- [ ] 2.5.1 Em `apps/server/src/db/queries/bloqueios.ts`: renomear a interface `BloqueioRow→BlockRow` e todos os campos — `execucao_id→execution_id`, `pergunta→question`, `contexto_para_resposta→context_for_answer`, `resposta→answer`, `decisao_id→decision_id`, `disparado_em→triggered_at`, `respondido_em→answered_at`, `latencia_segundos→latency_seconds`
-- [ ] 2.5.2 Atualizar a query SQL para usar `FROM blocks` em vez de `FROM bloqueios` e todas as colunas EN
-- [ ] 2.5.3 Adicionar guard `hasTable(db, 'blocks')` envolvendo a query — se ausente, retornar `[]` (mirror do padrão `suggestions`); a função passa a se chamar `listBlocksByExecution`
-- [ ] 2.5.4 Adicionar guards `hasColumn` para cada coluna renomeada (back-compat v6 onde a tabela `blocks` existe mas colunas podem ser pt-BR)
-- [ ] 2.5.5 Teste: confirmar que `BlockRow` e `listBlocksByExecution` não referenciam `bloqueios` ou pt-BR fora de comentários históricos
+- [x] 2.5.1 Em `apps/server/src/db/queries/bloqueios.ts`: renomear a interface `BloqueioRow→BlockRow` e todos os campos — `execucao_id→execution_id`, `pergunta→question`, `contexto_para_resposta→context_for_answer`, `resposta→answer`, `decisao_id→decision_id`, `disparado_em→triggered_at`, `respondido_em→answered_at`, `latencia_segundos→latency_seconds`
+- [x] 2.5.2 Atualizar a query SQL para usar `FROM blocks` em vez de `FROM bloqueios` e todas as colunas EN
+- [x] 2.5.3 Adicionar guard `hasTable(db, 'blocks')` envolvendo a query — se ausente, retornar `[]` (mirror do padrão `suggestions`); a função passa a se chamar `listBlocksByExecution`
+- [x] 2.5.4 Adicionar guards `hasColumn` para cada coluna renomeada (back-compat v6 onde a tabela `blocks` existe mas colunas podem ser pt-BR)
+- [x] 2.5.5 Teste: confirmar que `BlockRow` e `listBlocksByExecution` não referenciam `bloqueios` ou pt-BR fora de comentários históricos
 
 ### 2.6 Atualizar events.ts: EventRow + SQL [C]
 
 Ref: spec.md FR-001, FR-003; data-model.md §Entity: events
 
-- [ ] 2.6.1 Em `apps/server/src/db/queries/events.ts`: renomear campos de `EventRow` — `execucao_id→execution_id`, `descricao→description` (manter `event_type`, `timestamp`)
-- [ ] 2.6.2 Atualizar o SELECT em `listEventsByExecution` para usar `description` em vez de `descricao`
-- [ ] 2.6.3 Adicionar guard `hasColumn(db, 'events', 'description')` para back-compat com bases onde `descricao` ainda é o nome
+- [x] 2.6.1 Em `apps/server/src/db/queries/events.ts`: renomear campos de `EventRow` — `execucao_id→execution_id`, `descricao→description` (manter `event_type`, `timestamp`)
+- [x] 2.6.2 Atualizar o SELECT em `listEventsByExecution` para usar `description` em vez de `descricao`
+- [x] 2.6.3 Adicionar guard `hasColumn(db, 'events', 'description')` para back-compat com bases onde `descricao` ainda é o nome
 
 ### 2.7 Atualizar alerts.ts: AlertRow + SQL [C]
 
 Ref: spec.md FR-001, FR-003; data-model.md §Entity: alert_signals
 
-- [ ] 2.7.1 Em `apps/server/src/db/queries/alerts.ts`: renomear campos de `AlertRow` — `execucao_id→execution_id`, `tipo→type`, `subtipo→subtype`, `valor_consumido→consumed_value`, `valor_threshold→threshold_value`, `descricao→description`
-- [ ] 2.7.2 Atualizar o SELECT em `listAlertsByExecution` para usar os novos nomes EN
-- [ ] 2.7.3 Adicionar guards `hasColumn` para cada coluna renomeada
+- [x] 2.7.1 Em `apps/server/src/db/queries/alerts.ts`: renomear campos de `AlertRow` — `execucao_id→execution_id`, `tipo→type`, `subtipo→subtype`, `valor_consumido→consumed_value`, `valor_threshold→threshold_value`, `descricao→description`
+- [x] 2.7.2 Atualizar o SELECT em `listAlertsByExecution` para usar os novos nomes EN
+- [x] 2.7.3 Adicionar guards `hasColumn` para cada coluna renomeada
 
 ### 2.8 Atualizar skills.ts e retros.ts: SkillRow, RetroRow + SQL [A]
 
 Ref: spec.md FR-001, FR-003; data-model.md §Entity: skills, retros
 
-- [ ] 2.8.1 Em `apps/server/src/db/queries/skills.ts`: renomear `execucao_id→execution_id`, `decisao_id→decision_id` em `SkillRow` e no SELECT
-- [ ] 2.8.2 Em `apps/server/src/db/queries/retros.ts`: renomear `RetroRow.texto→text` e o SELECT; a interface inline usa `execucaoId` (já camelCase — verificar se é Row ou DTO direto e corrigir conforme)
-- [ ] 2.8.3 Adicionar guard `hasColumn` para `text` (era `texto`) em retros
+- [x] 2.8.1 Em `apps/server/src/db/queries/skills.ts`: renomear `execucao_id→execution_id`, `decisao_id→decision_id` em `SkillRow` e no SELECT
+- [x] 2.8.2 Em `apps/server/src/db/queries/retros.ts`: renomear `RetroRow.texto→text` e o SELECT; a interface inline usa `execucaoId` (já camelCase — verificar se é Row ou DTO direto e corrigir conforme)
+- [x] 2.8.3 Adicionar guard `hasColumn` para `text` (era `texto`) em retros
 
 ### 2.9 Atualizar suggestions.ts: SuggestionRow + SQL [A]
 
 Ref: spec.md FR-001, FR-003; data-model.md §Entity: suggestions
 
-- [ ] 2.9.1 Em `apps/server/src/db/queries/suggestions.ts`: renomear campos de `SuggestionRow` — `execucao_id→execution_id`, `skill_afetada→affected_skill`, `severidade→severity`, `diagnostico→diagnosis`, `proposta→proposal`, `issue_aberta→issue_opened`, `source_ts→created_at` (manter `source_id`, `referencias`)
-- [ ] 2.9.2 Atualizar o SELECT em `listSuggestionsByExecution` para usar novos nomes EN
-- [ ] 2.9.3 Adicionar guards `hasColumn` para colunas renomeadas
+- [x] 2.9.1 Em `apps/server/src/db/queries/suggestions.ts`: renomear campos de `SuggestionRow` — `execucao_id→execution_id`, `skill_afetada→affected_skill`, `severidade→severity`, `diagnostico→diagnosis`, `proposta→proposal`, `issue_aberta→issue_opened`, `source_ts→created_at` (manter `source_id`, `referencias`)
+- [x] 2.9.2 Atualizar o SELECT em `listSuggestionsByExecution` para usar novos nomes EN
+- [x] 2.9.3 Adicionar guards `hasColumn` para colunas renomeadas
 
 ### 2.10 Atualizar metrics.ts e overview.ts: queries de métricas EN [C]
 
 Ref: spec.md FR-008; data-model.md §Entity: executions, waves, decisions, tasks
 
-- [ ] 2.10.1 Em `apps/server/src/db/queries/metrics.ts`: renomear todas as referências pt-BR em queries — `iniciada_em→started_at`, `duracao_segundos→duration_seconds`, `profundidade_max→max_depth`, `subagentes_spawned→subagents_spawned`, `bloqueios_humanos_total→human_blocks_total`, `motivo_termino→termination_reason`, `etapa_corrente→current_stage`, `ondas_total→waves_total`, `wallclock_total_segundos→wallclock_total_seconds`, `decisoes_total→decisions_total`, `etapa→stage` (em decisions), `escolha→choice`, `inicio→started_at` (em waves), `fim→finished_at` (waves), `n_etapas→n_stages`, `etapas→stages`, `titulo→title` (tasks), `testes_rodados→tests_run`, `testes_passados→tests_passed`, `arquivos_tocados→touched_files`, `execucao_id→execution_id` (JOINs)
-- [ ] 2.10.2 Renomear Row/Result interfaces de métricas para usar EN (ex: `ThroughputByStageRow.etapa→stage`, `CostOverTimeRow.day` via `date(started_at)`)
-- [ ] 2.10.3 Em `apps/server/src/db/queries/overview.ts`: renomear `etapa_corrente→current_stage`, `iniciada_em→started_at`, `ondas_total→waves_total`, `tool_calls_total` (keep), `tipo→type`, `subtipo→subtype`, `descricao→description`, `valor_consumido→consumed_value`, `valor_threshold→threshold_value`, `etapa→stage`, `execucao_id→execution_id` (JOINs) nos Row types e queries
-- [ ] 2.10.4 Verificar que `latency` em métricas usa `latency_seconds` (blocks table) e `human_blocks_total` (executions)
-- [ ] 2.10.5 Teste: executar `grep -n "iniciada_em\|etapa_corrente\|duracao_segundos\|profundidade_max\|execucao_id" apps/server/src/db/queries/metrics.ts apps/server/src/db/queries/overview.ts` — deve retornar zero fora de guards/comentários
+- [x] 2.10.1 Em `apps/server/src/db/queries/metrics.ts`: renomear todas as referências pt-BR em queries — `iniciada_em→started_at`, `duracao_segundos→duration_seconds`, `profundidade_max→max_depth`, `subagentes_spawned→subagents_spawned`, `bloqueios_humanos_total→human_blocks_total`, `motivo_termino→termination_reason`, `etapa_corrente→current_stage`, `ondas_total→waves_total`, `wallclock_total_segundos→wallclock_total_seconds`, `decisoes_total→decisions_total`, `etapa→stage` (em decisions), `escolha→choice`, `inicio→started_at` (em waves), `fim→finished_at` (waves), `n_etapas→n_stages`, `etapas→stages`, `titulo→title` (tasks), `testes_rodados→tests_run`, `testes_passados→tests_passed`, `arquivos_tocados→touched_files`, `execucao_id→execution_id` (JOINs)
+- [x] 2.10.2 Renomear Row/Result interfaces de métricas para usar EN (ex: `ThroughputByStageRow.etapa→stage`, `CostOverTimeRow.day` via `date(started_at)`)
+- [x] 2.10.3 Em `apps/server/src/db/queries/overview.ts`: renomear `etapa_corrente→current_stage`, `iniciada_em→started_at`, `ondas_total→waves_total`, `tool_calls_total` (keep), `tipo→type`, `subtipo→subtype`, `descricao→description`, `valor_consumido→consumed_value`, `valor_threshold→threshold_value`, `etapa→stage`, `execucao_id→execution_id` (JOINs) nos Row types e queries
+- [x] 2.10.4 Verificar que `latency` em métricas usa `latency_seconds` (blocks table) e `human_blocks_total` (executions)
+- [x] 2.10.5 Teste: executar `grep -n "iniciada_em\|etapa_corrente\|duracao_segundos\|profundidade_max\|execucao_id" apps/server/src/db/queries/metrics.ts apps/server/src/db/queries/overview.ts` — deve retornar zero fora de guards/comentários
 
 ### 2.11 Atualizar cross.ts: CrossAlertRow, CrossTaskRow, CrossEventRow + SQL [C]
 
 Ref: spec.md FR-001; plan.md §Project Structure
 
-- [ ] 2.11.1 Em `apps/server/src/db/queries/cross.ts`: renomear campos em `CrossAlertRow` (`execucao_id→execution_id`, `tipo→type`, `subtipo→subtype`, `valor_consumido→consumed_value`, `valor_threshold→threshold_value`, `descricao→description`)
-- [ ] 2.11.2 Renomear campos em `CrossTaskRow` (`execucao_id→execution_id`, `titulo→title`, `testes_rodados→tests_run`, `testes_passados→tests_passed`, `arquivos_tocados→touched_files`)
-- [ ] 2.11.3 Renomear campos em `CrossEventRow` (`execucao_id→execution_id`, `descricao→description`)
-- [ ] 2.11.4 Atualizar todos os SELECTs e JOINs em `listCrossAlerts`, `listCrossTasks`, `listCrossEvents` para usar EN (incluindo `e.execution_id` nos JOINs em vez de `e.execucao_id`, e `e.started_at` nos filtros de período em vez de `e.iniciada_em`)
-- [ ] 2.11.5 Atualizar import de `tituloSelect→titleSelect` e sua chamada com prefixo `t.`
-- [ ] 2.11.6 Teste: grep por `execucao_id\|iniciada_em\|tipo\b\|descricao` em cross.ts deve retornar zero fora de guards/comentários
+- [x] 2.11.1 Em `apps/server/src/db/queries/cross.ts`: renomear campos em `CrossAlertRow` (`execucao_id→execution_id`, `tipo→type`, `subtipo→subtype`, `valor_consumido→consumed_value`, `valor_threshold→threshold_value`, `descricao→description`)
+- [x] 2.11.2 Renomear campos em `CrossTaskRow` (`execucao_id→execution_id`, `titulo→title`, `testes_rodados→tests_run`, `testes_passados→tests_passed`, `arquivos_tocados→touched_files`)
+- [x] 2.11.3 Renomear campos em `CrossEventRow` (`execucao_id→execution_id`, `descricao→description`)
+- [x] 2.11.4 Atualizar todos os SELECTs e JOINs em `listCrossAlerts`, `listCrossTasks`, `listCrossEvents` para usar EN (incluindo `e.execution_id` nos JOINs em vez de `e.execucao_id`, e `e.started_at` nos filtros de período em vez de `e.iniciada_em`)
+- [x] 2.11.5 Atualizar import de `tituloSelect→titleSelect` e sua chamada com prefixo `t.`
+- [x] 2.11.6 Teste: grep por `execucao_id\|iniciada_em\|tipo\b\|descricao` em cross.ts deve retornar zero fora de guards/comentários
 
 ### 2.12 Gate de fase 2: verificar tsc do server (parcial) [A]
 
 Ref: spec.md FR-013; quickstart.md §Scenario A
 
-- [ ] 2.12.1 Executar `pnpm --filter @cstk-panel/server exec tsc --noEmit` — os erros restantes devem ser apenas em `mappers/` (FASE 3 ainda não executada), não em `db/queries/`
-- [ ] 2.12.2 Verificar que `db/queries/*.ts` não têm erros isolados de queries (separar erros de mappers dos de queries)
+- [x] 2.12.1 Executar `pnpm --filter @cstk-panel/server exec tsc --noEmit` — os erros restantes devem ser apenas em `mappers/` (FASE 3 ainda não executada), não em `db/queries/`
+- [x] 2.12.2 Verificar que `db/queries/*.ts` não têm erros isolados de queries (separar erros de mappers dos de queries)
 
 ---
 

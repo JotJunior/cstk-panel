@@ -12,7 +12,7 @@
     "short_name": "new-schema"
   },
   "current_stage": "execute-task",
-  "next_instruction": "execute-task FASE 3: server mappers (execution.ts, wave.ts, decision.ts, task.ts, event.ts, alert.ts, skill.ts, suggestion.ts, retro.ts) — update mappers to read EN Row fields and write EN DTO fields. Gate: tsc server 0 errors (FASE 2+3 complete).",
+  "next_instruction": "execute-task FASE 2: server queries (waves.ts, decisions.ts, tasks.ts, events.ts, alert_signals.ts, blocks.ts rename, retros.ts, skills.ts, suggestions.ts) — renames Row interfaces pt-BR->EN snake_case, update SQL SELECTs, adicionar hasColumn guards, renomear tabela bloqueios->blocks. Gate: tsc server 0 erros.",
   "waves": [
     {
       "id": "onda-001",
