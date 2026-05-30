@@ -11,8 +11,8 @@
     "finished_at": null,
     "short_name": "new-schema"
   },
-  "current_stage": "execute-task",
-  "next_instruction": "Onda execute-task — começar pela FASE 1 (shared-types). Executar tarefa 1.1 (Renomear campos de ExecutionDTO e ExecutionDTOSchema [C]) via skill execute-task, seguindo o gate ETAPA 0 (sonda empírica) e gate de fim tsc --noEmit. Loop pelas tarefas [C] da FASE 1 antes de avançar de fase.",
+  "current_stage": "create-tasks",
+  "next_instruction": "Onda create-tasks — invocar skill create-tasks sobre docs/specs/new-schema/spec.md + plan.md para decompor em backlog executavel (tasks.md), ordenado por camada: shared-types (DTO/Zod) -> server queries (Row/SQL/hasColumn/hasTable + rename bloqueios->blocks) -> server mappers -> apps/web. Gate por etapa: tsc --noEmit; gate final: tsc=0 + vitest sem regressao + roundtrip v7 real (quickstart Cenario B).",
   "waves": [
     {
       "id": "onda-001",
@@ -84,21 +84,13 @@
     {
       "id": "onda-004",
       "started_at": "2026-05-30T14:09:47Z",
-      "finished_at": "2026-05-30T14:16:41Z",
-      "executed_stages": [
-        "create-tasks"
-      ],
+      "finished_at": null,
+      "executed_stages": [],
       "tool_calls": 0,
-      "wallclock_seconds": 414,
-      "termination_reason": "etapa_concluida_avancando",
-      "next_wave_scheduled_for": "2026-05-30T14:17:41Z",
-      "skills_invoked": [
-        {
-          "skill": "create-tasks",
-          "timestamp": "2026-05-30T14:16:41Z",
-          "decision_id": "dec-013"
-        }
-      ]
+      "wallclock_seconds": 0,
+      "termination_reason": null,
+      "next_wave_scheduled_for": null,
+      "skills_invoked": []
     }
   ],
   "decisions": [
@@ -328,24 +320,6 @@
       "evidence": null,
       "references": [],
       "originating_artifact": null
-    },
-    {
-      "id": "dec-013",
-      "wave_id": "onda-004",
-      "timestamp": "2026-05-30T14:09:57Z",
-      "stage": "create-tasks",
-      "agent": "agente-00c-feature-orchestrator",
-      "context": "Inicio da onda create-tasks: decompor spec+plan em backlog executavel (tasks.md)",
-      "options_considered": [
-        "iniciar",
-        "abortar"
-      ],
-      "choice": "iniciar",
-      "rationale": "Todas as ondas anteriores concluidas (specify/clarify/plan). Spec ratificada, plan ratificado, data-model.md + quickstart.md presentes. Pronto para decompor em tasks.",
-      "justification_score": 2,
-      "evidence": null,
-      "references": [],
-      "originating_artifact": null
     }
   ],
   "human_blocks": [],
@@ -363,12 +337,12 @@
     "current_wave_start": "2026-05-30T14:09:47Z"
   },
   "accumulated_metrics": {
-    "waves_total": 4,
+    "waves_total": 3,
     "tool_calls_total": 0,
-    "wallclock_total_seconds": 1337,
+    "wallclock_total_seconds": 923,
     "max_depth_reached": 1,
     "subagents_spawned": 0,
-    "decisions_total": 13,
+    "decisions_total": 12,
     "human_blocks_total": 0,
     "global_skill_suggestions_total": 0,
     "toolkit_issues_opened": 0,

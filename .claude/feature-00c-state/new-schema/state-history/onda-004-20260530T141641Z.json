@@ -12,7 +12,7 @@
     "short_name": "new-schema"
   },
   "current_stage": "execute-task",
-  "next_instruction": "Onda execute-task — começar pela FASE 1 (shared-types). Executar tarefa 1.1 (Renomear campos de ExecutionDTO e ExecutionDTOSchema [C]) via skill execute-task, seguindo o gate ETAPA 0 (sonda empírica) e gate de fim tsc --noEmit. Loop pelas tarefas [C] da FASE 1 antes de avançar de fase.",
+  "next_instruction": "Onda create-tasks — invocar skill create-tasks sobre docs/specs/new-schema/spec.md + plan.md para decompor em backlog executavel (tasks.md), ordenado por camada: shared-types (DTO/Zod) -> server queries (Row/SQL/hasColumn/hasTable + rename bloqueios->blocks) -> server mappers -> apps/web. Gate por etapa: tsc --noEmit; gate final: tsc=0 + vitest sem regressao + roundtrip v7 real (quickstart Cenario B).",
   "waves": [
     {
       "id": "onda-001",
