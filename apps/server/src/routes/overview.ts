@@ -84,13 +84,13 @@ export async function overviewRoutes(server: FastifyInstance): Promise<void> {
       const stageCol = hasColumn(db, 'executions', 'current_stage') ? 'current_stage' : 'NULL';
       const funnelRows = db
         .prepare(`
-          SELECT ${stageCol} as etapa, count(*) as count
+          SELECT ${stageCol} as stage, count(*) as count
           FROM executions
           WHERE ${stageCol} IS NOT NULL
-          GROUP BY etapa
+          GROUP BY stage
           ORDER BY count DESC
         `)
-        .all() as { etapa: string; count: number }[];
+        .all() as { stage: string; count: number }[];
 
       const data = {
         kpis: {
@@ -130,7 +130,7 @@ export async function overviewRoutes(server: FastifyInstance): Promise<void> {
         })),
         /** mix derivado de decisoes de roteamento logadas (FR-010: nao e o
          *  relatorio canonico; UI rotula como derivado). */
-        modelMix: modelMix.map(m => ({ modelo: m.modelo, n: m.n })),
+        modelMix: modelMix.map(m => ({ model: m.modelo, n: m.n })),
         recentActivity: recentActivity.map(a => ({
           executionId: a.execution_id,
           project: a.project,

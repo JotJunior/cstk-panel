@@ -200,7 +200,7 @@ export const FeatureRollupSchema = z.object({
   totalToolCalls: z.number().nullable().optional(),
   totalWallclock: z.number().nullable().optional(),
   totalDecisions: z.number().optional(),
-  totalOndas: z.number().nullable().optional(),
+  totalWaves: z.number().nullable().optional(),
   totalBlocks: z.number().optional(),
   currentStage: z.string().nullable().optional(),
   openAlerts: z.number().optional(),

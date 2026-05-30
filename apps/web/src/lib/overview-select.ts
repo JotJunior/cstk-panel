@@ -26,7 +26,7 @@ export interface OverviewKpisRaw {
   testsTotal?: number | null;
 }
 
-export interface ModelMixRaw { modelo?: string | null; n?: number | null; }
+export interface ModelMixRaw { model?: string | null; n?: number | null; }
 export interface ActivityRaw {
   executionId?: string | null;
   project?: string | null;
@@ -42,7 +42,7 @@ export interface OverviewRaw {
   inProgress?: Array<Record<string, unknown>> | null;
   recentAlerts?: Array<Record<string, unknown>> | null;
   leaderboard?: Array<Record<string, unknown>> | null;
-  funnel?: Array<{ etapa?: string | null; count?: number | null }> | null;
+  funnel?: Array<{ stage?: string | null; count?: number | null }> | null;
   modelMix?: ModelMixRaw[] | null;
   recentActivity?: ActivityRaw[] | null;
   costSeries?: number[] | null;
@@ -66,7 +66,7 @@ export interface OverviewVM {
   execucoes: Array<Record<string, unknown>>;
   alertas: Array<Record<string, unknown>>;
   leaderboard: Array<Record<string, unknown>>;
-  funnel: Array<{ etapa?: string | null; count?: number | null }>;
+  funnel: Array<{ stage?: string | null; count?: number | null }>;
   modelMix: ModelMixRaw[];
   recentActivity: ActivityRaw[];
   costSeries: number[];

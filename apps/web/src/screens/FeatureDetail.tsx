@@ -16,8 +16,8 @@ interface FeatureRollupShape {
   totalToolCalls: number | null;
   totalWallclock: number | null;
   totalDecisions: number | null;
-  totalOndas: number | null;
-  etapaCorrente: string | null;
+  totalWaves: number | null;
+  currentStage: string | null;
   latestStatus: 'em_andamento' | 'aguardando_humano' | 'concluida' | 'abortada' | null;
 }
 
@@ -89,8 +89,8 @@ export function FeatureDetail() {
           <div className="divider" />
 
           <div className="grid-6">
-            <MiniStat label="Etapa corrente" value={<span className="mono" style={{ color: status === 'em_andamento' ? 'var(--inprogress)' : 'var(--text-0)' }}>{rollup?.etapaCorrente ?? '—'}</span>} />
-            <MiniStat label="Ondas" value={fmtNum(rollup?.totalOndas)} />
+            <MiniStat label="Etapa corrente" value={<span className="mono" style={{ color: status === 'em_andamento' ? 'var(--inprogress)' : 'var(--text-0)' }}>{rollup?.currentStage ?? '—'}</span>} />
+            <MiniStat label="Ondas" value={fmtNum(rollup?.totalWaves)} />
             <MiniStat label="Tool calls" value={fmtNum(rollup?.totalToolCalls)} />
             <MiniStat label="Wallclock" value={fmtDur(rollup?.totalWallclock)} />
             <MiniStat label="Decisões" value={fmtNum(rollup?.totalDecisions)} />
@@ -98,7 +98,7 @@ export function FeatureDetail() {
           </div>
 
           <div style={{ marginTop: 14 }}>
-            <PipelineProgress etapa={rollup?.etapaCorrente ?? null} status={status} labeled />
+            <PipelineProgress etapa={rollup?.currentStage ?? null} status={status} labeled />
           </div>
         </div>
       </div>

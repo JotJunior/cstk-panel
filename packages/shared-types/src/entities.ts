@@ -264,7 +264,7 @@ export interface FeatureRollup {
   totalToolCalls?: number | null;
   totalWallclock?: number | null;
   totalDecisions?: number;
-  totalOndas?: number | null;
+  totalWaves?: number | null;
   totalBlocks?: number;
   currentStage?: string | null;
   openAlerts?: number;

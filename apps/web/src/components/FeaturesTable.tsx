@@ -14,12 +14,12 @@ export interface FeatureRow {
   project: string;
   feature: string;
   latestStatus?: Status;
-  etapaCorrente?: string | null;
-  totalOndas?: number | null;
+  currentStage?: string | null;
+  totalWaves?: number | null;
   totalToolCalls?: number | null;
   totalWallclock?: number | null;
   totalDecisions?: number | null;
-  totalBloqueios?: number | null;
+  totalBlocks?: number | null;
   openAlerts?: number | null;
 }
 
@@ -56,12 +56,12 @@ export function FeaturesTable({ features, showProject = true }: { features: Feat
                 <td><div style={{ fontWeight: 500, color: 'var(--text-0)' }}>{f.feature}</div></td>
                 {showProject && <td className="mono" style={{ fontSize: 11.5 }}>{f.project}</td>}
                 <td><StatusBadge status={f.latestStatus ?? null} /></td>
-                <td><PipelineProgress etapa={f.etapaCorrente ?? null} status={f.latestStatus ?? null} /></td>
-                <td className="num">{f.totalOndas ?? '—'}</td>
+                <td><PipelineProgress etapa={f.currentStage ?? null} status={f.latestStatus ?? null} /></td>
+                <td className="num">{f.totalWaves ?? '—'}</td>
                 <td className="num">{fmtNum(f.totalToolCalls)}</td>
                 <td className="num">{fmtDur(f.totalWallclock)}</td>
                 <td className="num">{f.totalDecisions ?? '—'}</td>
-                <td className="num">{f.totalBloqueios ?? '—'}</td>
+                <td className="num">{f.totalBlocks ?? '—'}</td>
                 <td className="num">{alerts > 0 ? <span style={{ color: 'var(--critical)', fontWeight: 600 }}>{alerts}</span> : <span className="muted">—</span>}</td>
               </tr>
             );

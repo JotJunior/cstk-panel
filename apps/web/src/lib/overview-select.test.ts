@@ -28,13 +28,13 @@ const realPayload: OverviewRaw = {
     { feature: 'knowledge-db', toolCallsTotal: 6 },
   ],
   funnel: [
-    { etapa: 'execute-task', count: 9 },
-    { etapa: 'review-task', count: 4 },
+    { stage: 'execute-task', count: 9 },
+    { stage: 'review-task', count: 4 },
   ],
   modelMix: [
-    { modelo: 'sonnet', n: 11 },
-    { modelo: 'opus', n: 3 },
-    { modelo: 'haiku', n: 1 },
+    { model: 'sonnet', n: 11 },
+    { model: 'opus', n: 3 },
+    { model: 'haiku', n: 1 },
   ],
   recentActivity: [
     { executionId: 'exec-a', eventType: 'schedule_wait', timestamp: '2026-05-24T20:00:00Z', description: 'pausando' },
@@ -93,7 +93,7 @@ describe('selectOverview', () => {
     expect(vm.testsPassed).toBe(1337);
     expect(vm.testsTotal).toBe(1340);
     expect(vm.modelMix.length).toBe(3);
-    expect(vm.modelMix[0]).toEqual({ modelo: 'sonnet', n: 11 });
+    expect(vm.modelMix[0]).toEqual({ model: 'sonnet', n: 11 });
     expect(vm.recentActivity.length).toBe(1);
     expect(vm.costSeries).toEqual([10, 40, 120, 24]);
   });

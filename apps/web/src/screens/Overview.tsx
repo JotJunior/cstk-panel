@@ -93,15 +93,15 @@ export function Overview({ period }: OverviewProps) {
 
   // Funil — sempre as 9 etapas SDD, na ordem canonica, mesmo se zeradas
   const funnelByStage = new Map<string, number>();
-  for (const row of funnel as { etapa?: string | null; count?: number | null }[]) {
-    if (row.etapa) funnelByStage.set(row.etapa, row.count ?? 0);
+  for (const row of funnel as { stage?: string | null; count?: number | null }[]) {
+    if (row.stage) funnelByStage.set(row.stage, row.count ?? 0);
   }
   const funnelData: FunnelDatum[] = SDD_STAGES.map(s => ({ label: s, count: funnelByStage.get(s) ?? 0 }));
 
   // Mix de modelos (derivado)
   const mixTotal = modelMix.reduce((a, m) => a + (m.n ?? 0), 0);
   const donutData: DonutDatum[] = modelMix.map(m => ({
-    label: m.modelo ?? '?', value: m.n ?? 0, color: modelColor(m.modelo ?? ''),
+    label: m.model ?? '?', value: m.n ?? 0, color: modelColor(m.model ?? ''),
   }));
 
   // Leaderboard de custo por feature
