@@ -248,9 +248,9 @@ export function useScoreDistribution(execucaoId: string) {
 }
 
 /** Alertas cross-execucao */
-export function useAlerts(opts?: { tipo?: string; project?: string; feature?: string; period?: PeriodParam }) {
+export function useAlerts(opts?: { type?: string; project?: string; feature?: string; period?: PeriodParam }) {
   const params = new URLSearchParams();
-  if (opts?.tipo) params.set('tipo', opts.tipo);
+  if (opts?.type) params.set('type', opts.type);
   if (opts?.project) params.set('project', opts.project);
   if (opts?.feature) params.set('feature', opts.feature);
   if (opts?.period) params.set('period', opts.period);

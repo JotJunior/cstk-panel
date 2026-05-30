@@ -51,9 +51,9 @@ function modelColor(m: string): string {
 
 /** Severidade derivada (rotulada): breach acima do teto = critico; senao atencao. */
 function deriveSeverity(a: Record<string, unknown>): 'critical' | 'warning' {
-  const consumido = a.valorConsumido as number | null;
-  const threshold = a.valorThreshold as number | null;
-  if (a.tipo === 'budget_breach' && consumido != null && threshold != null && consumido > threshold) {
+  const consumido = a.consumedValue as number | null;
+  const threshold = a.thresholdValue as number | null;
+  if (a.type === 'budget_breach' && consumido != null && threshold != null && consumido > threshold) {
     return 'critical';
   }
   return 'warning';
@@ -106,7 +106,7 @@ export function Overview({ period }: OverviewProps) {
 
   // Leaderboard de custo por feature
   const barData = (leaderboard as Record<string, unknown>[]).slice(0, 8).map(row => ({
-    label: featureLabel(row.feature, row.execucaoId),
+    label: featureLabel(row.feature, row.executionId),
     value: (row.toolCallsTotal as number | null) ?? 0,
     color: 'var(--accent)',
   }));
@@ -185,9 +185,9 @@ export function Overview({ period }: OverviewProps) {
                 </div>
               ) : (
                 (execucoes as Record<string, unknown>[]).map((f, idx) => {
-                  const execId = (f.execucaoId as string | null) ?? '';
+                  const execId = (f.executionId as string | null) ?? '';
                   const status = f.status as 'em_andamento' | 'aguardando_humano' | 'concluida' | 'abortada' | null;
-                  const etapa = f.etapaCorrente as string | null;
+                  const etapa = f.currentStage as string | null;
                   const project = f.project as string | null;
                   const feature = f.feature as string | null;
                   const title = featureLabel(feature, execId);
@@ -256,12 +256,12 @@ export function Overview({ period }: OverviewProps) {
                     <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-3)', padding: 24 }}>Nenhum alerta recente.</td></tr>
                   ) : (
                     (alertas as Record<string, unknown>[]).slice(0, 5).map((a, idx) => {
-                      const tipo = a.tipo as string | null;
-                      const subtipo = a.subtipo as string | null;
-                      const execId = a.execucaoId as string | null;
+                      const tipo = a.type as string | null;
+                      const subtipo = a.subtype as string | null;
+                      const execId = a.executionId as string | null;
                       const wave = a.wave as string | null;
-                      const consumido = a.valorConsumido as number | null;
-                      const threshold = a.valorThreshold as number | null;
+                      const consumido = a.consumedValue as number | null;
+                      const threshold = a.thresholdValue as number | null;
                       const severity = deriveSeverity(a);
                       const isCircular = tipo === 'circular';
                       const validWave = wave && wave !== '-' ? wave : null;
@@ -366,7 +366,7 @@ export function Overview({ period }: OverviewProps) {
                     <div className="feed-dot" style={{ background: EVENT_COLOR[a.eventType ?? ''] ?? 'var(--text-3)' }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ color: 'var(--text-1)', fontSize: 12.5, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {a.descricao ?? a.eventType ?? '—'}
+                        {a.description ?? a.eventType ?? '—'}
                       </div>
                       <div className="mono" style={{ color: 'var(--text-3)', fontSize: 10.5 }}>
                         {a.eventType} · {fmtRelative(a.timestamp)}

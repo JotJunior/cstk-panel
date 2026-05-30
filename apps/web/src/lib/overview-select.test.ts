@@ -19,10 +19,10 @@ const realPayload: OverviewRaw = {
     testsTotal: 1340,
   },
   inProgress: [
-    { execucaoId: 'exec-a', status: 'em_andamento', etapaCorrente: 'plan', ondasTotal: 12, toolCallsTotal: 88, wallclockSegundos: 2740 },
-    { execucaoId: 'exec-b', status: 'aguardando_humano', etapaCorrente: 'execute-task', ondasTotal: 3, toolCallsTotal: 12, wallclockSegundos: 980 },
+    { executionId: 'exec-a', status: 'em_andamento', currentStage: 'plan', ondasTotal: 12, toolCallsTotal: 88, wallclockSegundos: 2740 },
+    { executionId: 'exec-b', status: 'aguardando_humano', currentStage: 'execute-task', ondasTotal: 3, toolCallsTotal: 12, wallclockSegundos: 980 },
   ],
-  recentAlerts: [{ execucaoId: 'exec-a', tipo: 'circular', descricao: 'x', wave: '-', valorConsumido: null, valorThreshold: null }],
+  recentAlerts: [{ executionId: 'exec-a', tipo: 'circular', description: 'x', wave: '-', consumedValue: null, thresholdValue: null }],
   leaderboard: [
     { feature: 'swagger-codegen', toolCallsTotal: 24 },
     { feature: 'knowledge-db', toolCallsTotal: 6 },
@@ -37,7 +37,7 @@ const realPayload: OverviewRaw = {
     { modelo: 'haiku', n: 1 },
   ],
   recentActivity: [
-    { execucaoId: 'exec-a', eventType: 'schedule_wait', timestamp: '2026-05-24T20:00:00Z', descricao: 'pausando' },
+    { executionId: 'exec-a', eventType: 'schedule_wait', timestamp: '2026-05-24T20:00:00Z', description: 'pausando' },
   ],
   costSeries: [10, 40, 120, 24],
 };

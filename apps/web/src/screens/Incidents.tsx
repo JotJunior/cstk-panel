@@ -14,12 +14,12 @@ import { fmtTimestamp } from '@/lib/format.js';
 const SERIES_COLORS = ['var(--critical)', 'var(--warning)', 'var(--info)', 'var(--text-2)'];
 
 interface EventRow {
-  execucaoId: string;
+  executionId: string;
   project: string;
   feature: string;
   eventType: string;
   timestamp: string;
-  descricao: string | null;
+  description: string | null;
 }
 
 const EVENT_META: Record<string, { icon: string; color: string; label: string }> = {
@@ -130,7 +130,7 @@ export function Incidents() {
                       key={i}
                       className={`event ${e.eventType}`}
                       style={{ cursor: 'pointer' }}
-                      onClick={() => navigate(`/executions/${encodeURIComponent(e.execucaoId)}?tab=events`)}
+                      onClick={() => navigate(`/executions/${encodeURIComponent(e.executionId)}?tab=events`)}
                     >
                       <span className="time">{fmtTimestamp(e.timestamp)}</span>
                       <div>
@@ -141,7 +141,7 @@ export function Incidents() {
                             <span>{e.project}</span><span className="sep">/</span><span>{e.feature}</span>
                           </span>
                         </div>
-                        <div className="body">{e.descricao ?? '—'}</div>
+                        <div className="body">{e.description ?? '—'}</div>
                       </div>
                     </div>
                   );

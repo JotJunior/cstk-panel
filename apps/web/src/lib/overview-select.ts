@@ -28,13 +28,13 @@ export interface OverviewKpisRaw {
 
 export interface ModelMixRaw { modelo?: string | null; n?: number | null; }
 export interface ActivityRaw {
-  execucaoId?: string | null;
+  executionId?: string | null;
   project?: string | null;
   feature?: string | null;
   wave?: string | null;
   eventType?: string | null;
   timestamp?: string | null;
-  descricao?: string | null;
+  description?: string | null;
 }
 
 export interface OverviewRaw {

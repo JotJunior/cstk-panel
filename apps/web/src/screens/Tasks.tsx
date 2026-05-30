@@ -2,8 +2,8 @@
  * Tasks — tarefas cross-execucao (tela Tarefas, prototipo screens_aux.jsx).
  * KPIs + tabela com filtro de outcome. Dados reais de /tasks.
  *
- * Schema v3: a tabela `tasks` passa a ter `titulo` (heading do tasks.md). Quando
- * presente, e a identidade primaria da linha; em bases v2 (ou titulo vazio) cai
+ * Schema v3: a tabela `tasks` passa a ter `title` (heading do tasks.md). Quando
+ * presente, e a identidade primaria da linha; em bases v2 (ou title vazio) cai
  * no fallback feature/onda. Series temporais de pass/fail vivem em Metricas.
  */
 import { useState } from 'react';
@@ -18,13 +18,13 @@ type Outcome = 'all' | 'pass' | 'fail';
 
 interface TaskRow {
   wave: string;
-  execucaoId: string;
+  executionId: string;
   project: string;
   feature: string;
-  titulo?: string;
+  title?: string;
   outcome: 'pass' | 'fail' | null;
-  testesRodados: number | null;
-  testesPassados: number | null;
+  testsRun: number | null;
+  testsPassed: number | null;
   lintOk: boolean | null;
   arquivosTocadosCount: number | null;
 }
@@ -49,8 +49,8 @@ export function Tasks() {
 
   const total = all.length;
   const fails = all.filter(t => t.outcome === 'fail').length;
-  const tr = all.reduce((a, t) => a + (t.testesRodados ?? 0), 0);
-  const tp = all.reduce((a, t) => a + (t.testesPassados ?? 0), 0);
+  const tr = all.reduce((a, t) => a + (t.testsRun ?? 0), 0);
+  const tp = all.reduce((a, t) => a + (t.testsPassed ?? 0), 0);
   const withLint = all.filter(t => t.lintOk != null);
   const lintPct = withLint.length > 0 ? withLint.filter(t => t.lintOk).length / withLint.length : null;
   const avgFiles = total > 0 ? (all.reduce((a, t) => a + (t.arquivosTocadosCount ?? 0), 0) / total).toFixed(1) : '—';
@@ -111,11 +111,11 @@ export function Tasks() {
               {filtered.length === 0 ? (
                 <tr><td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-3)', padding: 24 }}>Nenhuma tarefa.</td></tr>
               ) : filtered.map((t, idx) => (
-                <tr key={`${t.execucaoId}/${t.wave}/${idx}`} className="clickable" onClick={() => navigate(`/executions/${encodeURIComponent(t.execucaoId)}?tab=tasks`)}>
+                <tr key={`${t.executionId}/${t.wave}/${idx}`} className="clickable" onClick={() => navigate(`/executions/${encodeURIComponent(t.executionId)}?tab=tasks`)}>
                   <td>
-                    {/* titulo (v3) e untrusted — React escapa via textContent por padrao */}
-                    <div style={{ color: 'var(--text-0)' }}>{t.titulo?.trim() ? t.titulo : `${t.feature} · ${t.wave}`}</div>
-                    <div className="mono muted-2" style={{ fontSize: 10.5 }}>{t.titulo?.trim() ? `${t.feature} · ${t.wave}` : t.execucaoId.slice(0, 40)}</div>
+                    {/* title (v3) e untrusted — React escapa via textContent por padrao */}
+                    <div style={{ color: 'var(--text-0)' }}>{t.title?.trim() ? t.title : `${t.feature} · ${t.wave}`}</div>
+                    <div className="mono muted-2" style={{ fontSize: 10.5 }}>{t.title?.trim() ? `${t.feature} · ${t.wave}` : t.executionId.slice(0, 40)}</div>
                   </td>
                   <td>
                     <span className="prov">
@@ -123,7 +123,7 @@ export function Tasks() {
                     </span>
                   </td>
                   <td>{t.outcome ? <OutcomePill outcome={t.outcome} /> : <span className="muted">—</span>}</td>
-                  <td className="num">{t.testesPassados ?? '—'}/{t.testesRodados ?? '—'}</td>
+                  <td className="num">{t.testsPassed ?? '—'}/{t.testsRun ?? '—'}</td>
                   <td>{t.lintOk == null ? <span className="muted">—</span> : t.lintOk ? <span className="pill pass">✓ ok</span> : <span className="pill fail">✕ falhou</span>}</td>
                   <td className="num">{t.arquivosTocadosCount ?? '—'}</td>
                 </tr>

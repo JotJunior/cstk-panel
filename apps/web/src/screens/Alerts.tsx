@@ -85,7 +85,7 @@ export function Alerts({ period }: AlertsProps) {
   const [filterFeature, setFilterFeature] = useState('');
 
   const alertsOpts: Parameters<typeof useAlerts>[0] = { period };
-  if (filterTipo) alertsOpts.tipo = filterTipo;
+  if (filterTipo) alertsOpts.type = filterTipo;
   if (filterProject) alertsOpts.project = filterProject;
   if (filterFeature) alertsOpts.feature = filterFeature;
   const query = useAlerts(alertsOpts);

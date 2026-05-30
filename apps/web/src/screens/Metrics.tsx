@@ -218,7 +218,7 @@ export function Metrics({ period }: MetricsProps) {
   // cost-over-time e human-latency sao ARRAYS de linhas; test/clarify sao OBJETOS.
   const costData = costQuery.data?.data as unknown;            // array {day, toolCalls}
   const testData = testQuery.data?.data as Record<string, unknown> | null;   // {pass, fail, rate}
-  const latData  = latencyQuery.data?.data as unknown;         // array {execucaoId, latenciaSegundos}
+  const latData  = latencyQuery.data?.data as unknown;         // array {execucaoId, latencySeconds}
   const clarData = clarifyQuery.data?.data as Record<string, unknown> | null; // {total..., rate}
   const clarMetaRaw = clarifyQuery.data?.meta;
   const clarMetaApprox = (clarMetaRaw as unknown as Record<string, unknown> | null);
@@ -226,7 +226,7 @@ export function Metrics({ period }: MetricsProps) {
   // KPIs summary — derivados dos arrays/objetos reais
   const totalToolCalls = Array.isArray(costData) ? sum(nums(costData, 'toolCalls')) : null;
   const passRate       = (testData?.rate as number | null) ?? null;
-  const latP50         = percentile(nums(latData, 'latenciaSegundos'), 50);
+  const latP50         = percentile(nums(latData, 'latencySeconds'), 50);
   const autoResolve    = (clarData?.rate as number | null) ?? null;
   const isApproximate  = (clarMetaApprox?.approximate as boolean | undefined) ?? false;
 
@@ -334,7 +334,7 @@ export function Metrics({ period }: MetricsProps) {
           subtitle="tempo de resposta a bloqueios"
           period={period}
           renderContent={(raw) => {
-            const lat = nums(raw, 'latenciaSegundos');
+            const lat = nums(raw, 'latencySeconds');
             if (!lat.length) return null;
             return (
               <>
