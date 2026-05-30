@@ -82,7 +82,7 @@ export function Alerts({ period }: AlertsProps) {
   const navigate = useNavigate();
   const [filterTipo, setFilterTipo] = useState('');
   const [filterProject, setFilterProject] = useState('');
-  const [filterFeature, setFilterFeature] = useState('');
+  const [filterFeature] = useState('');
 
   const alertsOpts: Parameters<typeof useAlerts>[0] = { period };
   if (filterTipo) alertsOpts.type = filterTipo;

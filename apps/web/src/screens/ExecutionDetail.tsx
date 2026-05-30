@@ -52,7 +52,7 @@ function fmtTimestamp(iso: string | null | undefined): string {
 // WavesTimeline
 // ---------------------------------------------------------------------------
 function WavesTimeline({
-  waves, execId, onSelectWave, selectedWave,
+  waves, onSelectWave, selectedWave,
 }: {
   waves: WaveDTO[];
   execId: string;

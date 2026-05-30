@@ -45,7 +45,6 @@ export function DecisionMapPanel({
   execucaoId,
   waveFilter,
   mapVisible,
-  onToggle,
 }: DecisionMapPanelProps) {
   // 3.1.2: selectedKey — único state local
   const [selectedKey, setSelectedKey] = React.useState<string | null>(null);

@@ -137,7 +137,7 @@ describe('7.2 Degradacao — db-missing (path inexistente)', () => {
       const res = await server.inject({ method: 'GET', url: endpoint });
       expect(res.statusCode).toBe(200);
 
-      const body = res.json<{ meta: { degraded: boolean; reason: string | null } }>();
+      const _body = res.json<{ meta: { degraded: boolean; reason: string | null } }>();
       // Para /search, meta.degraded pode ser true OU data.results pode ser vazio
       // Principio II: nunca 5xx independente do estado
       expect([200]).toContain(res.statusCode);

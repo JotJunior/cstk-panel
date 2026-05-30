@@ -5,7 +5,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchApi } from './api.js';
 import {
-  ApiEnvelopeSchema,
   ExecutionDTOSchema,
   WaveDTOSchema,
   DecisionDTOSchema,

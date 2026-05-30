@@ -42,7 +42,7 @@ export default tseslint.config(
             'Principio V: dangerouslySetInnerHTML proibido. Conteudo de agente e UNTRUSTED — renderizar via textContent/JSX text node.',
         },
       ],
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn',
     },
   },

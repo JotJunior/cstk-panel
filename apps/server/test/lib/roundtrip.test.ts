@@ -19,7 +19,6 @@ import { existsSync } from 'node:fs';
 import { resolve, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { RawApiEnvelopeSchema, FtsHitDTOSchema } from '@cstk-panel/shared-types';
-import { z } from 'zod';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const FIXTURE_DB = resolve(join(__dirname, '..', 'knowledge-fixture.db'));

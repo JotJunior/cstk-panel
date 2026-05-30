@@ -14,7 +14,7 @@ import type { FastifyInstance } from 'fastify';
 import rateLimit from '@fastify/rate-limit';
 import { z } from 'zod';
 import { openDb } from '../db/open.js';
-import { wrap, wrapDegraded } from '../lib/envelope.js';
+import { wrap } from '../lib/envelope.js';
 import { loadConfig } from '../config.js';
 import { sanitizeFts } from '../lib/fts.js';
 
