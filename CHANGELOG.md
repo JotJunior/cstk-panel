@@ -5,6 +5,52 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.8.0] - 2026-05-30
+
+Adaptação ao **schema v7 (EN canônico)** da `knowledge.db` do cstk. O cstk
+normalizou colunas e funções que misturavam português e inglês para o inglês
+canônico (`execucao_id → execution_id`, `motivo_termino → termination_reason`,
+`etapa_corrente → current_stage`, tabela `bloqueios → blocks`, …). O painel —
+consumidor primário da `knowledge.db` — foi migrado de ponta a ponta para os
+nomes canônicos, mantendo retrocompatibilidade com bases **v6**.
+
+> Verificado por roundtrip empírico real contra `~/.claude/cstk/knowledge.db`
+> v7: `/api/v1/{overview,features,events,tasks,alerts}` retornam zero chaves
+> pt-BR. `tsc` do monorepo = 0 erros; suíte `vitest` completa = 328/328.
+
+### Modificado
+
+- **BREAKING (contrato de resposta da API)**: todos os campos dos DTOs e do
+  payload renomeados pt-BR → EN canônico — `executionId`, `terminationReason`,
+  `currentStage`, `startedAt`/`finishedAt`, `title`, `testsRun`/`testsPassed`,
+  `type`/`subtype`, `consumedValue`/`thresholdValue`, `description`, `stage`,
+  `choice`, `options`, `rationale`, `model`, `totalWaves`/`totalBlocks`.
+- Camadas migradas: `shared-types` (DTOs + schemas Zod) → server (Row
+  interfaces, SQL, guards `hasColumn`/`hasTable`) → mappers → rotas →
+  `apps/web` (hooks + componentes/telas React).
+- Tabela `bloqueios` renomeada para `blocks` (queries, mapper, guard `hasTable`).
+- `config`: schema **v7** adicionado às versões aceitas por padrão.
+
+### Adicionado
+
+- Retrocompatibilidade com bases **v6**: colunas renomeadas degradam
+  graciosamente via `hasColumn` (projeta `NULL` em vez de quebrar) e tabelas
+  ausentes via `hasTable`.
+
+### Corrigido
+
+- Telas que liam campos pt-BR enquanto a API já emitia EN (renderizavam
+  `—`/`undefined`): **Incidentes**, **Tarefas**, **Visão Geral**
+  (alertas/atividade/em-andamento/leaderboard) e **Métricas** (latência).
+- Filtro de **Alertas** por tipo: parâmetro de query `tipo` → `type` (alinhado
+  ao que o servidor lê).
+
+### Testes / Infra
+
+- Cenário de **roundtrip real** contra a `knowledge.db` v7 (não-mock) e testes
+  de back-compat v6 (`blocks-backcompat`, degradação `hasColumn`).
+- Fixtures de teste alinhadas ao shape EN real do payload.
+
 ## [0.7.1] - 2026-05-29
 
 ### Corrigido
