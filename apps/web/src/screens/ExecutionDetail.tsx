@@ -7,7 +7,7 @@
  *
  * Ref: spec.md §User Story 2; tasks.md §6.2
  */
-import { Fragment, useState, useEffect } from 'react';
+import { Fragment, useState } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import {
   useExecution, useWaves, useDecisions, useTasks,
@@ -19,7 +19,6 @@ import { stackDisplayItems } from '@/lib/stack-display.js';
 import { decisionOptions, chosenOptionIndex } from '@/lib/decision-options.js';
 import { LoadingState, EmptyState, ErrorState, DegradedBanner } from '@/states/index.js';
 import { StatusBadge, ScoreChip, OutcomePill, TextRaw, Icon, BarH, MiniStat, PipelineProgress } from '@/components/index.js';
-import { DecisionMapPanel } from '@/components/DecisionMapPanel.js';
 import type { ExecutionDTO, WaveDTO, DecisionDTO, TaskDTO, EventDTO, AlertSignalDTO, BloqueioDTO, SkillDTO, SuggestionDTO } from '@cstk-panel/shared-types';
 
 // ---------------------------------------------------------------------------
@@ -754,13 +753,6 @@ export function ExecutionDetail() {
 
   const [selectedWave, setSelectedWave] = useState<string | null>(searchParams.get('wave'));
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') ?? 'decisions');
-  // 4.1.2: mapVisible elevado ao ExecutionDetail (dec-012 / CHK049)
-  const [mapVisible, setMapVisible] = useState(false);
-
-  // 4.1.8: reset mapVisible ao trocar de execução (CHK055 / dec-012)
-  useEffect(() => {
-    setMapVisible(false);
-  }, [execucaoId]);
 
   const execQuery = useExecution(execucaoId ?? '');
   const wavesQuery = useWaves(execucaoId ?? '');
@@ -784,8 +776,6 @@ export function ExecutionDetail() {
 
   function handleTabChange(tab: string) {
     setActiveTab(tab);
-    // 4.1.7: reset mapVisible ao trocar de aba
-    setMapVisible(false);
     const params = new URLSearchParams(searchParams);
     params.set('tab', tab);
     setSearchParams(params, { replace: true });
@@ -834,13 +824,17 @@ export function ExecutionDetail() {
             </div>
             {/* Botoes decorativos (CARD-EX-02) — recursos externos ao painel */}
             <div className="row gap-2" style={{ flexShrink: 0 }}>
-              {/* 4.1.3–4.1.5: botão habilitado com toggle mapVisible */}
+              {/* Botão navega para a página dedicada da árvore de decisões */}
               <button
-                className={`tb-btn${mapVisible ? ' active' : ''}`}
-                onClick={() => setMapVisible(v => !v)}
-                title={mapVisible ? 'Fechar mapa de decisões' : 'Abrir mapa de decisões'}
-                aria-pressed={mapVisible}
-                style={mapVisible ? { color: 'var(--accent, #3b82f6)', borderColor: 'var(--accent-line, rgba(59,130,246,0.3))' } : undefined}
+                className="tb-btn"
+                onClick={() =>
+                  navigate(
+                    `/executions/${encodeURIComponent(execucaoId ?? '')}/decision-map${
+                      selectedWave ? `?wave=${encodeURIComponent(selectedWave)}` : ''
+                    }`
+                  )
+                }
+                title="Abrir árvore de decisões"
               >
                 <Icon name="tree" size={13} aria-hidden />árvore de decisões
               </button>
@@ -912,19 +906,7 @@ export function ExecutionDetail() {
         <TabBar tabs={tabs} activeTab={activeTab} onChange={handleTabChange} />
         <div>
           {activeTab === 'decisions' && (
-            <>
-              {/* 4.1.6: mapa de decisões substitui a tabela quando mapVisible */}
-              {mapVisible ? (
-                <DecisionMapPanel
-                  execucaoId={execucaoId ?? ''}
-                  waveFilter={selectedWave}
-                  mapVisible={mapVisible}
-                  onToggle={() => setMapVisible(false)}
-                />
-              ) : (
-                <DecisionsPanel execucaoId={execucaoId ?? ''} waveFilter={selectedWave} />
-              )}
-            </>
+            <DecisionsPanel execucaoId={execucaoId ?? ''} waveFilter={selectedWave} />
           )}
           {activeTab === 'tasks'     && <TasksPanel execucaoId={execucaoId ?? ''} />}
           {activeTab === 'events'    && <EventsPanel execucaoId={execucaoId ?? ''} />}

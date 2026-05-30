@@ -14,6 +14,7 @@ import { Sidebar } from '@/components/Sidebar.js';
 import { Topbar } from '@/components/Topbar.js';
 import { Overview } from '@/screens/Overview.js';
 import { ExecutionDetail } from '@/screens/ExecutionDetail.js';
+import { DecisionMapScreen } from '@/screens/DecisionMapScreen.js';
 import { Executions } from '@/screens/Executions.js';
 import { Search } from '@/screens/Search.js';
 import { Alerts } from '@/screens/Alerts.js';
@@ -79,6 +80,7 @@ export default function App() {
             {/* Execucoes (US2) */}
             <Route path="/executions" element={<Executions />} />
             <Route path="/executions/:execucaoId" element={<ExecutionDetail />} />
+            <Route path="/executions/:execucaoId/decision-map" element={<DecisionMapScreen />} />
 
             {/* Alertas (US4) */}
             <Route path="/alerts" element={<Alerts period={period} />} />
