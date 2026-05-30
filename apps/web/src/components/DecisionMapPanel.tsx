@@ -206,9 +206,11 @@ export function DecisionMapPanel({
           nodeRefs={nodeRefs}
         />
 
-        {/* Painel lateral de detalhe (sticky — acompanha a rolagem da página) */}
+        {/* Painel lateral de detalhe — sticky abaixo da topbar (52px) para
+            permanecer visível ao rolar a árvore (clicar num nó lá no fim não
+            exige rolar de volta ao topo). */}
         {selectedKey && selectedDecision && (
-          <div style={{ position: 'sticky', top: 8, alignSelf: 'start', maxHeight: 'calc(100vh - 24px)', overflow: 'auto' }}>
+          <div style={{ position: 'sticky', top: 60, alignSelf: 'start', maxHeight: 'calc(100vh - 72px)', overflow: 'auto' }}>
             <DecisionDetailPane
               decision={selectedDecision}
               prevKey={selectedPrevKey}

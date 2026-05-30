@@ -85,8 +85,9 @@ export function DecisionMapScreen() {
         </div>
       </div>
 
-      {/* Árvore (página inteira) */}
-      <div className="card">
+      {/* Árvore (página inteira) — overflow visível para o painel de detalhe
+          (position: sticky) não ser clipado pelo `.card { overflow: hidden }`. */}
+      <div className="card" style={{ overflow: 'visible' }}>
         <div className="card-body">
           <DecisionMapPanel
             execucaoId={id}
