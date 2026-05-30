@@ -3,6 +3,7 @@
  * Cada schema Zod e instanciado com payload sintetico valido.
  * Falha se qualquer schema rejeitar payload bem-formado.
  * Ref: plan.md §Convencoes de Borda; spec.md FR-012
+ * Updated: schema v7 EN canonical (feature new-schema)
  */
 import { describe, it, expect } from 'vitest';
 import {
@@ -12,7 +13,7 @@ import {
   TaskDTOSchema,
   EventDTOSchema,
   AlertSignalDTOSchema,
-  BloqueioDTOSchema,
+  BlockDTOSchema,
   SkillDTOSchema,
   RetroDTOSchema,
   FtsHitDTOSchema,
@@ -34,39 +35,39 @@ describe('Paridade schemas Zod — entidades', () => {
     const payload = {
       project: 'cstk',
       feature: 'cstk-panel',
-      execucaoId: 'exec-2025-001',
+      executionId: 'exec-2025-001',
       status: 'em_andamento',
-      motivoTermino: null,
-      etapaCorrente: 'execute-task',
-      iniciadaEm: ISO,
-      terminadaEm: null,
-      duracaoSegundos: null,
-      stackSugerida: 'node+ts',
-      ondasTotal: 7,
+      terminationReason: null,
+      currentStage: 'execute-task',
+      startedAt: ISO,
+      finishedAt: null,
+      durationSeconds: null,
+      suggestedStack: 'node+ts',
+      wavesTotal: 7,
       toolCallsTotal: 120,
-      wallclockTotalSegundos: 3600,
-      subagentesSpawned: 0,
-      profundidadeMax: 1,
-      decisoesTotal: 38,
-      bloqueiosHumanosTotal: 1,
-      sugestoesSkillsTotal: 0,
-      issuesToolkitAbertas: 0,
+      wallclockTotalSeconds: 3600,
+      subagentsSpawned: 0,
+      maxDepth: 1,
+      decisionsTotal: 38,
+      humanBlocksTotal: 1,
+      skillSuggestionsTotal: 0,
+      toolkitIssuesOpened: 0,
     };
     const r = ExecutionDTOSchema.safeParse(payload);
     expect(r.success).toBe(true);
   });
 
-  it('WaveDTOSchema: payload valido passa (etapas como string)', () => {
+  it('WaveDTOSchema: payload valido passa (stages como string)', () => {
     const payload = {
       wave: 'onda-007',
-      execucaoId: 'exec-2025-001',
-      etapas: 'execute-task',   // string, nao array
-      inicio: ISO,
-      fim: null,
+      executionId: 'exec-2025-001',
+      stages: 'execute-task',   // string, nao array
+      startedAt: ISO,
+      finishedAt: null,
       wallclockSeconds: 120,
       toolCalls: 25,
-      motivoTermino: null,
-      nEtapas: 1,
+      terminationReason: null,
+      nStages: 1,
       nSkills: 3,
     };
     const r = WaveDTOSchema.safeParse(payload);
@@ -76,14 +77,14 @@ describe('Paridade schemas Zod — entidades', () => {
   it('DecisionDTOSchema: score=2, campos UNTRUSTED como string', () => {
     const payload = {
       wave: 'onda-007',
-      execucaoId: 'exec-2025-001',
-      etapa: 'execute-task',
-      agente: 'agente-00c-orchestrator',
-      escolha: 'confirmar-ok',
-      opcoes: '["confirmar-ok","abortar"]',
+      executionId: 'exec-2025-001',
+      stage: 'execute-task',
+      agent: 'agente-00c-orchestrator',
+      choice: 'confirmar-ok',
+      options: '["confirmar-ok","abortar"]',
       score: 2,
-      contexto: 'Verificar npm install',
-      justificativa: 'Dependencias instaladas com sucesso',
+      context: 'Verificar npm install',
+      rationale: 'Dependencias instaladas com sucesso',
       evidencia: null,
     };
     const r = DecisionDTOSchema.safeParse(payload);
@@ -96,45 +97,45 @@ describe('Paridade schemas Zod — entidades', () => {
   it('DecisionDTOSchema: score=null passa', () => {
     const payload = {
       wave: 'onda-001',
-      execucaoId: 'exec-001',
-      etapa: null,
-      agente: null,
-      escolha: null,
-      opcoes: null,
+      executionId: 'exec-001',
+      stage: null,
+      agent: null,
+      choice: null,
+      options: null,
       score: null,
-      contexto: null,
-      justificativa: null,
+      context: null,
+      rationale: null,
       evidencia: null,
     };
     const r = DecisionDTOSchema.safeParse(payload);
     expect(r.success).toBe(true);
   });
 
-  it('TaskDTOSchema: lintOk como boolean, arquivosTocadosCount como number', () => {
+  it('TaskDTOSchema: lintOk como boolean, touchedFilesCount como number', () => {
     const payload = {
       wave: 'onda-001',
-      execucaoId: 'exec-001',
-      titulo: 'Task de teste',
+      executionId: 'exec-001',
+      title: 'Task de teste',
       outcome: 'pass',
-      testesRodados: 3,
-      testesPassados: 3,
+      testsRun: 3,
+      testsPassed: 3,
       lintOk: true,
-      arquivosTocadosCount: 5,
+      touchedFilesCount: 5,
     };
     const r = TaskDTOSchema.safeParse(payload);
     expect(r.success).toBe(true);
     if (r.success) {
       expect(typeof r.data.lintOk).toBe('boolean');
-      expect(typeof r.data.arquivosTocadosCount).toBe('number');
+      expect(typeof r.data.touchedFilesCount).toBe('number');
     }
   });
 
   it('EventDTOSchema: payload valido passa', () => {
     const payload = {
-      execucaoId: 'exec-001',
+      executionId: 'exec-001',
       eventType: 'schedule_wait',
       timestamp: ISO,
-      descricao: null,
+      description: null,
     };
     const r = EventDTOSchema.safeParse(payload);
     expect(r.success).toBe(true);
@@ -142,39 +143,39 @@ describe('Paridade schemas Zod — entidades', () => {
 
   it('AlertSignalDTOSchema: payload valido passa', () => {
     const payload = {
-      execucaoId: 'exec-001',
-      tipo: 'circular',
-      subtipo: null,
-      valorConsumido: null,
-      valorThreshold: null,
-      descricao: 'Ciclo detectado',
+      executionId: 'exec-001',
+      type: 'circular',
+      subtype: null,
+      consumedValue: null,
+      thresholdValue: null,
+      description: 'Ciclo detectado',
       wave: 'onda-001',
     };
     const r = AlertSignalDTOSchema.safeParse(payload);
     expect(r.success).toBe(true);
   });
 
-  it('BloqueioDTOSchema: payload valido passa', () => {
+  it('BlockDTOSchema: payload valido passa', () => {
     const payload = {
-      execucaoId: 'exec-001',
+      executionId: 'exec-001',
       status: 'respondido',
-      pergunta: 'Confirmar npm install?',
-      contextoParaResposta: null,
-      resposta: 'sim',
-      decisaoId: 'dec-001',
-      disparadoEm: ISO,
-      respondidoEm: ISO,
-      latenciaSegundos: 42,
+      question: 'Confirmar npm install?',
+      contextForAnswer: null,
+      answer: 'sim',
+      decisionId: 'dec-001',
+      triggeredAt: ISO,
+      answeredAt: ISO,
+      latencySeconds: 42,
     };
-    const r = BloqueioDTOSchema.safeParse(payload);
+    const r = BlockDTOSchema.safeParse(payload);
     expect(r.success).toBe(true);
   });
 
   it('SkillDTOSchema: payload valido passa', () => {
     const payload = {
-      execucaoId: 'exec-001',
+      executionId: 'exec-001',
       skillName: 'briefing',
-      decisaoId: 'dec-001',
+      decisionId: 'dec-001',
       wave: 'onda-001',
     };
     const r = SkillDTOSchema.safeParse(payload);
@@ -183,8 +184,8 @@ describe('Paridade schemas Zod — entidades', () => {
 
   it('RetroDTOSchema: payload valido passa', () => {
     const payload = {
-      execucaoId: 'exec-001',
-      texto: 'Reprocessamento necessario',
+      executionId: 'exec-001',
+      text: 'Reprocessamento necessario',
       wave: 'onda-001',
     };
     const r = RetroDTOSchema.safeParse(payload);

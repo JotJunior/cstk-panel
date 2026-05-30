@@ -45,86 +45,86 @@
 
 Ref: spec.md FR-004; data-model.md §Entity: executions
 
-- [ ] 1.1.1 Em `packages/shared-types/src/entities.ts`: renomear todos os campos pt-BR de `ExecutionDTO` para EN camelCase conforme data-model.md (`execucaoId→executionId`, `motivoTermino→terminationReason`, `etapaCorrente→currentStage`, `iniciadaEm→startedAt`, `terminadaEm→finishedAt`, `duracaoSegundos→durationSeconds`, `stackSugerida→suggestedStack`, `ondasTotal→wavesTotal`, `wallclockTotalSegundos→wallclockTotalSeconds`, `subagentesSpawned→subagentsSpawned`, `profundidadeMax→maxDepth`, `decisoesTotal→decisionsTotal`, `bloqueiosHumanosTotal→humanBlocksTotal`, `sugestoesSkillsTotal→skillSuggestionsTotal`, `issuesToolkitAbertas→toolkitIssuesOpened`)
-- [ ] 1.1.2 Em `packages/shared-types/src/schemas/entities.ts`: renomear os mesmos campos em `ExecutionDTOSchema` (z.object) para paridade exata com a interface
-- [ ] 1.1.3 Atualizar JSDoc/comentários da interface para refletir os novos nomes
-- [ ] 1.1.4 Verificar paridade exata: `grep -n "execucaoId\|motivoTermino\|etapaCorrente\|iniciadaEm" packages/shared-types/src/entities.ts` deve retornar zero resultados fora de comentários de migração
+- [x] 1.1.1 Em `packages/shared-types/src/entities.ts`: renomear todos os campos pt-BR de `ExecutionDTO` para EN camelCase conforme data-model.md (`execucaoId→executionId`, `motivoTermino→terminationReason`, `etapaCorrente→currentStage`, `iniciadaEm→startedAt`, `terminadaEm→finishedAt`, `duracaoSegundos→durationSeconds`, `stackSugerida→suggestedStack`, `ondasTotal→wavesTotal`, `wallclockTotalSegundos→wallclockTotalSeconds`, `subagentesSpawned→subagentsSpawned`, `profundidadeMax→maxDepth`, `decisoesTotal→decisionsTotal`, `bloqueiosHumanosTotal→humanBlocksTotal`, `sugestoesSkillsTotal→skillSuggestionsTotal`, `issuesToolkitAbertas→toolkitIssuesOpened`)
+- [x] 1.1.2 Em `packages/shared-types/src/schemas/entities.ts`: renomear os mesmos campos em `ExecutionDTOSchema` (z.object) para paridade exata com a interface
+- [x] 1.1.3 Atualizar JSDoc/comentários da interface para refletir os novos nomes
+- [x] 1.1.4 Verificar paridade exata: `grep -n "execucaoId\|motivoTermino\|etapaCorrente\|iniciadaEm" packages/shared-types/src/entities.ts` deve retornar zero resultados fora de comentários de migração
 
 ### 1.2 Renomear campos de WaveDTO e WaveDTOSchema [C]
 
 Ref: spec.md FR-004; data-model.md §Entity: waves
 
-- [ ] 1.2.1 Em `entities.ts`: renomear `WaveDTO` — `etapas→stages`, `inicio→startedAt`, `fim→finishedAt`, `motivoTermino→terminationReason`, `nEtapas→nStages`; manter `execucaoId→executionId`
-- [ ] 1.2.2 Em `schemas/entities.ts`: renomear campos de `WaveDTOSchema` para paridade exata
-- [ ] 1.2.3 Verificar que `etapas`/`inicio`/`fim`/`nEtapas` não constam mais na interface nem no schema
+- [x] 1.2.1 Em `entities.ts`: renomear `WaveDTO` — `etapas→stages`, `inicio→startedAt`, `fim→finishedAt`, `motivoTermino→terminationReason`, `nEtapas→nStages`; manter `execucaoId→executionId`
+- [x] 1.2.2 Em `schemas/entities.ts`: renomear campos de `WaveDTOSchema` para paridade exata
+- [x] 1.2.3 Verificar que `etapas`/`inicio`/`fim`/`nEtapas` não constam mais na interface nem no schema
 
 ### 1.3 Renomear campos de DecisionDTO e DecisionDTOSchema [C]
 
 Ref: spec.md FR-004; data-model.md §Entity: decisions
 
-- [ ] 1.3.1 Em `entities.ts`: renomear `DecisionDTO` — `execucaoId→executionId`, `etapa→stage`, `agente→agent`, `escolha→choice`, `opcoes→options`, `contexto→context`, `justificativa→rationale` (manter `score`, `evidence` já EN, `wave` inalterado)
-- [ ] 1.3.2 Em `schemas/entities.ts`: renomear campos de `DecisionDTOSchema` para paridade exata
-- [ ] 1.3.3 Manter o comentário `@untrusted` nos campos textuais (`context`, `rationale`, `evidence`)
+- [x] 1.3.1 Em `entities.ts`: renomear `DecisionDTO` — `execucaoId→executionId`, `etapa→stage`, `agente→agent`, `escolha→choice`, `opcoes→options`, `contexto→context`, `justificativa→rationale` (manter `score`, `evidence` já EN, `wave` inalterado)
+- [x] 1.3.2 Em `schemas/entities.ts`: renomear campos de `DecisionDTOSchema` para paridade exata
+- [x] 1.3.3 Manter o comentário `@untrusted` nos campos textuais (`context`, `rationale`, `evidence`)
 
 ### 1.4 Renomear campos de TaskDTO e TaskDTOSchema [C]
 
 Ref: spec.md FR-004, FR-010; data-model.md §Entity: tasks
 
-- [ ] 1.4.1 Em `entities.ts`: renomear `TaskDTO` — `execucaoId→executionId`, `titulo→title`, `testesRodados→testsRun`, `testesPassados→testsPassed`, `arquivosTocadosCount→touchedFilesCount` (manter `lintOk`, `outcome`, `wave` inalterados)
-- [ ] 1.4.2 Em `schemas/entities.ts`: renomear campos de `TaskDTOSchema` para paridade exata
-- [ ] 1.4.3 Verificar que `titulo`/`testesRodados`/`testesPassados` não constam mais na interface
+- [x] 1.4.1 Em `entities.ts`: renomear `TaskDTO` — `execucaoId→executionId`, `titulo→title`, `testesRodados→testsRun`, `testesPassados→testsPassed`, `arquivosTocadosCount→touchedFilesCount` (manter `lintOk`, `outcome`, `wave` inalterados)
+- [x] 1.4.2 Em `schemas/entities.ts`: renomear campos de `TaskDTOSchema` para paridade exata
+- [x] 1.4.3 Verificar que `titulo`/`testesRodados`/`testesPassados` não constam mais na interface
 
 ### 1.5 Renomear BloqueioDTO→BlockDTO e BloqueioDTOSchema→BlockDTOSchema [C]
 
 Ref: spec.md FR-002, FR-004; data-model.md §Entity: blocks
 
-- [ ] 1.5.1 Em `entities.ts`: renomear a interface `BloqueioDTO→BlockDTO` e todos os seus campos — `execucaoId→executionId`, `pergunta→question`, `contextoParaResposta→contextForAnswer`, `resposta→answer`, `decisaoId→decisionId`, `disparadoEm→triggeredAt`, `respondidoEm→answeredAt`, `latenciaSegundos→latencySeconds` (manter `status`)
-- [ ] 1.5.2 Em `schemas/entities.ts`: renomear `BloqueioDTOSchema→BlockDTOSchema` e todos os seus campos para paridade exata
-- [ ] 1.5.3 Atualizar `export` em `packages/shared-types/src/index.ts` para exportar `BlockDTO`, `BlockDTOSchema` no lugar de `BloqueioDTO`, `BloqueioDTOSchema`
+- [x] 1.5.1 Em `entities.ts`: renomear a interface `BloqueioDTO→BlockDTO` e todos os seus campos — `execucaoId→executionId`, `pergunta→question`, `contextoParaResposta→contextForAnswer`, `resposta→answer`, `decisaoId→decisionId`, `disparadoEm→triggeredAt`, `respondidoEm→answeredAt`, `latenciaSegundos→latencySeconds` (manter `status`)
+- [x] 1.5.2 Em `schemas/entities.ts`: renomear `BloqueioDTOSchema→BlockDTOSchema` e todos os seus campos para paridade exata
+- [x] 1.5.3 Atualizar `export` em `packages/shared-types/src/index.ts` para exportar `BlockDTO`, `BlockDTOSchema` no lugar de `BloqueioDTO`, `BloqueioDTOSchema`
 
 ### 1.6 Renomear campos de EventDTO e EventDTOSchema [C]
 
 Ref: spec.md FR-004; data-model.md §Entity: events
 
-- [ ] 1.6.1 Em `entities.ts`: renomear `EventDTO` — `execucaoId→executionId`, `descricao→description` (manter `eventType`, `timestamp` já EN)
-- [ ] 1.6.2 Em `schemas/entities.ts`: renomear campos de `EventDTOSchema` para paridade exata
+- [x] 1.6.1 Em `entities.ts`: renomear `EventDTO` — `execucaoId→executionId`, `descricao→description` (manter `eventType`, `timestamp` já EN)
+- [x] 1.6.2 Em `schemas/entities.ts`: renomear campos de `EventDTOSchema` para paridade exata
 
 ### 1.7 Renomear campos de AlertSignalDTO e AlertSignalDTOSchema [C]
 
 Ref: spec.md FR-004; data-model.md §Entity: alert_signals
 
-- [ ] 1.7.1 Em `entities.ts`: renomear `AlertSignalDTO` — `execucaoId→executionId`, `tipo→type`, `subtipo→subtype`, `valorConsumido→consumedValue`, `valorThreshold→thresholdValue`, `descricao→description` (manter `wave`)
-- [ ] 1.7.2 Em `schemas/entities.ts`: renomear campos de `AlertSignalDTOSchema` para paridade exata
+- [x] 1.7.1 Em `entities.ts`: renomear `AlertSignalDTO` — `execucaoId→executionId`, `tipo→type`, `subtipo→subtype`, `valorConsumido→consumedValue`, `valorThreshold→thresholdValue`, `descricao→description` (manter `wave`)
+- [x] 1.7.2 Em `schemas/entities.ts`: renomear campos de `AlertSignalDTOSchema` para paridade exata
 
 ### 1.8 Renomear campos de RetroDTO e RetroDTOSchema [A]
 
 Ref: spec.md FR-004; data-model.md §Entity: retros
 
-- [ ] 1.8.1 Em `entities.ts`: renomear `RetroDTO` — `execucaoId→executionId`, `texto→text` (manter `wave`)
-- [ ] 1.8.2 Em `schemas/entities.ts`: renomear campos de `RetroDTOSchema` para paridade exata
+- [x] 1.8.1 Em `entities.ts`: renomear `RetroDTO` — `execucaoId→executionId`, `texto→text` (manter `wave`)
+- [x] 1.8.2 Em `schemas/entities.ts`: renomear campos de `RetroDTOSchema` para paridade exata
 
 ### 1.9 Renomear campos de SkillDTO, SuggestionDTO e seus schemas [A]
 
 Ref: spec.md FR-004; data-model.md §Entity: skills, suggestions
 
-- [ ] 1.9.1 Em `entities.ts`: renomear `SkillDTO` — `execucaoId→executionId`, `decisaoId→decisionId` (manter `skillName`, `wave`)
-- [ ] 1.9.2 Em `entities.ts`: renomear `SuggestionDTO` — `execucaoId→executionId`, `skillAfetada→affectedSkill`, `severidade→severity`, `diagnostico→diagnosis`, `proposta→proposal`, `issueAberta→issueOpened`, `criadaEm→createdAt` (manter `sourceId`, `referencias`)
-- [ ] 1.9.3 Em `schemas/entities.ts`: renomear `SkillDTOSchema` e `SuggestionDTOSchema` para paridade exata com as interfaces renomeadas
+- [x] 1.9.1 Em `entities.ts`: renomear `SkillDTO` — `execucaoId→executionId`, `decisaoId→decisionId` (manter `skillName`, `wave`)
+- [x] 1.9.2 Em `entities.ts`: renomear `SuggestionDTO` — `execucaoId→executionId`, `skillAfetada→affectedSkill`, `severidade→severity`, `diagnostico→diagnosis`, `proposta→proposal`, `issueAberta→issueOpened`, `criadaEm→createdAt` (manter `sourceId`, `referencias`)
+- [x] 1.9.3 Em `schemas/entities.ts`: renomear `SkillDTOSchema` e `SuggestionDTOSchema` para paridade exata com as interfaces renomeadas
 
 ### 1.10 Renomear campos em rollups: FeatureRollup e ProjectRollup [A]
 
 Ref: spec.md FR-004; plan.md §Project Structure
 
-- [ ] 1.10.1 Em `entities.ts`: renomear `FeatureRollup` — `totalBloqueios→totalBlocks`, `etapaCorrente→currentStage` (demais campos já EN)
+- [x] 1.10.1 Em `entities.ts`: renomear `FeatureRollup` — `totalBloqueios→totalBlocks`, `etapaCorrente→currentStage` (demais campos já EN)
 - [ ] 1.10.2 Verificar paridade com o que o server retorna (renomear FeatureRollupRow em executions.ts na FASE 2)
 
 ### 1.11 Gate de fase 1: verificar tsc e paridade DTOs ↔ Zod [C]
 
 Ref: spec.md FR-013; quickstart.md §Scenario A
 
-- [ ] 1.11.1 Executar `pnpm --filter @cstk-panel/shared-types exec tsc --noEmit` — deve retornar 0 erros (falhar aqui indica inconsistência interna no shared-types)
-- [ ] 1.11.2 Verificar paridade: para cada DTO, confirmar que cada campo da interface tem campo idêntico no schema Zod correspondente (grep cruzado ou inspeção manual)
-- [ ] 1.11.3 Verificar que `packages/shared-types/src/index.ts` exporta os novos nomes (`BlockDTO`, `BlockDTOSchema`) sem referências obsoletas
+- [x] 1.11.1 Executar `pnpm --filter @cstk-panel/shared-types exec tsc --noEmit` — deve retornar 0 erros (falhar aqui indica inconsistência interna no shared-types)
+- [x] 1.11.2 Verificar paridade: para cada DTO, confirmar que cada campo da interface tem campo idêntico no schema Zod correspondente (grep cruzado ou inspeção manual)
+- [x] 1.11.3 Verificar que `packages/shared-types/src/index.ts` exporta os novos nomes (`BlockDTO`, `BlockDTOSchema`) sem referências obsoletas
 
 ---
 

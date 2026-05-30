@@ -12,7 +12,7 @@
     "short_name": "new-schema"
   },
   "current_stage": "execute-task",
-  "next_instruction": "execute-task FASE 2: server queries (waves.ts, decisions.ts, tasks.ts, events.ts, alert_signals.ts, blocks.ts rename, retros.ts, skills.ts, suggestions.ts) — renames Row interfaces pt-BR->EN snake_case, update SQL SELECTs, adicionar hasColumn guards, renomear tabela bloqueios->blocks. Gate: tsc server 0 erros.",
+  "next_instruction": "Onda execute-task — começar pela FASE 1 (shared-types). Executar tarefa 1.1 (Renomear campos de ExecutionDTO e ExecutionDTOSchema [C]) via skill execute-task, seguindo o gate ETAPA 0 (sonda empírica) e gate de fim tsc --noEmit. Loop pelas tarefas [C] da FASE 1 antes de avançar de fase.",
   "waves": [
     {
       "id": "onda-001",
@@ -97,25 +97,6 @@
           "skill": "create-tasks",
           "timestamp": "2026-05-30T14:16:41Z",
           "decision_id": "dec-013"
-        }
-      ]
-    },
-    {
-      "id": "onda-005",
-      "started_at": "2026-05-30T14:20:31Z",
-      "finished_at": "2026-05-30T14:28:19Z",
-      "executed_stages": [
-        "execute-task"
-      ],
-      "tool_calls": 0,
-      "wallclock_seconds": 468,
-      "termination_reason": "etapa_concluida_avancando",
-      "next_wave_scheduled_for": null,
-      "skills_invoked": [
-        {
-          "skill": "execute-task",
-          "timestamp": "2026-05-30T14:27:31Z",
-          "decision_id": "dec-015"
         }
       ]
     }
@@ -385,25 +366,6 @@
       "evidence": null,
       "references": [],
       "originating_artifact": null
-    },
-    {
-      "id": "dec-015",
-      "wave_id": "onda-005",
-      "timestamp": "2026-05-30T14:27:25Z",
-      "stage": "execute-task",
-      "agent": "agente-00c-feature-orchestrator",
-      "context": "FASE 1 shared-types: renames pt-BR->EN em entities.ts + schemas/entities.ts + index.ts + testes de paridade atualizados",
-      "options_considered": [
-        "executar-fase1-completa",
-        "executar-parcial",
-        "skip"
-      ],
-      "choice": "executar-fase1-completa",
-      "rationale": "11 tarefas (1.1 a 1.11) concluidas: 0 erros tsc, 55 testes passando (vitest run exit 0)",
-      "justification_score": 3,
-      "evidence": "npx tsc --noEmit EXIT_TSC:0; vitest 3 passed (55 tests) exit 0",
-      "references": [],
-      "originating_artifact": null
     }
   ],
   "human_blocks": [],
@@ -418,15 +380,15 @@
     "wallclock_threshold_seconds": 5400,
     "state_size_threshold_bytes": 1048576,
     "tool_calls_current_wave": 0,
-    "current_wave_start": "2026-05-30T14:20:31Z"
+    "current_wave_start": "2026-05-30T14:09:47Z"
   },
   "accumulated_metrics": {
-    "waves_total": 5,
+    "waves_total": 4,
     "tool_calls_total": 0,
-    "wallclock_total_seconds": 1805,
+    "wallclock_total_seconds": 1337,
     "max_depth_reached": 1,
     "subagents_spawned": 0,
-    "decisions_total": 15,
+    "decisions_total": 14,
     "human_blocks_total": 0,
     "global_skill_suggestions_total": 0,
     "toolkit_issues_opened": 0,
@@ -471,27 +433,6 @@
       "event_type": "schedule_wait",
       "timestamp": "2026-05-30T14:05:35Z",
       "description": "onda-003 plan encerrada; aguardando wakeup para create-tasks"
-    }
-  ],
-  "tasks": [
-    {
-      "task_id": "1.1-1.11",
-      "title": "FASE 1 shared-types: renames pt-BR->EN (ExecutionDTO, WaveDTO, DecisionDTO, TaskDTO, BlockDTO, EventDTO, AlertSignalDTO, RetroDTO, SkillDTO, SuggestionDTO, FeatureRollup)",
-      "wave_id": "onda-005",
-      "outcome": "pass",
-      "tests_run": 55,
-      "tests_passed": 55,
-      "lint_ok": true,
-      "touched_files": [
-        "docs/specs/new-schema/tasks.md",
-        "packages/shared-types/src/__tests__/parity-real.test.ts",
-        "packages/shared-types/src/__tests__/parity.test.ts",
-        "packages/shared-types/src/entities.ts",
-        "packages/shared-types/src/index.ts",
-        "packages/shared-types/src/schemas/entities.ts"
-      ],
-      "recorded_at": "2026-05-30T14:27:47Z",
-      "source": "execute-task"
     }
   ]
 }

@@ -10,23 +10,23 @@ import { z } from 'zod';
 export const ExecutionDTOSchema = z.object({
   project: z.string(),
   feature: z.string(),
-  execucaoId: z.string(),
+  executionId: z.string(),
   status: z.enum(['em_andamento', 'aguardando_humano', 'concluida', 'abortada']).nullable(),
-  motivoTermino: z.string().nullable(),
-  etapaCorrente: z.string().nullable(),
-  iniciadaEm: z.string().nullable(),
-  terminadaEm: z.string().nullable(),
-  duracaoSegundos: z.number().nullable(),
-  stackSugerida: z.string().nullable(),
-  ondasTotal: z.number().nullable(),
+  terminationReason: z.string().nullable(),
+  currentStage: z.string().nullable(),
+  startedAt: z.string().nullable(),
+  finishedAt: z.string().nullable(),
+  durationSeconds: z.number().nullable(),
+  suggestedStack: z.string().nullable(),
+  wavesTotal: z.number().nullable(),
   toolCallsTotal: z.number().nullable(),
-  wallclockTotalSegundos: z.number().nullable(),
-  subagentesSpawned: z.number().nullable(),
-  profundidadeMax: z.number().nullable(),
-  decisoesTotal: z.number().nullable(),
-  bloqueiosHumanosTotal: z.number().nullable(),
-  sugestoesSkillsTotal: z.number().nullable(),
-  issuesToolkitAbertas: z.number().nullable(),
+  wallclockTotalSeconds: z.number().nullable(),
+  subagentsSpawned: z.number().nullable(),
+  maxDepth: z.number().nullable(),
+  decisionsTotal: z.number().nullable(),
+  humanBlocksTotal: z.number().nullable(),
+  skillSuggestionsTotal: z.number().nullable(),
+  toolkitIssuesOpened: z.number().nullable(),
 });
 
 // ---------------------------------------------------------------------------
@@ -34,14 +34,14 @@ export const ExecutionDTOSchema = z.object({
 // ---------------------------------------------------------------------------
 export const WaveDTOSchema = z.object({
   wave: z.string(),
-  execucaoId: z.string(),
-  etapas: z.string(), // string unica — NAO array
-  inicio: z.string().nullable(),
-  fim: z.string().nullable(),
+  executionId: z.string(),
+  stages: z.string(), // string unica — NAO array (schema v7)
+  startedAt: z.string().nullable(),
+  finishedAt: z.string().nullable(),
   wallclockSeconds: z.number().nullable(),
   toolCalls: z.number().nullable(),
-  motivoTermino: z.string().nullable(),
-  nEtapas: z.number().nullable(),
+  terminationReason: z.string().nullable(),
+  nStages: z.number().nullable(),
   nSkills: z.number().nullable(),
 });
 
@@ -50,14 +50,14 @@ export const WaveDTOSchema = z.object({
 // ---------------------------------------------------------------------------
 export const DecisionDTOSchema = z.object({
   wave: z.string(),
-  execucaoId: z.string(),
-  etapa: z.string().nullable(),
-  agente: z.string().nullable(),
-  escolha: z.string().nullable(),
-  opcoes: z.string().nullable(),
+  executionId: z.string(),
+  stage: z.string().nullable(),
+  agent: z.string().nullable(),
+  choice: z.string().nullable(),
+  options: z.string().nullable(),
   score: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]).nullable(),
-  contexto: z.string().nullable(),
-  justificativa: z.string().nullable(),
+  context: z.string().nullable(),
+  rationale: z.string().nullable(),
   evidencia: z.string().nullable(),
 });
 
@@ -66,60 +66,60 @@ export const DecisionDTOSchema = z.object({
 // ---------------------------------------------------------------------------
 export const TaskDTOSchema = z.object({
   wave: z.string(),
-  execucaoId: z.string(),
-  titulo: z.string(),
+  executionId: z.string(),
+  title: z.string(),
   outcome: z.enum(['pass', 'fail']).nullable(),
-  testesRodados: z.number().nullable(),
-  testesPassados: z.number().nullable(),
+  testsRun: z.number().nullable(),
+  testsPassed: z.number().nullable(),
   lintOk: z.boolean().nullable(),
-  arquivosTocadosCount: z.number().nullable(),
+  touchedFilesCount: z.number().nullable(),
 });
 
 // ---------------------------------------------------------------------------
 // EventDTO schema
 // ---------------------------------------------------------------------------
 export const EventDTOSchema = z.object({
-  execucaoId: z.string(),
+  executionId: z.string(),
   eventType: z.enum(['lock_contention', 'validation_failed', 'wave_retry', 'schedule_wait', 'recall_consulted']),
   timestamp: z.string(),
-  descricao: z.string().nullable(),
+  description: z.string().nullable(),
 });
 
 // ---------------------------------------------------------------------------
 // AlertSignalDTO schema
 // ---------------------------------------------------------------------------
 export const AlertSignalDTOSchema = z.object({
-  execucaoId: z.string(),
-  tipo: z.enum(['circular', 'budget_breach']),
-  subtipo: z.string().nullable(),
-  valorConsumido: z.number().nullable(),
-  valorThreshold: z.number().nullable(),
-  descricao: z.string().nullable(),
+  executionId: z.string(),
+  type: z.enum(['circular', 'budget_breach']),
+  subtype: z.string().nullable(),
+  consumedValue: z.number().nullable(),
+  thresholdValue: z.number().nullable(),
+  description: z.string().nullable(),
   wave: z.string(),
 });
 
 // ---------------------------------------------------------------------------
-// BloqueioDTO schema
+// BlockDTO schema
 // ---------------------------------------------------------------------------
-export const BloqueioDTOSchema = z.object({
-  execucaoId: z.string(),
+export const BlockDTOSchema = z.object({
+  executionId: z.string(),
   status: z.string().nullable(),
-  pergunta: z.string().nullable(),
-  contextoParaResposta: z.string().nullable(),
-  resposta: z.string().nullable(),
-  decisaoId: z.string().nullable(),
-  disparadoEm: z.string().nullable(),
-  respondidoEm: z.string().nullable(),
-  latenciaSegundos: z.number().nullable(),
+  question: z.string().nullable(),
+  contextForAnswer: z.string().nullable(),
+  answer: z.string().nullable(),
+  decisionId: z.string().nullable(),
+  triggeredAt: z.string().nullable(),
+  answeredAt: z.string().nullable(),
+  latencySeconds: z.number().nullable(),
 });
 
 // ---------------------------------------------------------------------------
 // SkillDTO schema
 // ---------------------------------------------------------------------------
 export const SkillDTOSchema = z.object({
-  execucaoId: z.string(),
+  executionId: z.string(),
   skillName: z.string(),
-  decisaoId: z.string().nullable(),
+  decisionId: z.string().nullable(),
   wave: z.string(),
 });
 
@@ -127,8 +127,8 @@ export const SkillDTOSchema = z.object({
 // RetroDTO schema
 // ---------------------------------------------------------------------------
 export const RetroDTOSchema = z.object({
-  execucaoId: z.string(),
-  texto: z.string().nullable(),
+  executionId: z.string(),
+  text: z.string().nullable(),
   wave: z.string(),
 });
 
@@ -160,18 +160,18 @@ export const MemoryDTOSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// SuggestionDTO schema (schema v5 — feature recall-suggestions)
+// SuggestionDTO schema (schema v7 EN — feature recall-suggestions)
 // ---------------------------------------------------------------------------
 export const SuggestionDTOSchema = z.object({
-  execucaoId: z.string(),
+  executionId: z.string(),
   sourceId: z.string(),
-  skillAfetada: z.string().nullable(),
-  severidade: z.enum(['informativa', 'aviso', 'impeditiva']).nullable(),
-  diagnostico: z.string().nullable(),
-  proposta: z.string().nullable(),
+  affectedSkill: z.string().nullable(),
+  severity: z.enum(['informativa', 'aviso', 'impeditiva']).nullable(),
+  diagnosis: z.string().nullable(),
+  proposal: z.string().nullable(),
   referencias: z.array(z.string()),
-  issueAberta: z.string().nullable(),
-  criadaEm: z.string().nullable(),
+  issueOpened: z.string().nullable(),
+  createdAt: z.string().nullable(),
 });
 
 // ---------------------------------------------------------------------------
@@ -201,8 +201,8 @@ export const FeatureRollupSchema = z.object({
   totalWallclock: z.number().nullable().optional(),
   totalDecisions: z.number().optional(),
   totalOndas: z.number().nullable().optional(),
-  totalBloqueios: z.number().optional(),
-  etapaCorrente: z.string().nullable().optional(),
+  totalBlocks: z.number().optional(),
+  currentStage: z.string().nullable().optional(),
   openAlerts: z.number().optional(),
   latestStatus: z.enum(['em_andamento', 'aguardando_humano', 'concluida', 'abortada']).nullable(),
   latestExecutionAt: z.string().nullable(),

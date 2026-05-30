@@ -1,13 +1,13 @@
 /**
  * DTOs de dominio — entidades core do cstk-panel.
- * Fonte de verdade: data-model.md (schema v2 da knowledge.db).
+ * Fonte de verdade: data-model.md (schema v7 EN canonical da knowledge.db).
  * Ref: spec.md §Key Entities; plan.md §Convencoes de Borda
  *
  * IMPORTANTE — Convencoes de tipos:
  * - Colunas `TEXT` ISO-8601 → `string`; FE formata para "ha Xm"
  * - `INTEGER` 0/1 (lint_ok) → `boolean` via `=== 1` no mapper
- * - `INTEGER` contagem (arquivos_tocados) → `number` — NAO e array
- * - `TEXT waves.etapas` → `string` — NAO array (string unica do schema v2)
+ * - `INTEGER` contagem (touched_files) → `number` — NAO e array
+ * - `TEXT waves.stages` → `string` — NAO array (string unica do schema v7)
  * - `score INTEGER` → union `0|1|2|3`
  * - Campos UNTRUSTED marcados com @untrusted no JSDoc — renderizar via textContent
  */
@@ -18,24 +18,25 @@
 export interface ExecutionDTO {
   project: string;
   feature: string;
-  execucaoId: string;
+  /** execution_id no schema v7 EN */
+  executionId: string;
   status: 'em_andamento' | 'aguardando_humano' | 'concluida' | 'abortada' | null;
-  motivoTermino: string | null;
-  etapaCorrente: string | null;
-  iniciadaEm: string | null;
-  terminadaEm: string | null;
-  duracaoSegundos: number | null;
-  stackSugerida: string | null;
-  ondasTotal: number | null;
+  terminationReason: string | null;
+  currentStage: string | null;
+  startedAt: string | null;
+  finishedAt: string | null;
+  durationSeconds: number | null;
+  suggestedStack: string | null;
+  wavesTotal: number | null;
   /** @custo proxy — rotular como "proxy: tool calls" na UI (Principio III) */
   toolCallsTotal: number | null;
-  wallclockTotalSegundos: number | null;
-  subagentesSpawned: number | null;
-  profundidadeMax: number | null;
-  decisoesTotal: number | null;
-  bloqueiosHumanosTotal: number | null;
-  sugestoesSkillsTotal: number | null;
-  issuesToolkitAbertas: number | null;
+  wallclockTotalSeconds: number | null;
+  subagentsSpawned: number | null;
+  maxDepth: number | null;
+  decisionsTotal: number | null;
+  humanBlocksTotal: number | null;
+  skillSuggestionsTotal: number | null;
+  toolkitIssuesOpened: number | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -43,16 +44,16 @@ export interface ExecutionDTO {
 // ---------------------------------------------------------------------------
 export interface WaveDTO {
   wave: string;
-  execucaoId: string;
-  /** string unica — NAO converter para array (schema v2) */
-  etapas: string;
-  inicio: string | null;
-  fim: string | null;
+  executionId: string;
+  /** string unica — NAO converter para array (schema v7) */
+  stages: string;
+  startedAt: string | null;
+  finishedAt: string | null;
   wallclockSeconds: number | null;
   /** custo proxy */
   toolCalls: number | null;
-  motivoTermino: string | null;
-  nEtapas: number | null;
+  terminationReason: string | null;
+  nStages: number | null;
   nSkills: number | null;
 }
 
@@ -61,23 +62,23 @@ export interface WaveDTO {
 // ---------------------------------------------------------------------------
 export interface DecisionDTO {
   wave: string;
-  execucaoId: string;
-  etapa: string | null;
-  agente: string | null;
-  escolha: string | null;
+  executionId: string;
+  stage: string | null;
+  agent: string | null;
+  choice: string | null;
   /**
-   * Opcoes consideradas antes da escolha (schema v6 — decisions.opcoes).
-   * JSON array cru (ex.: `["haiku","sonnet","opus"]`), como gravado pela
-   * ingestao a partir de `.decisoes[].opcoes_consideradas`. `null` em bases
-   * v<6 sem a coluna (FR-V3-005). O FE deriva chips defensivamente e renderiza
-   * via textContent — tratar como conteudo estruturado, nunca innerHTML.
+   * Options considered before the choice (schema v7 EN — decisions.options).
+   * Raw JSON array (e.g. `["haiku","sonnet","opus"]`), as recorded by the
+   * ingestion from `.decisions[].options_considered`. `null` in bases
+   * v<6 without the column (FR-V3-005). FE derives chips defensively and renders
+   * via textContent — treat as structured content, never innerHTML.
    */
-  opcoes: string | null;
+  options: string | null;
   score: 0 | 1 | 2 | 3 | null;
   /** @untrusted — renderizar via textContent, nunca innerHTML */
-  contexto: string | null;
+  context: string | null;
   /** @untrusted — renderizar via textContent, nunca innerHTML */
-  justificativa: string | null;
+  rationale: string | null;
   /** @untrusted — renderizar via elemento mono/pre, nunca innerHTML */
   evidencia: string | null;
 }
@@ -87,70 +88,70 @@ export interface DecisionDTO {
 // ---------------------------------------------------------------------------
 export interface TaskDTO {
   wave: string;
-  execucaoId: string;
-  /** titulo descritivo da task (schema v3); '' em bases v2 ou quando ausente.
+  executionId: string;
+  /** descriptive task title (schema v7 EN); '' in pre-v3 bases or when absent.
    *  @untrusted leve — texto livre (passa por secrets-filter na ingestao);
    *  renderizar via textContent. */
-  titulo: string;
+  title: string;
   outcome: 'pass' | 'fail' | null;
-  testesRodados: number | null;
-  testesPassados: number | null;
+  testsRun: number | null;
+  testsPassed: number | null;
   /** mapper: INTEGER 0/1 → boolean via === 1 */
   lintOk: boolean | null;
-  /** contagem, NAO array (INTEGER no schema v2) */
-  arquivosTocadosCount: number | null;
+  /** contagem, NAO array (INTEGER no schema v7) */
+  touchedFilesCount: number | null;
 }
 
 // ---------------------------------------------------------------------------
 // EventDTO — grao: 1 por evento de timeline
 // ---------------------------------------------------------------------------
 export interface EventDTO {
-  execucaoId: string;
+  executionId: string;
   eventType: 'lock_contention' | 'validation_failed' | 'wave_retry' | 'schedule_wait' | 'recall_consulted';
   timestamp: string;
   /** @untrusted leve — renderizar via textContent */
-  descricao: string | null;
+  description: string | null;
 }
 
 // ---------------------------------------------------------------------------
 // AlertSignalDTO — grao: 1 por alerta de orcamento/circular
 // ---------------------------------------------------------------------------
 export interface AlertSignalDTO {
-  execucaoId: string;
-  tipo: 'circular' | 'budget_breach';
-  subtipo: string | null;
-  valorConsumido: number | null;
-  valorThreshold: number | null;
+  executionId: string;
+  type: 'circular' | 'budget_breach';
+  subtype: string | null;
+  consumedValue: number | null;
+  thresholdValue: number | null;
   /** @untrusted leve */
-  descricao: string | null;
+  description: string | null;
   wave: string;
 }
 
 // ---------------------------------------------------------------------------
-// BloqueioDTO — grao: 1 por bloqueio humano — campos textuais UNTRUSTED
+// BlockDTO — grao: 1 por bloqueio humano — campos textuais UNTRUSTED
 // ---------------------------------------------------------------------------
-export interface BloqueioDTO {
-  execucaoId: string;
+export interface BlockDTO {
+  executionId: string;
   status: string | null;
   /** @untrusted — renderizar via textContent */
-  pergunta: string | null;
+  question: string | null;
   /** @untrusted — renderizar via textContent */
-  contextoParaResposta: string | null;
+  contextForAnswer: string | null;
   /** @untrusted — renderizar via textContent */
-  resposta: string | null;
-  decisaoId: string | null;
-  disparadoEm: string | null;
-  respondidoEm: string | null;
-  latenciaSegundos: number | null;
+  answer: string | null;
+  decisionId: string | null;
+  triggeredAt: string | null;
+  answeredAt: string | null;
+  latencySeconds: number | null;
 }
 
 // ---------------------------------------------------------------------------
 // SkillDTO — grao: 1 por invocacao de skill
 // ---------------------------------------------------------------------------
 export interface SkillDTO {
-  execucaoId: string;
+  executionId: string;
   skillName: string;
-  decisaoId: string | null;
+  decisionId: string | null;
   wave: string;
 }
 
@@ -158,9 +159,9 @@ export interface SkillDTO {
 // RetroDTO — grao: 1 por retrospectiva
 // ---------------------------------------------------------------------------
 export interface RetroDTO {
-  execucaoId: string;
+  executionId: string;
   /** @untrusted leve */
-  texto: string | null;
+  text: string | null;
   wave: string;
 }
 
@@ -215,23 +216,23 @@ export interface MemoryDTO {
 export type SuggestionSeveridade = 'informativa' | 'aviso' | 'impeditiva';
 
 export interface SuggestionDTO {
-  execucaoId: string;
-  /** id natural da sugestao (ex: sug-001) — compoe a chave (execucaoId, sourceId) */
+  executionId: string;
+  /** id natural da sugestao (ex: sug-001) — compoe a chave (executionId, sourceId) */
   sourceId: string;
   /** skill alvo da melhoria proposta (ex: execute-task); '' quando ausente */
-  skillAfetada: string | null;
-  severidade: SuggestionSeveridade | null;
+  affectedSkill: string | null;
+  severity: SuggestionSeveridade | null;
   /** @untrusted — texto livre (scrubbed na ingestao); renderizar via textContent */
-  diagnostico: string | null;
+  diagnosis: string | null;
   /** @untrusted — texto livre (scrubbed na ingestao); renderizar via textContent */
-  proposta: string | null;
+  proposal: string | null;
   /** paths de referencia (scrubbed); array derivado do CSV `referencias` do DB.
    *  @untrusted leve — renderizar via textContent */
   referencias: string[];
   /** URL/numero da issue aberta no toolkit, ou null quando nao houver */
-  issueAberta: string | null;
-  /** ISO 8601 — `criada_em` no state.json (source_ts no DB) */
-  criadaEm: string | null;
+  issueOpened: string | null;
+  /** ISO 8601 — `created_at` no state.json (source_ts no DB) */
+  createdAt: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -264,8 +265,8 @@ export interface FeatureRollup {
   totalWallclock?: number | null;
   totalDecisions?: number;
   totalOndas?: number | null;
-  totalBloqueios?: number;
-  etapaCorrente?: string | null;
+  totalBlocks?: number;
+  currentStage?: string | null;
   openAlerts?: number;
   latestStatus: 'em_andamento' | 'aguardando_humano' | 'concluida' | 'abortada' | null;
   latestExecutionAt: string | null;
