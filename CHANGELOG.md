@@ -5,6 +5,25 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.9.0] - 2026-05-30
+
+### Adicionado
+
+- **Filtro de projeto no dashboard (Visão Geral)**: o seletor de projeto da
+  topbar agora é um **filtro global** — selecionar um projeto escopa todas as
+  métricas da Visão Geral (KPIs, execuções em andamento, alertas, funil, mix de
+  modelos, atividade recente, leaderboard de custo) ao projeto escolhido. Antes
+  o seletor **navegava** para a página do projeto.
+- Endpoint `GET /overview` aceita o parâmetro opcional **`?project=<nome>`**
+  (aditivo/retrocompatível): todas as agregações passam a filtrar por projeto
+  via parâmetro nomeado `@project` (guarda `@project IS NULL OR project = @project`).
+
+### Corrigido
+
+- Card **"Execuções em andamento"** lia 3 campos pt-BR remanescentes que o
+  servidor já emitia em EN (`wallclockSegundos`→`wallclockTotalSeconds`,
+  `ondasTotal`→`wavesTotal`, `iniciadaEm`→`startedAt`) — apareciam como `—`.
+
 ## [0.8.2] - 2026-05-30
 
 ### Corrigido
