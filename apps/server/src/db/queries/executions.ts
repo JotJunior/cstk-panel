@@ -140,7 +140,7 @@ export function listExecutionsByProject(
 }
 
 /** Rollup por projeto */
-export function getRollupByProject(db: Database.Database): ExecutionRollupRow[] {
+export function getRollupByProject(db: Database.Database, project: string | null = null): ExecutionRollupRow[] {
   const decCol = hasColumn(db, 'executions', 'decisions_total') ? 'decisions_total' : '0';
   const wallCol = hasColumn(db, 'executions', 'wallclock_total_seconds') ? 'wallclock_total_seconds' : '0';
   const startedCol = hasColumn(db, 'executions', 'started_at') ? 'started_at' : 'rowid';
@@ -158,14 +158,15 @@ export function getRollupByProject(db: Database.Database): ExecutionRollupRow[] 
         (SELECT count(*) FROM alert_signals a WHERE a.project = e.project) as open_alerts,
         max(${startedCol}) as latest_execution_at
       FROM executions e
+      WHERE (@project IS NULL OR e.project = @project)
       GROUP BY project
       ORDER BY project
     `)
-    .all() as ExecutionRollupRow[];
+    .all({ project }) as ExecutionRollupRow[];
 }
 
-/** Rollup por projeto+feature */
-export function getRollupByFeature(db: Database.Database): FeatureRollupRow[] {
+/** Rollup por projeto+feature. Filtro opcional por project (overview escopado). */
+export function getRollupByFeature(db: Database.Database, project: string | null = null): FeatureRollupRow[] {
   const decCol = hasColumn(db, 'executions', 'decisions_total') ? 'decisions_total' : '0';
   const wallCol = hasColumn(db, 'executions', 'wallclock_total_seconds') ? 'wallclock_total_seconds' : '0';
   const wavesCol = hasColumn(db, 'executions', 'waves_total') ? 'waves_total' : '0';
@@ -196,8 +197,9 @@ export function getRollupByFeature(db: Database.Database): FeatureRollupRow[] {
          WHERE a.project = e.project AND a.feature = e.feature) as open_alerts,
         max(${startedCol}) as latest_execution_at
       FROM executions e
+      WHERE (@project IS NULL OR e.project = @project)
       GROUP BY project, feature
       ORDER BY project, feature
     `)
-    .all() as FeatureRollupRow[];
+    .all({ project }) as FeatureRollupRow[];
 }

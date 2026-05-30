@@ -37,6 +37,9 @@ type Period = PeriodParam;
 
 export default function App() {
   const [period, setPeriod] = useState<Period>('7d');
+  // FR-022: filtro global de projeto (controla as métricas do dashboard).
+  // '' = todos os projetos.
+  const [projectFilter, setProjectFilter] = useState('');
 
   // Frescor + contagem de alertas criticos para a Sidebar (CARD-SHELL-03).
   const healthQ = useHealth();
@@ -61,13 +64,18 @@ export default function App() {
       {/* Area principal */}
       <div className="main">
         {/* Topbar sticky 52px */}
-        <Topbar period={period} onPeriodChange={setPeriod} />
+        <Topbar
+          period={period}
+          onPeriodChange={setPeriod}
+          projectFilter={projectFilter}
+          onProjectFilterChange={setProjectFilter}
+        />
 
         {/* Conteudo das rotas */}
         <main className="content">
           <Routes>
             {/* Rota raiz — Visao Geral (US1) */}
-            <Route path="/" element={<Overview period={period} />} />
+            <Route path="/" element={<Overview period={period} project={projectFilter} />} />
 
             {/* Projetos */}
             <Route path="/projects" element={<Projects />} />

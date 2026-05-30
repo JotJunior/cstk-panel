@@ -64,8 +64,9 @@ export interface ActivityRow {
   description: string | null;
 }
 
-/** KPIs de alto nivel. Test pass e tempo de parede via subconsultas. */
-export function getOverviewKPIs(db: Database.Database): OverviewKPIs {
+/** KPIs de alto nivel. Test pass e tempo de parede via subconsultas.
+ *  Filtro opcional por `project` (FR-022): `@project IS NULL` => sem filtro. */
+export function getOverviewKPIs(db: Database.Database, project: string | null = null): OverviewKPIs {
   const decCol = hasColumn(db, 'executions', 'decisions_total') ? 'decisions_total' : '0';
   const wallCol = hasColumn(db, 'executions', 'wallclock_total_seconds') ? 'wallclock_total_seconds' : '0';
   const testsPassedCol = hasColumn(db, 'tasks', 'tests_passed') ? 'tests_passed' : '0';
@@ -76,21 +77,22 @@ export function getOverviewKPIs(db: Database.Database): OverviewKPIs {
       sum(CASE WHEN status IN ('em_andamento','aguardando_humano') THEN 1 ELSE 0 END) as active_executions,
       sum(CASE WHEN status = 'concluida' THEN 1 ELSE 0 END) as completed_executions,
       sum(CASE WHEN status = 'abortada' THEN 1 ELSE 0 END) as aborted_executions,
-      (SELECT count(*) FROM waves) as total_waves,
+      (SELECT count(*) FROM waves WHERE (@project IS NULL OR project = @project)) as total_waves,
       sum(coalesce(${decCol}, 0)) as total_decisions,
       sum(tool_calls_total) as total_tool_calls,
       sum(${wallCol}) as total_wallclock,
-      (SELECT sum(${testsPassedCol}) FROM tasks) as tests_passed,
-      (SELECT sum(${testsRunCol}) FROM tasks) as tests_total,
+      (SELECT sum(${testsPassedCol}) FROM tasks WHERE (@project IS NULL OR project = @project)) as tests_passed,
+      (SELECT sum(${testsRunCol}) FROM tasks WHERE (@project IS NULL OR project = @project)) as tests_total,
       count(DISTINCT project) as total_projects,
       count(DISTINCT feature) as total_features
     FROM executions
-  `).get() as OverviewKPIs;
+    WHERE (@project IS NULL OR project = @project)
+  `).get({ project }) as OverviewKPIs;
   return row;
 }
 
-/** Alertas mais recentes (limite 10), com consumido/threshold. */
-export function getRecentAlerts(db: Database.Database, limit = 10): RecentAlertRow[] {
+/** Alertas mais recentes (limite 10), com consumido/threshold. Filtro opcional por project. */
+export function getRecentAlerts(db: Database.Database, limit = 10, project: string | null = null): RecentAlertRow[] {
   const execIdCol = hasColumn(db, 'alert_signals', 'execution_id') ? 'execution_id' : 'NULL as execution_id';
   const typeCol = hasColumn(db, 'alert_signals', 'type') ? 'type' : "'' as type";
   const subtypeCol = hasColumn(db, 'alert_signals', 'subtype') ? 'subtype' : 'NULL as subtype';
@@ -101,13 +103,14 @@ export function getRecentAlerts(db: Database.Database, limit = 10): RecentAlertR
     SELECT ${execIdCol}, ${typeCol}, ${subtypeCol}, ${descCol}, wave,
            ${consumedCol}, ${thresholdCol}
     FROM alert_signals
+    WHERE (@project IS NULL OR project = @project)
     ORDER BY rowid DESC
-    LIMIT ?
-  `).all(limit) as RecentAlertRow[];
+    LIMIT @limit
+  `).all({ limit, project }) as RecentAlertRow[];
 }
 
-/** Execucoes ativas (em_andamento ou aguardando_humano), com proxy de custo. */
-export function getActiveExecutions(db: Database.Database): ActiveExecutionRow[] {
+/** Execucoes ativas (em_andamento ou aguardando_humano), com proxy de custo. Filtro opcional por project. */
+export function getActiveExecutions(db: Database.Database, project: string | null = null): ActiveExecutionRow[] {
   const execIdCol = hasColumn(db, 'executions', 'execution_id') ? 'execution_id' : 'NULL as execution_id';
   const stageCol = hasColumn(db, 'executions', 'current_stage') ? 'current_stage' : 'NULL as current_stage';
   const startedCol = hasColumn(db, 'executions', 'started_at') ? 'started_at' : 'NULL as started_at';
@@ -119,8 +122,9 @@ export function getActiveExecutions(db: Database.Database): ActiveExecutionRow[]
            ${startedCol}, ${wavesCol}, tool_calls_total, ${wallCol}
     FROM executions
     WHERE status IN ('em_andamento', 'aguardando_humano')
+      AND (@project IS NULL OR project = @project)
     ORDER BY ${orderCol} DESC
-  `).all() as ActiveExecutionRow[];
+  `).all({ project }) as ActiveExecutionRow[];
 }
 
 /**
@@ -128,40 +132,43 @@ export function getActiveExecutions(db: Database.Database): ActiveExecutionRow[]
  * (choice = 'model:<modelo>'). NAO e o relatorio canonico
  * (model-routing-report.sh) — a UI rotula como derivado (FR-010).
  */
-export function getModelMix(db: Database.Database): ModelMixRow[] {
+export function getModelMix(db: Database.Database, project: string | null = null): ModelMixRow[] {
   const choiceCol = hasColumn(db, 'decisions', 'choice') ? 'choice' : 'NULL';
   return db.prepare(`
     SELECT replace(${choiceCol}, 'model:', '') as modelo, count(*) as n
     FROM decisions
     WHERE ${choiceCol} LIKE 'model:%'
+      AND (@project IS NULL OR project = @project)
     GROUP BY modelo
     ORDER BY n DESC
-  `).all() as ModelMixRow[];
+  `).all({ project }) as ModelMixRow[];
 }
 
-/** Atividade recente a partir da timeline de eventos. */
-export function getRecentActivity(db: Database.Database, limit = 8): ActivityRow[] {
+/** Atividade recente a partir da timeline de eventos. Filtro opcional por project. */
+export function getRecentActivity(db: Database.Database, limit = 8, project: string | null = null): ActivityRow[] {
   const execIdCol = hasColumn(db, 'events', 'execution_id') ? 'execution_id' : 'NULL as execution_id';
   const descCol = hasColumn(db, 'events', 'description') ? 'description' : 'NULL as description';
   return db.prepare(`
     SELECT ${execIdCol}, project, feature, wave, event_type, timestamp, ${descCol}
     FROM events
+    WHERE (@project IS NULL OR project = @project)
     ORDER BY timestamp DESC
-    LIMIT ?
-  `).all(limit) as ActivityRow[];
+    LIMIT @limit
+  `).all({ limit, project }) as ActivityRow[];
 }
 
-/** Serie de custo (tool_calls por dia) a partir das ondas — para sparkline. */
-export function getCostSeries(db: Database.Database, days = 14): number[] {
+/** Serie de custo (tool_calls por dia) a partir das ondas — para sparkline. Filtro opcional por project. */
+export function getCostSeries(db: Database.Database, days = 14, project: string | null = null): number[] {
   const startedCol = hasColumn(db, 'waves', 'started_at') ? 'started_at' : 'source_ts';
   const rows = db.prepare(`
     SELECT substr(coalesce(${startedCol}, source_ts), 1, 10) as day,
            sum(coalesce(tool_calls, 0)) as total
     FROM waves
+    WHERE (@project IS NULL OR project = @project)
     GROUP BY day
     ORDER BY day DESC
-    LIMIT ?
-  `).all(days) as { day: string; total: number }[];
+    LIMIT @days
+  `).all({ days, project }) as { day: string; total: number }[];
   // Ordem cronologica ascendente para o sparkline.
   return rows.reverse().map(r => r.total);
 }

@@ -89,11 +89,12 @@ const FeatureDetailSchema = z.object({}).passthrough().nullable();
 // Metrics — schema livre por endpoint
 const MetricDataSchema = z.unknown();
 
-/** Visao geral com KPIs, alertas recentes, leaderboard */
-export function useOverview(period: PeriodParam = '7d') {
+/** Visao geral com KPIs, alertas recentes, leaderboard. Filtro opcional por project. */
+export function useOverview(period: PeriodParam = '7d', project = '') {
+  const projectQ = project ? `&project=${encodeURIComponent(project)}` : '';
   return useQuery({
-    queryKey: ['overview', period],
-    queryFn: () => fetchApi(`/overview?period=${period}`, OverviewDataSchema),
+    queryKey: ['overview', period, project],
+    queryFn: () => fetchApi(`/overview?period=${period}${projectQ}`, OverviewDataSchema),
   });
 }
 

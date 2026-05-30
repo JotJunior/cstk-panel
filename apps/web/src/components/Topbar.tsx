@@ -2,12 +2,11 @@
  * Topbar — altura 52px, sticky, breadcrumb + periodo + filtro de projeto + busca.
  * Ref: spec.md FR-021, FR-022; prototipo app.jsx Topbar (CARD-SHELL-08).
  *
- * Filtro de projeto: populado pela API real (/projects); valor derivado da rota
- * (/projects/:project); selecionar navega ao detalhe do projeto, "Todos" → /projects.
- * Escopar TODAS as telas por projeto e um filtro global e trabalho separado
- * (ver tasks-cards.md, planejamento dos demais cards).
+ * Filtro de projeto: populado pela API real (/projects). É um FILTRO GLOBAL
+ * controlado (estado em App): selecionar um projeto escopa as métricas do
+ * dashboard (Visão Geral) — NÃO navega para a página do projeto (FR-022).
  */
-import { useNavigate, useMatch } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Icon } from './Icon.js';
 import { Breadcrumb } from './Breadcrumb.js';
 import { useProjects } from '@/lib/hooks.js';
@@ -18,6 +17,9 @@ export type Period = PeriodParam;
 interface TopbarProps {
   period: Period;
   onPeriodChange: (p: Period) => void;
+  /** Filtro global de projeto ('' = todos). Controla as métricas do dashboard. */
+  projectFilter: string;
+  onProjectFilterChange: (project: string) => void;
 }
 
 const PERIODS: { label: string; value: Period }[] = [
@@ -27,29 +29,22 @@ const PERIODS: { label: string; value: Period }[] = [
   { label: 'tudo', value: 'all' },
 ];
 
-export function Topbar({ period, onPeriodChange }: TopbarProps) {
+export function Topbar({ period, onPeriodChange, projectFilter, onProjectFilterChange }: TopbarProps) {
   const navigate = useNavigate();
-
-  // Projeto corrente derivado da rota /projects/:project
-  const projectMatch = useMatch('/projects/:project');
-  const currentProject = projectMatch?.params.project
-    ? decodeURIComponent(projectMatch.params.project)
-    : '';
 
   // Lista de projetos para o filtro (cacheada via TanStack Query)
   const projectsQ = useProjects();
   const projects = (projectsQ.data?.data ?? []) as ProjectRollup[];
 
-  // Garante que o projeto da rota apareca como opcao mesmo se a lista ainda
+  // Garante que o filtro corrente apareca como opcao mesmo se a lista ainda
   // nao carregou (evita value sem <option> correspondente no select controlado).
   const projectIds = projects.map((p) => p.project);
-  const options = currentProject && !projectIds.includes(currentProject)
-    ? [currentProject, ...projectIds]
+  const options = projectFilter && !projectIds.includes(projectFilter)
+    ? [projectFilter, ...projectIds]
     : projectIds;
 
   function handleProjectChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const value = e.target.value;
-    navigate(value ? `/projects/${encodeURIComponent(value)}` : '/projects');
+    onProjectFilterChange(e.target.value);
   }
 
   function handleSearchKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -81,7 +76,7 @@ export function Topbar({ period, onPeriodChange }: TopbarProps) {
       <select
         className="select"
         aria-label="Filtrar por projeto"
-        value={currentProject}
+        value={projectFilter}
         onChange={handleProjectChange}
       >
         <option value="">Todos os projetos</option>

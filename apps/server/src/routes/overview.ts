@@ -20,7 +20,11 @@ import { getRollupByProject, getRollupByFeature } from '../db/queries/executions
 import { normalizeStatus } from '../mappers/index.js';
 
 const PeriodSchema = z.enum(['24h', '7d', '30d', 'all']).optional().default('7d');
-const QuerySchema = z.object({ period: PeriodSchema });
+// FR-022: filtro global de projeto. String vazia/ausente = todos os projetos.
+const QuerySchema = z.object({
+  period: PeriodSchema,
+  project: z.string().trim().min(1).max(200).optional(),
+});
 
 type AllExecRow = {
   project: string; feature: string; execution_id: string; status: string | null;
@@ -45,6 +49,7 @@ export async function overviewRoutes(server: FastifyInstance): Promise<void> {
   server.get('/overview', async (request, reply) => {
     const qResult = QuerySchema.safeParse(request.query);
     const period = qResult.success ? qResult.data.period : '7d';
+    const project = (qResult.success ? qResult.data.project : undefined) ?? null;
 
     const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     if (!openResult.ok) {
@@ -53,14 +58,14 @@ export async function overviewRoutes(server: FastifyInstance): Promise<void> {
 
     const { db } = openResult;
     try {
-      const kpis = getOverviewKPIs(db);
-      const recentAlerts = getRecentAlerts(db);
-      const activeExecutions = getActiveExecutions(db);
-      const projectRollups = getRollupByProject(db);
-      const featureRollups = getRollupByFeature(db);
-      const modelMix = getModelMix(db);
-      const recentActivity = getRecentActivity(db);
-      const costSeries = getCostSeries(db);
+      const kpis = getOverviewKPIs(db, project);
+      const recentAlerts = getRecentAlerts(db, 10, project);
+      const activeExecutions = getActiveExecutions(db, project);
+      const projectRollups = getRollupByProject(db, project);
+      const featureRollups = getRollupByFeature(db, project);
+      const modelMix = getModelMix(db, project);
+      const recentActivity = getRecentActivity(db, 8, project);
+      const costSeries = getCostSeries(db, 14, project);
 
       // Filtrar por periodo para leaderboard
       const { hasColumn } = await import('../db/columns.js');
@@ -74,9 +79,10 @@ export async function overviewRoutes(server: FastifyInstance): Promise<void> {
           SELECT project, feature, ${execIdCol}, status, tool_calls_total,
                  ${wavesTotalCol}, ${decTotalCol}, ${startedAtCol}, ${finishedAtCol}
           FROM executions
+          WHERE (@project IS NULL OR project = @project)
           ORDER BY tool_calls_total DESC NULLS LAST
         `)
-        .all() as AllExecRow[];
+        .all({ project }) as AllExecRow[];
 
       const filtered = period === 'all' ? allExecs : filterByPeriod(allExecs, period);
 
@@ -87,10 +93,11 @@ export async function overviewRoutes(server: FastifyInstance): Promise<void> {
           SELECT ${stageCol} as stage, count(*) as count
           FROM executions
           WHERE ${stageCol} IS NOT NULL
+            AND (@project IS NULL OR project = @project)
           GROUP BY stage
           ORDER BY count DESC
         `)
-        .all() as { stage: string; count: number }[];
+        .all({ project }) as { stage: string; count: number }[];
 
       const data = {
         kpis: {

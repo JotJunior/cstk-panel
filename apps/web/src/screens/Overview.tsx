@@ -27,6 +27,8 @@ import type { PeriodParam } from '@cstk-panel/shared-types';
 
 interface OverviewProps {
   period: PeriodParam;
+  /** Filtro global de projeto ('' = todos). Escopa todas as métricas. */
+  project?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -67,9 +69,9 @@ const EVENT_COLOR: Record<string, string> = {
 };
 
 // ---------------------------------------------------------------------------
-export function Overview({ period }: OverviewProps) {
+export function Overview({ period, project = '' }: OverviewProps) {
   const navigate = useNavigate();
-  const query = useOverview(period);
+  const query = useOverview(period, project);
   const { isLoading, isEmpty, isError, errorMessage, isDegraded } = useApiState(query);
 
   if (isLoading) return <LoadingState variant="kpi" />;
@@ -211,8 +213,8 @@ export function Overview({ period }: OverviewProps) {
                         </div>
                         <div className="row gap-3" style={{ flexShrink: 0 }}>
                           <MiniStat label="tool_calls" value={fmtNum(f.toolCallsTotal as number | null)} align="end" />
-                          <MiniStat label="wallclock" value={fmtDur(f.wallclockSegundos as number | null)} align="end" />
-                          <MiniStat label="ondas" value={String(f.ondasTotal ?? '—')} align="end" />
+                          <MiniStat label="wallclock" value={fmtDur(f.wallclockTotalSeconds as number | null)} align="end" />
+                          <MiniStat label="ondas" value={String(f.wavesTotal ?? '—')} align="end" />
                         </div>
                       </div>
                       <PipelineProgress etapa={etapa} status={status} />
@@ -220,7 +222,7 @@ export function Overview({ period }: OverviewProps) {
                         <span className="muted" style={{ fontSize: 11 }}>
                           etapa corrente · <span className="mono" style={{ color: 'var(--inprogress)' }}>{etapa ?? '—'}</span>
                         </span>
-                        <span className="muted" style={{ fontSize: 11 }}>iniciada {fmtRelative(f.iniciadaEm as string | null)}</span>
+                        <span className="muted" style={{ fontSize: 11 }}>iniciada {fmtRelative(f.startedAt as string | null)}</span>
                       </div>
                     </div>
                   );
