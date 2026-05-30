@@ -76,7 +76,6 @@ export function DecisionMapPanel({
         }
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapVisible, layout.nodes.length]);
 
   // 3.1.11: prevKey/nextKey para navegação no painel

@@ -411,9 +411,11 @@ function TasksPanel({ execucaoId }: { execucaoId: string }) {
               <td><span style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5 }}>{t.wave}</span></td>
               <td><OutcomePill outcome={t.outcome} /></td>
               <td className="num">{t.testsPassed}/{t.testsRun}</td>
-              <td>{t.lintOk
-                ? <span className="pill pass">ok</span>
-                : <span className="pill fail">falhou</span>}
+              <td>{t.lintOk == null
+                ? <span className="muted">—</span>
+                : t.lintOk
+                  ? <span className="pill pass">ok</span>
+                  : <span className="pill fail">falhou</span>}
               </td>
               <td className="num">{t.touchedFilesCount ?? '—'}</td>
             </tr>
