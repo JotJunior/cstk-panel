@@ -5,6 +5,27 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.8.1] - 2026-05-30
+
+Patch de qualidade pós-0.8.0.
+
+### Corrigido
+
+- **Aba Tarefas da execução** (`/executions/:id?tab=tasks`): tarefas com status de
+  lint **não registrado** (`lint_ok = null`) eram exibidas como **"✕ falhou"**,
+  sugerindo falha de lint inexistente. Agora renderizam **"—"** (igual à tela
+  global *Tarefas*). O *mapper* já preservava o `null`; só o componente
+  `ExecutionDetail` não tratava o caso. Nenhuma tarefa de fato falhou lint.
+- **`npm run lint`** voltou a passar (`exit 0`): removida diretiva
+  `eslint-disable` morta para a regra `react-hooks/exhaustive-deps` (não
+  configurada), que fazia o eslint sair com 1 erro ("rule not found").
+
+### Testes / Infra
+
+- Zerados os 10 *warnings* de `@typescript-eslint/no-unused-vars`: imports/vars
+  mortos removidos e `varsIgnorePattern: '^_'` adicionado ao config (par do
+  `argsIgnorePattern` já existente). `npm run lint` = 0 problemas.
+
 ## [0.8.0] - 2026-05-30
 
 Adaptação ao **schema v7 (EN canônico)** da `knowledge.db` do cstk. O cstk
