@@ -838,11 +838,6 @@
       "event_type": "schedule_wait",
       "timestamp": "2026-05-30T15:27:17Z",
       "description": "onda-008 execute-task FASE4: tsc=0, vitest 123/123, avancando para FASE5"
-    },
-    {
-      "event_type": "schedule_wait",
-      "timestamp": "2026-05-30T15:46:01Z",
-      "description": "onda-009 execute-task concluida; proxima=review-task"
     }
   ],
   "tasks": [

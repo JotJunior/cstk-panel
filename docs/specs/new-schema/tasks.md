@@ -116,7 +116,7 @@ Ref: spec.md FR-004; data-model.md §Entity: skills, suggestions
 Ref: spec.md FR-004; plan.md §Project Structure
 
 - [x] 1.10.1 Em `entities.ts`: renomear `FeatureRollup` — `totalBloqueios→totalBlocks`, `etapaCorrente→currentStage` (demais campos já EN)
-- [ ] 1.10.2 Verificar paridade com o que o server retorna (renomear FeatureRollupRow em executions.ts na FASE 2)
+- [x] 1.10.2 Verificar paridade com o que o server retorna (renomear FeatureRollupRow em executions.ts na FASE 2)
 
 ### 1.11 Gate de fase 1: verificar tsc e paridade DTOs ↔ Zod [C]
 
@@ -435,59 +435,59 @@ Ref: spec.md FR-013; quickstart.md §Scenario A
 
 Ref: spec.md FR-013; quickstart.md §Scenario A
 
-- [ ] 5.1.1 Executar `pnpm -r exec tsc --noEmit` (ou `pnpm --filter @cstk-panel/shared-types exec tsc --noEmit && pnpm --filter @cstk-panel/server exec tsc --noEmit && pnpm --filter @cstk-panel/web exec tsc --noEmit`)
-- [ ] 5.1.2 Confirmar: zero erros em todos os workspaces
-- [ ] 5.1.3 Se houver erros residuais, rastrear até a FASE responsável e corrigir antes de prosseguir
+- [x] 5.1.1 Executar `pnpm -r exec tsc --noEmit` (ou `pnpm --filter @cstk-panel/shared-types exec tsc --noEmit && pnpm --filter @cstk-panel/server exec tsc --noEmit && pnpm --filter @cstk-panel/web exec tsc --noEmit`)
+- [x] 5.1.2 Confirmar: zero erros em todos os workspaces
+- [x] 5.1.3 Se houver erros residuais, rastrear até a FASE responsável e corrigir antes de prosseguir
 
 ### 5.2 Regressão vitest: suites existentes [C]
 
 Ref: spec.md FR-014; quickstart.md §Scenario F
 
-- [ ] 5.2.1 Executar `pnpm -r test` (suites existentes: `parity.test.ts`, `parity-real.test.ts`, `envelope.test.ts`, `hooks-schemas.test.ts`, `PipelineProgress.test.ts`, `DecisionMapPanel.test.ts`, `decision-map-layout.test.ts`, `decision-options.test.ts`, `overview-select.test.ts`, `stack-display.test.ts`, `memory-display.test.ts`, `features-filter.ts`, `Sidebar.test.ts`)
-- [ ] 5.2.2 Confirmar: todas as suites que passavam antes continuam passando
-- [ ] 5.2.3 Investigar e corrigir qualquer regressão causada pelo rename (ex: testes que acessavam `execucaoId` diretamente em fixtures)
+- [x] 5.2.1 Executar `pnpm -r test` (suites existentes: `parity.test.ts`, `parity-real.test.ts`, `envelope.test.ts`, `hooks-schemas.test.ts`, `PipelineProgress.test.ts`, `DecisionMapPanel.test.ts`, `decision-map-layout.test.ts`, `decision-options.test.ts`, `overview-select.test.ts`, `stack-display.test.ts`, `memory-display.test.ts`, `features-filter.ts`, `Sidebar.test.ts`)
+- [x] 5.2.2 Confirmar: todas as suites que passavam antes continuam passando
+- [x] 5.2.3 Investigar e corrigir qualquer regressão causada pelo rename (ex: testes que acessavam `execucaoId` diretamente em fixtures)
 
 ### 5.3 Roundtrip v7 real: Cenário B (quickstart) [C]
 
 Ref: spec.md Success Criterion 1; quickstart.md §Scenario B
 
-- [ ] 5.3.1 Confirmar que o DB instalado é v7: `sqlite3 ~/.claude/cstk/knowledge.db "SELECT value FROM schema_meta WHERE key='schema_version';"` deve retornar `7`
-- [ ] 5.3.2 Iniciar o servidor: `CSTK_KNOWLEDGE_DB="$HOME/.claude/cstk/knowledge.db" pnpm --filter @cstk-panel/server dev`
-- [ ] 5.3.3 Chamar endpoint executions e capturar payload: `curl -s http://localhost:<port>/api/v1/executions | tee /tmp/exec.json | jq '.data[0]'`
-- [ ] 5.3.4 Verificar presença de campos EN no payload: `executionId`, `currentStage`, `terminationReason`, `startedAt`, `finishedAt`, `wavesTotal`, `decisionsTotal` — todos não-nulos para a execução de `new-schema`
-- [ ] 5.3.5 Verificar ausência de campos pt-BR: `! grep -E '"execucaoId"|"etapaCorrente"|"motivoTermino"|"iniciadaEm"' /tmp/exec.json` deve retornar exit 0 (nada encontrado)
-- [ ] 5.3.6 Drill waves: `curl -s "http://localhost:<port>/api/v1/executions/<execution_id>/waves" | jq '.data'` — verificar que cada wave tem `startedAt`, `finishedAt`, `stages`, `terminationReason`, `nStages`, `nSkills` (não-nulos nas ondas fechadas)
-- [ ] 5.3.7 Drill decisions (paginado): `curl -s "http://localhost:<port>/api/v1/executions/<execution_id>/decisions?limit=5&offset=0" | jq '.data | length, .[0]'` — verificar campos `agent`, `stage`, `choice`, `context`, `rationale`, `evidence`
+- [x] 5.3.1 Confirmar que o DB instalado é v7: `sqlite3 ~/.claude/cstk/knowledge.db "SELECT value FROM schema_meta WHERE key='schema_version';"` deve retornar `7`
+- [x] 5.3.2 Iniciar o servidor: `CSTK_KNOWLEDGE_DB="$HOME/.claude/cstk/knowledge.db" pnpm --filter @cstk-panel/server dev`
+- [x] 5.3.3 Chamar endpoint executions e capturar payload: `curl -s http://localhost:<port>/api/v1/executions | tee /tmp/exec.json | jq '.data[0]'`
+- [x] 5.3.4 Verificar presença de campos EN no payload: `executionId`, `currentStage`, `terminationReason`, `startedAt`, `finishedAt`, `wavesTotal`, `decisionsTotal` — todos não-nulos para a execução de `new-schema`
+- [x] 5.3.5 Verificar ausência de campos pt-BR: `! grep -E '"execucaoId"|"etapaCorrente"|"motivoTermino"|"iniciadaEm"' /tmp/exec.json` deve retornar exit 0 (nada encontrado)
+- [x] 5.3.6 Drill waves: `curl -s "http://localhost:<port>/api/v1/executions/<execution_id>/waves" | jq '.data'` — verificar que cada wave tem `startedAt`, `finishedAt`, `stages`, `terminationReason`, `nStages`, `nSkills` (não-nulos nas ondas fechadas)
+- [x] 5.3.7 Drill decisions (paginado): `curl -s "http://localhost:<port>/api/v1/executions/<execution_id>/decisions?limit=5&offset=0" | jq '.data | length, .[0]'` — verificar campos `agent`, `stage`, `choice`, `context`, `rationale`, `evidence`
 
 ### 5.4 Cenário C: blocks table rename + hasTable guard [C]
 
 Ref: spec.md FR-002, FR-007; quickstart.md §Scenario C
 
-- [ ] 5.4.1 Chamar endpoint blocks contra v7: `curl -s "http://localhost:<port>/api/v1/executions/<id>/blocks" -o /tmp/b.json -w '%{http_code}\n'` — esperado: HTTP 200, body `data: []`
-- [ ] 5.4.2 Simular v6 (sem tabela `blocks`): criar fixture copy do DB sem a tabela, apontar servidor e re-chamar — esperado: HTTP 200, `data: []` (hasTable guard funcionando)
+- [x] 5.4.1 Chamar endpoint blocks contra v7: `curl -s "http://localhost:<port>/api/v1/executions/<id>/blocks" -o /tmp/b.json -w '%{http_code}\n'` — esperado: HTTP 200, body `data: []`
+- [x] 5.4.2 Simular v6 (sem tabela `blocks`): criar fixture copy do DB sem a tabela, apontar servidor e re-chamar — esperado: HTTP 200, `data: []` (hasTable guard funcionando)
 
 ### 5.5 Cenário D: degradação graceful v6 para colunas renomeadas [M]
 
 Ref: spec.md FR-007, P2; quickstart.md §Scenario D
 
-- [ ] 5.5.1 Criar fixture de DB v6 onde `executions` tem `motivo_termino` mas não `termination_reason`
-- [ ] 5.5.2 Apontar servidor para o fixture e chamar `GET /api/v1/executions`
-- [ ] 5.5.3 Verificar: HTTP 200, `terminationReason: null` no payload (hasColumn projetando NULL), sem `5xx`
+- [x] 5.5.1 Criar fixture de DB v6 onde `executions` tem `motivo_termino` mas não `termination_reason`
+- [x] 5.5.2 Apontar servidor para o fixture e chamar `GET /api/v1/executions`
+- [x] 5.5.3 Verificar: HTTP 200, `terminationReason: null` no payload (hasColumn projetando NULL), sem `5xx`
 
 ### 5.6 Cenário E: grep gate de vocabulário único [C]
 
 Ref: spec.md Success Criterion 5; quickstart.md §Scenario E
 
-- [ ] 5.6.1 Executar o grep de vocabulário: `grep -rnE 'execucao_id|motivo_termino|etapa_corrente|iniciada_em|\betapas\b|\bescolha\b|justificativa|\bpergunta\b|testes_rodados' apps/server/src packages/shared-types/src | grep -vE 'hasColumn|hasTable|//|/\*|\.test\.|__tests__'`
-- [ ] 5.6.2 Confirmar: zero resultados fora de guards, comentários e fixtures de teste
+- [x] 5.6.1 Executar o grep de vocabulário: `grep -rnE 'execucao_id|motivo_termino|etapa_corrente|iniciada_em|\betapas\b|\bescolha\b|justificativa|\bpergunta\b|testes_rodados' apps/server/src packages/shared-types/src | grep -vE 'hasColumn|hasTable|//|/\*|\.test\.|__tests__'`
+- [x] 5.6.2 Confirmar: zero resultados fora de guards, comentários e fixtures de teste
 
 ### 5.7 Testes adicionais de back-compat v6 (opcional/aditivo) [M]
 
 Ref: spec.md FR-014; quickstart.md §Scenario F
 
-- [ ] 5.7.1 Adicionar teste em `packages/shared-types/src/__tests__/parity-real.test.ts` ou arquivo novo para verificar que `BlockDTOSchema.parse(...)` funciona com os campos EN
-- [ ] 5.7.2 Adicionar teste de fixture v6 para `listBlocksByExecution` com DB sem tabela `blocks` — verificar retorno `[]` sem exceção
-- [ ] 5.7.3 Verificar que `parity.test.ts` cobre os campos renomeados (atualizar se necessário)
+- [x] 5.7.1 Adicionar teste em `packages/shared-types/src/__tests__/parity-real.test.ts` ou arquivo novo para verificar que `BlockDTOSchema.parse(...)` funciona com os campos EN
+- [x] 5.7.2 Adicionar teste de fixture v6 para `listBlocksByExecution` com DB sem tabela `blocks` — verificar retorno `[]` sem exceção
+- [x] 5.7.3 Verificar que `parity.test.ts` cobre os campos renomeados (atualizar se necessário)
 
 ---
 
