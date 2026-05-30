@@ -11,8 +11,8 @@
     "finished_at": null,
     "short_name": "new-schema"
   },
-  "current_stage": "create-tasks",
-  "next_instruction": "Onda create-tasks — invocar skill create-tasks sobre docs/specs/new-schema/spec.md + plan.md para decompor em backlog executavel (tasks.md), ordenado por camada: shared-types (DTO/Zod) -> server queries (Row/SQL/hasColumn/hasTable + rename bloqueios->blocks) -> server mappers -> apps/web. Gate por etapa: tsc --noEmit; gate final: tsc=0 + vitest sem regressao + roundtrip v7 real (quickstart Cenario B).",
+  "current_stage": "plan",
+  "next_instruction": "Onda plan — invocar skill plan sobre docs/specs/new-schema/spec.md para gerar plan.md (arquitetura, research, data-model, test scenarios, task decomposition).",
   "waves": [
     {
       "id": "onda-001",
@@ -49,35 +49,6 @@
           "skill": "clarify",
           "timestamp": "2026-05-30T13:52:25Z",
           "decision_id": "dec-005"
-        }
-      ]
-    },
-    {
-      "id": "onda-003",
-      "started_at": "2026-05-30T13:58:54Z",
-      "finished_at": "2026-05-30T14:05:35Z",
-      "executed_stages": [
-        "plan"
-      ],
-      "tool_calls": 0,
-      "wallclock_seconds": 401,
-      "termination_reason": "etapa_concluida_avancando",
-      "next_wave_scheduled_for": "2026-05-30T14:06:35Z",
-      "skills_invoked": [
-        {
-          "skill": "plan",
-          "timestamp": "2026-05-30T14:03:18Z",
-          "decision_id": "dec-009"
-        },
-        {
-          "skill": "validate-documentation",
-          "timestamp": "2026-05-30T14:04:12Z",
-          "decision_id": "dec-010"
-        },
-        {
-          "skill": "owasp-security",
-          "timestamp": "2026-05-30T14:05:09Z",
-          "decision_id": "dec-011"
         }
       ]
     }
@@ -195,100 +166,6 @@
       "evidence": null,
       "references": [],
       "originating_artifact": null
-    },
-    {
-      "id": "dec-007",
-      "wave_id": "onda-002",
-      "timestamp": "2026-05-30T13:57:16Z",
-      "stage": "model-routing",
-      "agent": "agente-00c-feature-orchestrator",
-      "context": "Selecao de modelo para onda 2 (fase plan)",
-      "options_considered": [
-        "haiku",
-        "sonnet",
-        "opus",
-        "manter-atual"
-      ],
-      "choice": "model:opus",
-      "rationale": "sugerido=opus aplicado=opus origem=mapa | faixa=profunda fase=plan (mapa primario)",
-      "justification_score": 0,
-      "evidence": null,
-      "references": [],
-      "originating_artifact": null
-    },
-    {
-      "id": "dec-008",
-      "wave_id": "onda-003",
-      "timestamp": "2026-05-30T13:59:16Z",
-      "stage": "plan",
-      "agent": "agente-00c-feature-orchestrator",
-      "context": "read-back PRE-DECISAO: K=13 achados injetados (anti-eco feature=new-schema)",
-      "options_considered": [
-        "injetar-achados",
-        "no-op"
-      ],
-      "choice": "injetar-achados",
-      "rationale": "termos derivados da feature: schema canonico normalizacao pt en cstk integracao adaptacao funcoes renomeacao campos; achados confirmam v7 migration-map FROZEN e sintoma de NULL/crash em pt-BR contra DB v7",
-      "justification_score": 2,
-      "evidence": null,
-      "references": [],
-      "originating_artifact": null
-    },
-    {
-      "id": "dec-009",
-      "wave_id": "onda-003",
-      "timestamp": "2026-05-30T14:03:18Z",
-      "stage": "plan",
-      "agent": "agente-00c-feature-orchestrator",
-      "context": "Plano gerado: 4 artefatos (plan/research/data-model/quickstart) para migracao v7 EN; Constitution Check PASS em todos os MUST; back-compat via hasColumn/hasTable existente; roundtrip contra DB v7 REAL",
-      "options_considered": [
-        "gerar-plano",
-        "abortar"
-      ],
-      "choice": "gerar-plano",
-      "rationale": "migration-map §3.11 FROZEN e fonte unica; DB instalado JA e v7 (schema_meta.schema_version=7, colunas execution_id/termination_reason/current_stage presentes, tabela blocks presente, 1 execution/2 waves/6 decisions ingeridos) — roundtrip nao-mock viavel",
-      "justification_score": 3,
-      "evidence": "sqlite3 ~/.claude/cstk/knowledge.db 'SELECT value FROM schema_meta WHERE key=schema_version' => 7; PRAGMA table_info(executions) => execution_id/termination_reason/current_stage/started_at; blocks table present; counts executions=1 waves=2 decisions=6 events=1",
-      "references": [],
-      "originating_artifact": null
-    },
-    {
-      "id": "dec-010",
-      "wave_id": "onda-003",
-      "timestamp": "2026-05-30T14:04:12Z",
-      "stage": "plan",
-      "agent": "agente-00c-feature-orchestrator",
-      "context": "Gate validate-documentation (doc-quality) sobre plan.md + companions: 0 findings criticos. Sem placeholder/TBD; Constitution Check presente e decisivo (PASS); Convencoes de Borda com fonte-da-verdade declarada; links/migration-map resolvem; sem Mermaid quebrado. Trees de project-structure em fence plano = nota informativa low.",
-      "options_considered": [
-        "aceitar-risco-com-justificativa",
-        "corrigir-agora",
-        "escalar-para-humano"
-      ],
-      "choice": "aceitar-risco-com-justificativa",
-      "rationale": "Unica nota low: fences de arvore de diretorio sem linguagem (intencional, listagem). Nenhum finding critical/high. Plano estruturalmente completo e coerente.",
-      "justification_score": 3,
-      "evidence": "grep TBD/TODO/FIXME/NEEDS-CLARIFICATION => 0 abertos (so heading 'Resolved NEEDS CLARIFICATION'); grep -c 'Constitution Check'=1; 'Convencoes de Borda'=1; migration-map path resolve OK; 0 blocos mermaid",
-      "references": [],
-      "originating_artifact": null
-    },
-    {
-      "id": "dec-011",
-      "wave_id": "onda-003",
-      "timestamp": "2026-05-30T14:05:09Z",
-      "stage": "plan",
-      "agent": "agente-00c-feature-orchestrator",
-      "context": "Gate owasp-security sobre arquitetura do plano: 0 findings critical/high/medium. Rename puro de identificadores em painel read-only. A05 Injection N/A (nomes de coluna/tabela sao literais internos do migration-map FROZEN, nao input; hasColumn/hasTable interpolam so literais de tabela; prepared statements mantem ? binding). LLM05/ASI09/Principio V preservado (TextRaw renderiza texto de agente auto-escapado, sem dangerouslySetInnerHTML; rename so troca o NOME do campo-fonte, nao o sink). FTS intocado (FR-012).",
-      "options_considered": [
-        "aceitar-risco-com-justificativa",
-        "corrigir-agora",
-        "escalar-para-humano"
-      ],
-      "choice": "aceitar-risco-com-justificativa",
-      "rationale": "Nenhum finding critical/high => sem BloqueioHumano obrigatorio. Unica nota low/informativa: cross.ts tem interpolacao pre-existente de allowlist interna (periodFilter) FORA do escopo deste rename, ja mitigada por allowlist. Rename nao adiciona superficie de ataque.",
-      "justification_score": 3,
-      "evidence": "grep columns.ts: pragma(table_info(${table})) interpola so literal interno + sqlite_master usa ? binding; queries usam .prepare com ? (bloqueios.ts); web: dangerouslySetInnerHTML aparece SO em comentarios/testes que ASSERTAM ausencia; TextRaw.tsx renderiza {display} como text child React (auto-escape, linha 39 'React escapa automaticamente')",
-      "references": [],
-      "originating_artifact": null
     }
   ],
   "human_blocks": [],
@@ -303,15 +180,15 @@
     "wallclock_threshold_seconds": 5400,
     "state_size_threshold_bytes": 1048576,
     "tool_calls_current_wave": 0,
-    "current_wave_start": "2026-05-30T13:58:54Z"
+    "current_wave_start": "2026-05-30T13:51:39Z"
   },
   "accumulated_metrics": {
-    "waves_total": 3,
+    "waves_total": 2,
     "tool_calls_total": 0,
-    "wallclock_total_seconds": 923,
+    "wallclock_total_seconds": 522,
     "max_depth_reached": 1,
     "subagents_spawned": 0,
-    "decisions_total": 11,
+    "decisions_total": 6,
     "human_blocks_total": 0,
     "global_skill_suggestions_total": 0,
     "toolkit_issues_opened": 0,
@@ -346,16 +223,6 @@
       "event_type": "recall_consulted",
       "timestamp": "2026-05-30T13:19:46Z",
       "description": "etapa=specify hits=24"
-    },
-    {
-      "event_type": "recall_consulted",
-      "timestamp": "2026-05-30T13:59:06Z",
-      "description": "etapa=plan hits=13"
-    },
-    {
-      "event_type": "schedule_wait",
-      "timestamp": "2026-05-30T14:05:35Z",
-      "description": "onda-003 plan encerrada; aguardando wakeup para create-tasks"
     }
   ]
 }

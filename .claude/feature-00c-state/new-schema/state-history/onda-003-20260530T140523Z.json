@@ -12,7 +12,7 @@
     "short_name": "new-schema"
   },
   "current_stage": "create-tasks",
-  "next_instruction": "Onda create-tasks — invocar skill create-tasks sobre docs/specs/new-schema/spec.md + plan.md para decompor em backlog executavel (tasks.md), ordenado por camada: shared-types (DTO/Zod) -> server queries (Row/SQL/hasColumn/hasTable + rename bloqueios->blocks) -> server mappers -> apps/web. Gate por etapa: tsc --noEmit; gate final: tsc=0 + vitest sem regressao + roundtrip v7 real (quickstart Cenario B).",
+  "next_instruction": "Onda plan — invocar skill plan sobre docs/specs/new-schema/spec.md para gerar plan.md (arquitetura, research, data-model, test scenarios, task decomposition).",
   "waves": [
     {
       "id": "onda-001",
@@ -55,14 +55,12 @@
     {
       "id": "onda-003",
       "started_at": "2026-05-30T13:58:54Z",
-      "finished_at": "2026-05-30T14:05:35Z",
-      "executed_stages": [
-        "plan"
-      ],
+      "finished_at": null,
+      "executed_stages": [],
       "tool_calls": 0,
-      "wallclock_seconds": 401,
-      "termination_reason": "etapa_concluida_avancando",
-      "next_wave_scheduled_for": "2026-05-30T14:06:35Z",
+      "wallclock_seconds": 0,
+      "termination_reason": null,
+      "next_wave_scheduled_for": null,
       "skills_invoked": [
         {
           "skill": "plan",
@@ -306,9 +304,9 @@
     "current_wave_start": "2026-05-30T13:58:54Z"
   },
   "accumulated_metrics": {
-    "waves_total": 3,
+    "waves_total": 2,
     "tool_calls_total": 0,
-    "wallclock_total_seconds": 923,
+    "wallclock_total_seconds": 522,
     "max_depth_reached": 1,
     "subagents_spawned": 0,
     "decisions_total": 11,
@@ -351,11 +349,6 @@
       "event_type": "recall_consulted",
       "timestamp": "2026-05-30T13:59:06Z",
       "description": "etapa=plan hits=13"
-    },
-    {
-      "event_type": "schedule_wait",
-      "timestamp": "2026-05-30T14:05:35Z",
-      "description": "onda-003 plan encerrada; aguardando wakeup para create-tasks"
     }
   ]
 }
