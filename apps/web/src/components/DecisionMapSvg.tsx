@@ -115,8 +115,13 @@ export function DecisionMapSvg({
   return (
     <div
       style={{
-        maxHeight: '64vh',
-        overflow: 'auto',
+        // Ocupa a largura do container de conteúdo; a altura cresce com a
+        // árvore e quem rola verticalmente é a própria página (sem box fixo).
+        // Só há scroll horizontal interno quando a árvore é mais larga que o
+        // container.
+        width: '100%',
+        overflowX: 'auto',
+        overflowY: 'visible',
         borderRadius: 8,
         border: '1px solid var(--border-1, #1e293b)',
         background: 'var(--bg-0, #020617)',

@@ -208,16 +208,18 @@ export function DecisionMapPanel({
           nodeRefs={nodeRefs}
         />
 
-        {/* Painel lateral de detalhe (somente quando nó selecionado) */}
+        {/* Painel lateral de detalhe (sticky — acompanha a rolagem da página) */}
         {selectedKey && selectedDecision && (
-          <DecisionDetailPane
-            decision={selectedDecision}
-            prevKey={selectedPrevKey}
-            nextKey={selectedNextKey}
-            onPrev={handlePrev}
-            onNext={handleNext}
-            onClose={handleClosePane}
-          />
+          <div style={{ position: 'sticky', top: 8, alignSelf: 'start', maxHeight: 'calc(100vh - 24px)', overflow: 'auto' }}>
+            <DecisionDetailPane
+              decision={selectedDecision}
+              prevKey={selectedPrevKey}
+              nextKey={selectedNextKey}
+              onPrev={handlePrev}
+              onNext={handleNext}
+              onClose={handleClosePane}
+            />
+          </div>
         )}
       </div>
     </div>
