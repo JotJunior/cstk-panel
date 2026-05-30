@@ -340,86 +340,86 @@ Ref: spec.md FR-013; quickstart.md §Scenario A
 
 Ref: spec.md FR-009; plan.md §Frontend DTO
 
-- [ ] 4.1.1 Em `apps/web/src/lib/hooks.ts`: substituir `BloqueioDTOSchema→BlockDTOSchema` no import e na definição de `BloqueioListSchema→BlockListSchema`
-- [ ] 4.1.2 Renomear `useBloqueios→useBlocks` (ou criar alias `useBlocks = useBloqueios` enquanto a transição está em andamento)
-- [ ] 4.1.3 Verificar que todos os schemas inline em hooks.ts (`DecisionsPageSchema`, `TasksResultSchema`, etc.) não referenciam campos pt-BR — ajustar se necessário
-- [ ] 4.1.4 Teste: `pnpm --filter @cstk-panel/web exec tsc --noEmit` pós-atualização deve não ter erros em hooks.ts
+- [x] 4.1.1 Em `apps/web/src/lib/hooks.ts`: substituir `BloqueioDTOSchema→BlockDTOSchema` no import e na definição de `BloqueioListSchema→BlockListSchema`
+- [x] 4.1.2 Renomear `useBloqueios→useBlocks` (ou criar alias `useBlocks = useBloqueios` enquanto a transição está em andamento)
+- [x] 4.1.3 Verificar que todos os schemas inline em hooks.ts (`DecisionsPageSchema`, `TasksResultSchema`, etc.) não referenciam campos pt-BR — ajustar se necessário
+- [x] 4.1.4 Teste: `pnpm --filter @cstk-panel/web exec tsc --noEmit` pós-atualização deve não ter erros em hooks.ts
 
 ### 4.2 Atualizar ExecutionDetail.tsx: campos de WaveDTO e DecisionDTO [C]
 
 Ref: spec.md FR-009; plan.md §Frontend DTO
 
-- [ ] 4.2.1 Em `apps/web/src/screens/ExecutionDetail.tsx`: substituir `w.etapas→w.stages`, `w.motivoTermino→w.terminationReason`, `w.inicio→w.startedAt`, `w.fim→w.finishedAt`, `w.nEtapas→w.nStages` nas referências a `WaveDTO`
-- [ ] 4.2.2 Substituir `d.etapa→d.stage`, `d.agente→d.agent`, `d.escolha→d.choice`, `d.opcoes→d.options`, `d.contexto→d.context`, `d.justificativa→d.rationale` nas referências a `DecisionDTO`
-- [ ] 4.2.3 Substituir `t.titulo→t.title`, `t.testesRodados→t.testsRun`, `t.testesPassados→t.testsPassed`, `t.arquivosTocadosCount→t.touchedFilesCount` nas referências a `TaskDTO`
-- [ ] 4.2.4 Substituir `e.descricao→e.description` nas referências a `EventDTO`
-- [ ] 4.2.5 Substituir `a.tipo→a.type`, `a.subtipo→a.subtype`, `a.valorConsumido→a.consumedValue`, `a.valorThreshold→a.thresholdValue`, `a.descricao→a.description` nas referências a `AlertSignalDTO`
-- [ ] 4.2.6 Substituir `b.pergunta→b.question`, `b.contextoParaResposta→b.contextForAnswer`, `b.resposta→b.answer`, `b.decisaoId→b.decisionId`, `b.latenciaSegundos→b.latencySeconds` nas referências a `BlockDTO` (era `BloqueioDTO`)
-- [ ] 4.2.7 Substituir `s.skillAfetada→s.affectedSkill`, `s.severidade→s.severity`, `s.diagnostico→s.diagnosis`, `s.proposta→s.proposal`, `s.issueAberta→s.issueOpened`, `s.criadaEm→s.createdAt` nas referências a `SuggestionDTO`
-- [ ] 4.2.8 Atualizar parâmetro de rota `:execucaoId` → considerar se a URL deve mudar ou apenas o uso interno; manter URL para não quebrar deep links (apenas variável interna pode ser renomeada)
+- [x] 4.2.1 Em `apps/web/src/screens/ExecutionDetail.tsx`: substituir `w.etapas→w.stages`, `w.motivoTermino→w.terminationReason`, `w.inicio→w.startedAt`, `w.fim→w.finishedAt`, `w.nEtapas→w.nStages` nas referências a `WaveDTO`
+- [x] 4.2.2 Substituir `d.etapa→d.stage`, `d.agente→d.agent`, `d.escolha→d.choice`, `d.opcoes→d.options`, `d.contexto→d.context`, `d.justificativa→d.rationale` nas referências a `DecisionDTO`
+- [x] 4.2.3 Substituir `t.titulo→t.title`, `t.testesRodados→t.testsRun`, `t.testesPassados→t.testsPassed`, `t.arquivosTocadosCount→t.touchedFilesCount` nas referências a `TaskDTO`
+- [x] 4.2.4 Substituir `e.descricao→e.description` nas referências a `EventDTO`
+- [x] 4.2.5 Substituir `a.tipo→a.type`, `a.subtipo→a.subtype`, `a.valorConsumido→a.consumedValue`, `a.valorThreshold→a.thresholdValue`, `a.descricao→a.description` nas referências a `AlertSignalDTO`
+- [x] 4.2.6 Substituir `b.pergunta→b.question`, `b.contextoParaResposta→b.contextForAnswer`, `b.resposta→b.answer`, `b.decisaoId→b.decisionId`, `b.latenciaSegundos→b.latencySeconds` nas referências a `BlockDTO` (era `BloqueioDTO`)
+- [x] 4.2.7 Substituir `s.skillAfetada→s.affectedSkill`, `s.severidade→s.severity`, `s.diagnostico→s.diagnosis`, `s.proposta→s.proposal`, `s.issueAberta→s.issueOpened`, `s.criadaEm→s.createdAt` nas referências a `SuggestionDTO`
+- [x] 4.2.8 Atualizar parâmetro de rota `:execucaoId` → considerar se a URL deve mudar ou apenas o uso interno; manter URL para não quebrar deep links (apenas variável interna pode ser renomeada)
 
 ### 4.3 Atualizar Executions.tsx: campos de ExecutionDTO [C]
 
 Ref: spec.md FR-009
 
-- [ ] 4.3.1 Em `apps/web/src/screens/Executions.tsx`: substituir `e.execucaoId→e.executionId`, `e.etapaCorrente→e.currentStage`, `e.ondasTotal→e.wavesTotal`, `e.wallclockTotalSegundos→e.wallclockTotalSeconds`, `e.decisoesTotal→e.decisionsTotal`, `e.iniciadaEm→e.startedAt`, `e.motivoTermino→e.terminationReason`
-- [ ] 4.3.2 Atualizar a navegação `navigate('/executions/${e.execucaoId}')` → `navigate('/executions/${e.executionId}')`
+- [x] 4.3.1 Em `apps/web/src/screens/Executions.tsx`: substituir `e.execucaoId→e.executionId`, `e.etapaCorrente→e.currentStage`, `e.ondasTotal→e.wavesTotal`, `e.wallclockTotalSegundos→e.wallclockTotalSeconds`, `e.decisoesTotal→e.decisionsTotal`, `e.iniciadaEm→e.startedAt`, `e.motivoTermino→e.terminationReason`
+- [x] 4.3.2 Atualizar a navegação `navigate('/executions/${e.execucaoId}')` → `navigate('/executions/${e.executionId}')`
 
 ### 4.4 Atualizar Overview.tsx: campos mistos [C]
 
 Ref: spec.md FR-009
 
-- [ ] 4.4.1 Em `apps/web/src/screens/Overview.tsx`: substituir `a.valorConsumido→a.consumedValue`, `a.valorThreshold→a.thresholdValue`, `a.tipo→a.type`, `a.subtipo→a.subtype`, `a.descricao→a.description`, `a.execucaoId→a.executionId`
-- [ ] 4.4.2 Substituir `f.execucaoId→f.executionId`, `f.etapaCorrente→f.currentStage`, `f.ondasTotal→f.wavesTotal`, `f.iniciadaEm→f.startedAt`
-- [ ] 4.4.3 Verificar e corrigir o type cast `as string | null` se o campo passou de `etapa` para `stage` em `row.etapa` (métricas passthrough)
+- [x] 4.4.1 Em `apps/web/src/screens/Overview.tsx`: substituir `a.valorConsumido→a.consumedValue`, `a.valorThreshold→a.thresholdValue`, `a.tipo→a.type`, `a.subtipo→a.subtype`, `a.descricao→a.description`, `a.execucaoId→a.executionId`
+- [x] 4.4.2 Substituir `f.execucaoId→f.executionId`, `f.etapaCorrente→f.currentStage`, `f.ondasTotal→f.wavesTotal`, `f.iniciadaEm→f.startedAt`
+- [x] 4.4.3 Verificar e corrigir o type cast `as string | null` se o campo passou de `etapa` para `stage` em `row.etapa` (métricas passthrough)
 
 ### 4.5 Atualizar Metrics.tsx: campos de métricas EN [C]
 
 Ref: spec.md FR-009, FR-008
 
-- [ ] 4.5.1 Em `apps/web/src/screens/Metrics.tsx`: substituir `'latenciaSegundos'→'latencySeconds'` nos acessos por string (passthrough JSON)
-- [ ] 4.5.2 Substituir `'duracaoSegundos'→'durationSeconds'`, `'profundidadeMax'→'maxDepth'`, `'subagentesSpawned'→'subagentsSpawned'`, `'etapa'→'stage'` nos acessos por string a dados de métricas
-- [ ] 4.5.3 Verificar `r.etapa`/`r.stage` (linha 322): corrigir para usar apenas `r.stage` após rename
+- [x] 4.5.1 Em `apps/web/src/screens/Metrics.tsx`: substituir `'latenciaSegundos'→'latencySeconds'` nos acessos por string (passthrough JSON)
+- [x] 4.5.2 Substituir `'duracaoSegundos'→'durationSeconds'`, `'profundidadeMax'→'maxDepth'`, `'subagentesSpawned'→'subagentsSpawned'`, `'etapa'→'stage'` nos acessos por string a dados de métricas
+- [x] 4.5.3 Verificar `r.etapa`/`r.stage` (linha 322): corrigir para usar apenas `r.stage` após rename
 
 ### 4.6 Atualizar Tasks.tsx, Alerts.tsx e Incidents.tsx [A]
 
 Ref: spec.md FR-009
 
-- [ ] 4.6.1 Em `apps/web/src/screens/Tasks.tsx`: substituir campos da interface local inline (linha 26-29) `testesRodados→testsRun`, `testesPassados→testsPassed`, `arquivosTocadosCount→touchedFilesCount` e todos os usos no componente; substituir `t.titulo→t.title`, `t.execucaoId→t.executionId`
-- [ ] 4.6.2 Em `apps/web/src/screens/Alerts.tsx`: substituir `a.tipo→a.type`, `a.subtipo→a.subtype`, `a.valorConsumido→a.consumedValue`, `a.valorThreshold→a.thresholdValue`, `a.descricao→a.description`, `a.execucaoId→a.executionId`
-- [ ] 4.6.3 Em `apps/web/src/screens/Incidents.tsx`: substituir `e.execucaoId→e.executionId`, `e.descricao→e.description` na interface local e nos usos
+- [x] 4.6.1 Em `apps/web/src/screens/Tasks.tsx`: substituir campos da interface local inline (linha 26-29) `testesRodados→testsRun`, `testesPassados→testsPassed`, `arquivosTocadosCount→touchedFilesCount` e todos os usos no componente; substituir `t.titulo→t.title`, `t.execucaoId→t.executionId`
+- [x] 4.6.2 Em `apps/web/src/screens/Alerts.tsx`: substituir `a.tipo→a.type`, `a.subtipo→a.subtype`, `a.valorConsumido→a.consumedValue`, `a.valorThreshold→a.thresholdValue`, `a.descricao→a.description`, `a.execucaoId→a.executionId`
+- [x] 4.6.3 Em `apps/web/src/screens/Incidents.tsx`: substituir `e.execucaoId→e.executionId`, `e.descricao→e.description` na interface local e nos usos
 
 ### 4.7 Atualizar DecisionMapScreen.tsx e componentes de decisão [A]
 
 Ref: spec.md FR-009
 
-- [ ] 4.7.1 Em `apps/web/src/screens/DecisionMapScreen.tsx`: substituir `exec.execucaoId→exec.executionId`, `exec.decisoesTotal→exec.decisionsTotal`
-- [ ] 4.7.2 Verificar `apps/web/src/components/DecisionMapPanel.tsx` e `DecisionDetailPane.tsx` por campos pt-BR (`escolha`, `etapa`, `agente`, `opcoes`, `contexto`, `justificativa`, `evidencia`)
-- [ ] 4.7.3 Atualizar todos os campos encontrados para EN camelCase
+- [x] 4.7.1 Em `apps/web/src/screens/DecisionMapScreen.tsx`: substituir `exec.execucaoId→exec.executionId`, `exec.decisoesTotal→exec.decisionsTotal`
+- [x] 4.7.2 Verificar `apps/web/src/components/DecisionMapPanel.tsx` e `DecisionDetailPane.tsx` por campos pt-BR (`escolha`, `etapa`, `agente`, `opcoes`, `contexto`, `justificativa`, `evidencia`)
+- [x] 4.7.3 Atualizar todos os campos encontrados para EN camelCase
 
 ### 4.8 Atualizar DecisionDetailPane e outros componentes [A]
 
 Ref: spec.md FR-009
 
-- [ ] 4.8.1 Em `apps/web/src/components/DecisionDetailPane.tsx`: substituir `d.escolha→d.choice`, `d.etapa→d.stage`, `d.agente→d.agent`, `d.opcoes→d.options`, `d.contexto→d.context`, `d.justificativa→d.rationale`, `d.evidencia→d.evidence`
-- [ ] 4.8.2 Verificar outros componentes que consomem DTOs: `PipelineProgress.tsx`, `FeaturesTable.tsx`, `BudgetMini.tsx` — atualizar `etapaCorrente→currentStage` se presente
-- [ ] 4.8.3 Verificar utilitários `apps/web/src/lib/*.ts` por referências a campos pt-BR (`overview-select.ts`, `format.ts`, `hooks-schemas.test.ts`)
+- [x] 4.8.1 Em `apps/web/src/components/DecisionDetailPane.tsx`: substituir `d.escolha→d.choice`, `d.etapa→d.stage`, `d.agente→d.agent`, `d.opcoes→d.options`, `d.contexto→d.context`, `d.justificativa→d.rationale`, `d.evidencia→d.evidence`
+- [x] 4.8.2 Verificar outros componentes que consomem DTOs: `PipelineProgress.tsx`, `FeaturesTable.tsx`, `BudgetMini.tsx` — atualizar `etapaCorrente→currentStage` se presente
+- [x] 4.8.3 Verificar utilitários `apps/web/src/lib/*.ts` por referências a campos pt-BR (`overview-select.ts`, `format.ts`, `hooks-schemas.test.ts`)
 
 ### 4.9 Paridade de tipos: verificar schemas Zod locais no web [M]
 
 Ref: spec.md FR-005, FR-009; plan.md §Validação Zod; create-tasks skill §Paridade de tipos compartilhados
 
-- [ ] 4.9.1 Verificar se `apps/web` define algum schema Zod local duplicando entidades de `shared-types` (grep por `z.object` em `apps/web/src`)
-- [ ] 4.9.2 Se existirem schemas locais que espelham `ExecutionDTO`, `WaveDTO`, etc.: verificar paridade exata de campos com `packages/shared-types/src/schemas/entities.ts`
-- [ ] 4.9.3 Atualizar qualquer divergência encontrada (campo com nome pt-BR em schema local vs EN em shared-types)
-- [ ] 4.9.4 Teste smoke: confirmar que os schemas em `hooks-schemas.test.ts` continuam passando após os renames
+- [x] 4.9.1 Verificar se `apps/web` define algum schema Zod local duplicando entidades de `shared-types` (grep por `z.object` em `apps/web/src`)
+- [x] 4.9.2 Se existirem schemas locais que espelham `ExecutionDTO`, `WaveDTO`, etc.: verificar paridade exata de campos com `packages/shared-types/src/schemas/entities.ts`
+- [x] 4.9.3 Atualizar qualquer divergência encontrada (campo com nome pt-BR em schema local vs EN em shared-types)
+- [x] 4.9.4 Teste smoke: confirmar que os schemas em `hooks-schemas.test.ts` continuam passando após os renames
 
 ### 4.10 Gate de fase 4: tsc do web completo [C]
 
 Ref: spec.md FR-013; quickstart.md §Scenario A
 
-- [ ] 4.10.1 Executar `pnpm --filter @cstk-panel/web exec tsc --noEmit` — deve retornar 0 erros
-- [ ] 4.10.2 Grep de vocabulário no web: `grep -rn "execucaoId\|motivoTermino\|etapaCorrente\|iniciadaEm\|etapas\b\|escolha\b\|justificativa\b\|pergunta\b\|testesRodados\|latenciaSegundos\|profundidadeMax" apps/web/src` deve retornar zero fora de comentários/testes históricos
+- [x] 4.10.1 Executar `pnpm --filter @cstk-panel/web exec tsc --noEmit` — deve retornar 0 erros
+- [x] 4.10.2 Grep de vocabulário no web: `grep -rn "execucaoId\|motivoTermino\|etapaCorrente\|iniciadaEm\|etapas\b\|escolha\b\|justificativa\b\|pergunta\b\|testesRodados\|latenciaSegundos\|profundidadeMax" apps/web/src` deve retornar zero fora de comentários/testes históricos
 
 ---
 

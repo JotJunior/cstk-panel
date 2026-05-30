@@ -101,18 +101,18 @@ export function Alerts({ period }: AlertsProps) {
   if (isError) return <ErrorState message={errorMessage ?? 'Erro ao carregar alertas.'} />;
 
   // Contadores
-  const nCircular = items.filter(a => a.tipo === 'circular').length;
-  const nBudget   = items.filter(a => a.tipo === 'budget_breach').length;
+  const nCircular = items.filter(a => a.type === 'circular').length;
+  const nBudget   = items.filter(a => a.type === 'budget_breach').length;
   // Severidade derivada por contagem
   const nCritical = items.filter(a => {
-    const pct = a.valorConsumido != null && a.valorThreshold != null && a.valorThreshold > 0
-      ? (a.valorConsumido / a.valorThreshold)
+    const pct = a.consumedValue != null && a.thresholdValue != null && a.thresholdValue > 0
+      ? (a.consumedValue / a.thresholdValue)
       : null;
     return pct != null && pct >= 1;
   }).length;
   const nWarning = items.filter(a => {
-    const pct = a.valorConsumido != null && a.valorThreshold != null && a.valorThreshold > 0
-      ? (a.valorConsumido / a.valorThreshold)
+    const pct = a.consumedValue != null && a.thresholdValue != null && a.thresholdValue > 0
+      ? (a.consumedValue / a.thresholdValue)
       : null;
     return pct != null && pct >= 0.8 && pct < 1;
   }).length;
@@ -199,9 +199,9 @@ export function Alerts({ period }: AlertsProps) {
               </thead>
               <tbody>
                 {items.map((a, idx) => {
-                  const isCircular = a.tipo === 'circular';
-                  const pct = a.valorConsumido != null && a.valorThreshold != null && a.valorThreshold > 0
-                    ? (a.valorConsumido / a.valorThreshold)
+                  const isCircular = a.type === 'circular';
+                  const pct = a.consumedValue != null && a.thresholdValue != null && a.thresholdValue > 0
+                    ? (a.consumedValue / a.thresholdValue)
                     : null;
                   const sevColor = pct != null && pct >= 1 ? 'var(--critical)' : 'var(--warning)';
 
@@ -209,7 +209,7 @@ export function Alerts({ period }: AlertsProps) {
                     <tr
                       key={idx}
                       className="clickable"
-                      onClick={() => navigate(`/executions/${encodeURIComponent(a.execucaoId)}?wave=${a.wave}&tab=alerts`)}
+                      onClick={() => navigate(`/executions/${encodeURIComponent(a.executionId)}?wave=${a.wave}&tab=alerts`)}
                     >
                       <td>
                         <div className="row gap-2">
@@ -219,27 +219,27 @@ export function Alerts({ period }: AlertsProps) {
                             style={{ color: sevColor }}
                           />
                           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 600, color: 'var(--text-0)' }}>
-                            {isCircular ? 'circular' : `breach·${a.subtipo ?? '?'}`}
+                            {isCircular ? 'circular' : `breach·${a.subtype ?? '?'}`}
                           </span>
                         </div>
                       </td>
                       <td>
                         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-2)' }}>
-                          <span style={{ color: 'var(--text-1)' }}>{a.execucaoId.slice(0, 32)}</span>
+                          <span style={{ color: 'var(--text-1)' }}>{a.executionId.slice(0, 32)}</span>
                         </div>
                       </td>
                       <td style={{ maxWidth: 320 }}>
-                        <TextRaw value={a.descricao} maxLength={120} />
+                        <TextRaw value={a.description} maxLength={120} />
                       </td>
                       <td>
                         <BudgetGauge
-                          value={a.valorConsumido}
-                          threshold={a.valorThreshold}
-                          unit={a.subtipo === 'wallclock' ? 's' : ''}
+                          value={a.consumedValue}
+                          threshold={a.thresholdValue}
+                          unit={a.subtype === 'wallclock' ? 's' : ''}
                         />
                       </td>
                       <td>
-                        <SeverityDerived value={a.valorConsumido} threshold={a.valorThreshold} />
+                        <SeverityDerived value={a.consumedValue} threshold={a.thresholdValue} />
                       </td>
                       <td>
                         <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--inprogress)' }}>

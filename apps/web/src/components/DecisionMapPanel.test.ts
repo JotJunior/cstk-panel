@@ -29,14 +29,14 @@ function readSrc(rel: string): string {
 function mkDecision(wave: string, overrides: Partial<DecisionDTO> = {}): DecisionDTO {
   return {
     wave,
-    execucaoId: 'exec-test',
-    etapa: 'plan',
-    agente: null,
-    escolha: 'B',
-    opcoes: JSON.stringify(['A', 'B', 'C']),
+    executionId: 'exec-test',
+    stage: 'plan',
+    agent: null,
+    choice: 'B',
+    options: JSON.stringify(['A', 'B', 'C']),
     score: null,
-    contexto: null,
-    justificativa: null,
+    context: null,
+    rationale: null,
     evidencia: null,
     ...overrides,
   };
@@ -97,7 +97,7 @@ describe('Acessibilidade (verificação estática de fonte)', () => {
 
   it('aria-label dos nós deriva da escolha real com fallback', () => {
     expect(svgSrc).toContain('aria-label={nodeAriaLabel(node)}');
-    expect(svgSrc).toContain("node.decision?.escolha ?? 'decisão sem escolha'");
+    expect(svgSrc).toContain("node.decision?.choice ?? 'decisão sem escolha'");
   });
 
   it('Arrow keys navegam entre nós focáveis', () => {
@@ -168,7 +168,7 @@ describe('Segurança de conteúdo (verificação estática)', () => {
   it('DecisionDetailPane usa TextRaw para justificativa', () => {
     expect(paneCode).not.toContain('innerHTML');
     expect(paneCode).not.toContain('dangerouslySetInnerHTML');
-    expect(paneSrc).toContain('<TextRaw value={decision.justificativa}');
+    expect(paneSrc).toContain('<TextRaw value={decision.rationale}');
   });
 
   it('DecisionMapSvg usa foreignObject e zero innerHTML', () => {
@@ -241,9 +241,9 @@ describe('Estados do DecisionMapPanel (verificação estática)', () => {
 describe('Layout em árvore e seleção', () => {
   it('3 decisões (3 opções cada) → 3 pills + 9 opções + Fim', () => {
     const items: DecisionDTO[] = [
-      mkDecision('onda-001', { escolha: 'A' }),
-      mkDecision('onda-001', { escolha: 'B' }),
-      mkDecision('onda-001', { escolha: 'C' }),
+      mkDecision('onda-001', { choice: 'A' }),
+      mkDecision('onda-001', { choice: 'B' }),
+      mkDecision('onda-001', { choice: 'C' }),
     ];
     const layout = computeLayout(items);
     expect(layout.nodes.filter((n) => n.kind === 'decision')).toHaveLength(3);
@@ -253,8 +253,8 @@ describe('Layout em árvore e seleção', () => {
 
   it('a opção escolhida de cada decisão é destacada (chosen)', () => {
     const items: DecisionDTO[] = [
-      mkDecision('w', { opcoes: '["A","B","C"]', escolha: 'A' }),
-      mkDecision('w', { opcoes: '["A","B","C"]', escolha: 'C' }),
+      mkDecision('w', { options: '["A","B","C"]', choice: 'A' }),
+      mkDecision('w', { options: '["A","B","C"]', choice: 'C' }),
     ];
     const layout = computeLayout(items);
     const chosen0 = layout.nodes.find((n) => n.decisionIndex === 0 && n.kind === 'option' && n.chosen);
@@ -265,18 +265,18 @@ describe('Layout em árvore e seleção', () => {
 
   it('chaves de nó únicas e estáveis; decisão referenciável por key', () => {
     const items: DecisionDTO[] = [
-      mkDecision('onda-001', { escolha: 'Escolha A' }),
-      mkDecision('onda-001', { escolha: 'Escolha B' }),
+      mkDecision('onda-001', { choice: 'Escolha A' }),
+      mkDecision('onda-001', { choice: 'Escolha B' }),
     ];
     const layout = computeLayout(items);
     expect(layout.nodes[0]!.key).toBe('dec::0');
     const dec1 = layout.nodes.find((n) => n.key === 'dec::1');
     expect(dec1).toBeDefined();
-    expect(dec1!.decision!.escolha).toBe('Escolha B');
+    expect(dec1!.decision!.choice).toBe('Escolha B');
   });
 
   it('prev/next navegam entre decisões sem afetar mapVisible', () => {
-    const items: DecisionDTO[] = [mkDecision('w', { escolha: 'A' }), mkDecision('w', { escolha: 'B' })];
+    const items: DecisionDTO[] = [mkDecision('w', { choice: 'A' }), mkDecision('w', { choice: 'B' })];
     const layout = computeLayout(items);
     expect(prevKey(layout.nodes, 'dec::1')).toBe('dec::0');
     expect(nextKey(layout.nodes, 'dec::0')).toBe('dec::1');
@@ -284,7 +284,7 @@ describe('Layout em árvore e seleção', () => {
 
   it('benchmark: computeLayout 100 decisões < 10ms (SC-002)', () => {
     const items: DecisionDTO[] = Array.from({ length: 100 }, (_, i) =>
-      mkDecision(`onda-${String(Math.floor(i / 10) + 1).padStart(3, '0')}`, { escolha: 'B' })
+      mkDecision(`onda-${String(Math.floor(i / 10) + 1).padStart(3, '0')}`, { choice: 'B' })
     );
     const t0 = performance.now();
     computeLayout(items);

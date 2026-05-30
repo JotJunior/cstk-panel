@@ -19,7 +19,7 @@ import { stackDisplayItems } from '@/lib/stack-display.js';
 import { decisionOptions, chosenOptionIndex } from '@/lib/decision-options.js';
 import { LoadingState, EmptyState, ErrorState, DegradedBanner } from '@/states/index.js';
 import { StatusBadge, ScoreChip, OutcomePill, TextRaw, Icon, BarH, MiniStat, PipelineProgress } from '@/components/index.js';
-import type { ExecutionDTO, WaveDTO, DecisionDTO, TaskDTO, EventDTO, AlertSignalDTO, BloqueioDTO, SkillDTO, SuggestionDTO } from '@cstk-panel/shared-types';
+import type { ExecutionDTO, WaveDTO, DecisionDTO, TaskDTO, EventDTO, AlertSignalDTO, BlockDTO, SkillDTO, SuggestionDTO } from '@cstk-panel/shared-types';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -120,7 +120,7 @@ function WavesTimeline({
         {waves.map(w => {
           const pct = Math.max(8, ((w.toolCalls ?? 0) / maxTC) * 100);
           const isSelected = selectedWave === w.wave;
-          const barColor = MOTIVO_COLOR[w.motivoTermino ?? ''] ?? 'var(--accent)';
+          const barColor = MOTIVO_COLOR[w.terminationReason ?? ''] ?? 'var(--accent)';
           return (
             <div
               key={w.wave}
@@ -136,7 +136,7 @@ function WavesTimeline({
                 {w.wave}
               </span>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--inprogress)' }}>
-                {w.etapas ?? '—'}
+                {w.stages ?? '—'}
               </span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <div style={{ flex: 1, height: 16, background: 'var(--bg-3)', borderRadius: 3, overflow: 'hidden' }}>
@@ -150,7 +150,7 @@ function WavesTimeline({
                   </div>
                 </div>
                 <span style={{ fontSize: 10, color: 'var(--text-3)', fontFamily: 'var(--font-mono)', flexShrink: 0 }}>
-                  {w.motivoTermino?.slice(0, 12) ?? '—'}
+                  {w.terminationReason?.slice(0, 12) ?? '—'}
                 </span>
               </div>
               <span style={{ textAlign: 'right', fontFamily: 'var(--font-mono)', fontSize: 11.5, color: 'var(--text-1)' }}>
@@ -265,9 +265,9 @@ function DecisionsPanel({ execucaoId, waveFilter }: { execucaoId: string; waveFi
                   <td>
                     <Icon name={isExp ? 'chevron-down' : 'chevron-right'} size={12} style={{ color: 'var(--text-3)' }} />
                   </td>
-                  <td><span style={{ color: 'var(--text-0)', fontWeight: 500 }}><TextRaw value={d.escolha} maxLength={60} /></span></td>
-                  <td><span style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5 }}>{d.etapa ?? '—'}</span></td>
-                  <td><span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-2)' }}><TextRaw value={d.agente} maxLength={32} /></span></td>
+                  <td><span style={{ color: 'var(--text-0)', fontWeight: 500 }}><TextRaw value={d.choice} maxLength={60} /></span></td>
+                  <td><span style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5 }}>{d.stage ?? '—'}</span></td>
+                  <td><span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-2)' }}><TextRaw value={d.agent} maxLength={32} /></span></td>
                   <td><span style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5 }}>{d.wave}</span></td>
                   <td><ScoreChip score={d.score} /></td>
                 </tr>
@@ -276,9 +276,9 @@ function DecisionsPanel({ execucaoId, waveFilter }: { execucaoId: string; waveFi
                     <td colSpan={6} style={{ background: 'var(--bg-2)', padding: '14px 16px' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                         {(() => {
-                          const opts = decisionOptions(d.opcoes);
+                          const opts = decisionOptions(d.options);
                           if (opts.length === 0) return null;
-                          const chosenIdx = chosenOptionIndex(opts, d.escolha);
+                          const chosenIdx = chosenOptionIndex(opts, d.choice);
                           return (
                           <div>
                             <div style={{ fontSize: 10.5, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4, fontFamily: 'var(--font-mono)' }}>opcoes consideradas</div>
@@ -310,11 +310,11 @@ function DecisionsPanel({ execucaoId, waveFilter }: { execucaoId: string; waveFi
                         })()}
                         <div>
                           <div style={{ fontSize: 10.5, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 3, fontFamily: 'var(--font-mono)' }}>contexto</div>
-                          <TextRaw value={d.contexto} />
+                          <TextRaw value={d.context} />
                         </div>
                         <div>
                           <div style={{ fontSize: 10.5, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 3, fontFamily: 'var(--font-mono)' }}>justificativa</div>
-                          <TextRaw value={d.justificativa} />
+                          <TextRaw value={d.rationale} />
                         </div>
                         {d.evidencia && (
                           <div>
@@ -369,8 +369,8 @@ function TasksPanel({ execucaoId }: { execucaoId: string }) {
   if (isError) return <ErrorState message={errorMessage ?? 'Erro'} />;
   if (!items.length) return <EmptyState title="Sem tarefas registradas" subtitle="Tarefas sao gravadas pelo orquestrador durante execute-task." />;
 
-  const totalTR = items.reduce((a, t) => a + (t.testesRodados ?? 0), 0);
-  const totalTP = items.reduce((a, t) => a + (t.testesPassados ?? 0), 0);
+  const totalTR = items.reduce((a, t) => a + (t.testsRun ?? 0), 0);
+  const totalTP = items.reduce((a, t) => a + (t.testsPassed ?? 0), 0);
   const lintOk  = items.filter(t => t.lintOk).length;
   const fails   = items.filter(t => t.outcome === 'fail').length;
 
@@ -404,18 +404,18 @@ function TasksPanel({ execucaoId }: { execucaoId: string }) {
           {items.map((t, idx) => (
             <tr key={idx}>
               {/* titulo (v3) e untrusted — React escapa via textContent por padrao */}
-              <td>{t.titulo?.trim()
-                ? <span style={{ color: 'var(--text-0)' }}>{t.titulo}</span>
+              <td>{t.title?.trim()
+                ? <span style={{ color: 'var(--text-0)' }}>{t.title}</span>
                 : <span className="muted">—</span>}
               </td>
               <td><span style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5 }}>{t.wave}</span></td>
               <td><OutcomePill outcome={t.outcome} /></td>
-              <td className="num">{t.testesPassados}/{t.testesRodados}</td>
+              <td className="num">{t.testsPassed}/{t.testsRun}</td>
               <td>{t.lintOk
                 ? <span className="pill pass">ok</span>
                 : <span className="pill fail">falhou</span>}
               </td>
-              <td className="num">{t.arquivosTocadosCount ?? '—'}</td>
+              <td className="num">{t.touchedFilesCount ?? '—'}</td>
             </tr>
           ))}
         </tbody>
@@ -458,9 +458,9 @@ function EventsPanel({ execucaoId }: { execucaoId: string }) {
                 <Icon name={m.icon} size={12} style={{ color: m.color }} />
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, color: m.color, fontWeight: 600 }}>{m.label}</span>
               </div>
-              {e.descricao && (
+              {e.description && (
                 <div style={{ fontSize: 12.5, color: 'var(--text-1)' }}>
-                  <TextRaw value={e.descricao} maxLength={200} />
+                  <TextRaw value={e.description} maxLength={200} />
                 </div>
               )}
             </div>
@@ -486,10 +486,10 @@ function AlertsPanel({ execucaoId }: { execucaoId: string }) {
   return (
     <div style={{ padding: '14px 18px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 12 }}>
       {items.map((a, idx) => {
-        const isCircular = a.tipo === 'circular';
-        const sevColor = a.descricao?.includes('critical') ? 'var(--critical)' : 'var(--warning)';
-        const pct = a.valorConsumido != null && a.valorThreshold != null && a.valorThreshold > 0
-          ? Math.min(100, Math.round((a.valorConsumido / a.valorThreshold) * 100))
+        const isCircular = a.type === 'circular';
+        const sevColor = a.description?.includes('critical') ? 'var(--critical)' : 'var(--warning)';
+        const pct = a.consumedValue != null && a.thresholdValue != null && a.thresholdValue > 0
+          ? Math.min(100, Math.round((a.consumedValue / a.thresholdValue) * 100))
           : null;
         return (
           <div key={idx} style={{
@@ -500,14 +500,14 @@ function AlertsPanel({ execucaoId }: { execucaoId: string }) {
               <div className="row gap-2">
                 <Icon name={isCircular ? 'activity' : 'alert'} size={14} style={{ color: sevColor }} />
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 600, color: 'var(--text-0)' }}>
-                  {isCircular ? 'movimento circular' : `breach · ${a.subtipo ?? '?'}`}
+                  {isCircular ? 'movimento circular' : `breach · ${a.subtype ?? '?'}`}
                 </span>
               </div>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-2)' }}>{a.wave}</span>
             </div>
-            {a.descricao && (
+            {a.description && (
               <div style={{ fontSize: 12.5, color: 'var(--text-1)', marginBottom: 10 }}>
-                <TextRaw value={a.descricao} maxLength={160} />
+                <TextRaw value={a.description} maxLength={160} />
               </div>
             )}
             {pct != null && (
@@ -516,7 +516,7 @@ function AlertsPanel({ execucaoId }: { execucaoId: string }) {
                   <div style={{ width: `${pct}%`, height: '100%', background: sevColor, borderRadius: 3 }} />
                 </div>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-1)' }}>
-                  {a.valorConsumido} / {a.valorThreshold} ({pct}%)
+                  {a.consumedValue} / {a.thresholdValue} ({pct}%)
                 </span>
               </div>
             )}
@@ -533,7 +533,7 @@ function AlertsPanel({ execucaoId }: { execucaoId: string }) {
 function BloqueiosPanel({ execucaoId }: { execucaoId: string }) {
   const query = useBloqueios(execucaoId);
   const { isLoading, isError, errorMessage } = useApiState(query);
-  const items: BloqueioDTO[] = query.data?.data ?? [];
+  const items: BlockDTO[] = query.data?.data ?? [];
 
   if (isLoading) return <LoadingState />;
   if (isError) return <ErrorState message={errorMessage ?? 'Erro'} />;
@@ -556,33 +556,33 @@ function BloqueiosPanel({ execucaoId }: { execucaoId: string }) {
                 <span style={{ fontSize: 11, fontWeight: 600, color, fontFamily: 'var(--font-mono)' }}>
                   {b.status ?? 'desconhecido'}
                 </span>
-                {b.decisaoId && (
+                {b.decisionId && (
                   <span style={{ fontSize: 10.5, color: 'var(--text-3)', fontFamily: 'var(--font-mono)' }}>
-                    ref: {b.decisaoId}
+                    ref: {b.decisionId}
                   </span>
                 )}
               </div>
               <div className="row gap-2" style={{ fontSize: 11, color: 'var(--text-3)', fontFamily: 'var(--font-mono)' }}>
-                {b.latenciaSegundos != null && (
-                  <span>latencia: {fmtDur(b.latenciaSegundos)}</span>
+                {b.latencySeconds != null && (
+                  <span>latencia: {fmtDur(b.latencySeconds)}</span>
                 )}
               </div>
             </div>
             <div style={{ marginBottom: 8 }}>
               <div style={{ fontSize: 10.5, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 3, fontFamily: 'var(--font-mono)' }}>pergunta</div>
-              <TextRaw value={b.pergunta} />
+              <TextRaw value={b.question} />
             </div>
-            {b.contextoParaResposta && (
+            {b.contextForAnswer && (
               <div style={{ marginBottom: 8 }}>
                 <div style={{ fontSize: 10.5, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 3, fontFamily: 'var(--font-mono)' }}>contexto para humano</div>
-                <TextRaw value={b.contextoParaResposta} />
+                <TextRaw value={b.contextForAnswer} />
               </div>
             )}
-            {b.resposta && (
+            {b.answer && (
               <div>
                 <div style={{ fontSize: 10.5, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 3, fontFamily: 'var(--font-mono)' }}>resposta</div>
                 <div style={{ background: 'var(--success-soft)', borderRadius: 'var(--r-xs)', padding: '6px 10px', fontSize: 12.5 }}>
-                  <TextRaw value={b.resposta} />
+                  <TextRaw value={b.answer} />
                 </div>
               </div>
             )}
@@ -614,7 +614,7 @@ function SuggestionsPanel({ execucaoId }: { execucaoId: string }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
       {items.map((s, idx) => {
-        const sev = SEVERIDADE_META[s.severidade ?? ''] ?? { label: s.severidade ?? '—', color: 'var(--text-2)' };
+        const sev = SEVERIDADE_META[s.severity ?? ''] ?? { label: s.severity ?? '—', color: 'var(--text-2)' };
         return (
           <div key={s.sourceId || idx} style={{ padding: '14px 18px', borderBottom: '1px solid var(--border-soft)' }}>
             <div className="row" style={{ justifyContent: 'space-between', marginBottom: 8 }}>
@@ -623,9 +623,9 @@ function SuggestionsPanel({ execucaoId }: { execucaoId: string }) {
                 <span style={{ fontSize: 11, fontWeight: 600, color: sev.color, fontFamily: 'var(--font-mono)' }}>
                   {sev.label}
                 </span>
-                {s.skillAfetada && (
+                {s.affectedSkill && (
                   <span style={{ fontSize: 11, color: 'var(--text-1)', fontFamily: 'var(--font-mono)', padding: '1px 7px', background: 'var(--bg-3)', borderRadius: 8 }}>
-                    {s.skillAfetada}
+                    {s.affectedSkill}
                   </span>
                 )}
                 <span style={{ fontSize: 10.5, color: 'var(--text-3)', fontFamily: 'var(--font-mono)' }}>
@@ -633,20 +633,20 @@ function SuggestionsPanel({ execucaoId }: { execucaoId: string }) {
                 </span>
               </div>
               <div className="row gap-2" style={{ fontSize: 11, color: 'var(--text-3)', fontFamily: 'var(--font-mono)' }}>
-                {s.issueAberta
-                  ? <span style={{ color: 'var(--warning)' }}>issue: {s.issueAberta}</span>
-                  : <span>{fmtTimestamp(s.criadaEm)}</span>}
+                {s.issueOpened
+                  ? <span style={{ color: 'var(--warning)' }}>issue: {s.issueOpened}</span>
+                  : <span>{fmtTimestamp(s.createdAt)}</span>}
               </div>
             </div>
             <div style={{ marginBottom: 8 }}>
               <div style={{ fontSize: 10.5, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 3, fontFamily: 'var(--font-mono)' }}>diagnostico</div>
-              <TextRaw value={s.diagnostico} />
+              <TextRaw value={s.diagnosis} />
             </div>
-            {s.proposta && (
+            {s.proposal && (
               <div style={{ marginBottom: s.referencias.length ? 8 : 0 }}>
                 <div style={{ fontSize: 10.5, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 3, fontFamily: 'var(--font-mono)' }}>proposta</div>
                 <div style={{ background: 'var(--bg-2)', borderRadius: 'var(--r-xs)', padding: '6px 10px', fontSize: 12.5 }}>
-                  <TextRaw value={s.proposta} />
+                  <TextRaw value={s.proposal} />
                 </div>
               </div>
             )}
@@ -726,12 +726,12 @@ function TopSkillsCard({ execucaoId }: { execucaoId: string }) {
 }
 
 function SuggestionsCard({ exec }: { exec: ExecutionDTO }) {
-  const issues = exec.issuesToolkitAbertas;
+  const issues = exec.toolkitIssuesOpened;
   return (
     <div className="card">
       <div className="card-pad">
         <div className="row" style={{ justifyContent: 'space-between' }}>
-          <MiniStat label="Sugestões ao toolkit" value={String(exec.sugestoesSkillsTotal ?? '—')} />
+          <MiniStat label="Sugestões ao toolkit" value={String(exec.skillSuggestionsTotal ?? '—')} />
           <MiniStat
             label="Issues abertas"
             value={String(issues ?? '—')}
@@ -782,12 +782,12 @@ export function ExecutionDetail() {
   }
 
   const tabs = [
-    { value: 'decisions', label: 'Decisoes',  count: exec.decisoesTotal ?? 0 },
+    { value: 'decisions', label: 'Decisoes',  count: exec.decisionsTotal ?? 0 },
     { value: 'tasks',     label: 'Tarefas',   count: 0 },
     { value: 'events',    label: 'Eventos',   count: 0 },
     { value: 'alerts',    label: 'Alertas',   count: 0 },
-    { value: 'bloqueios', label: 'Bloqueios', count: exec.bloqueiosHumanosTotal ?? 0 },
-    { value: 'suggestions', label: 'Sugestoes', count: exec.sugestoesSkillsTotal ?? 0 },
+    { value: 'bloqueios', label: 'Bloqueios', count: exec.humanBlocksTotal ?? 0 },
+    { value: 'suggestions', label: 'Sugestoes', count: exec.skillSuggestionsTotal ?? 0 },
   ];
 
   return (
@@ -803,11 +803,11 @@ export function ExecutionDetail() {
                 <StatusBadge status={exec.status} />
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-3)' }}>execucao</span>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, color: 'var(--accent)', fontWeight: 600 }}>
-                  {exec.execucaoId}
+                  {exec.executionId}
                 </span>
               </div>
               <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>
-                {exec.feature ?? exec.execucaoId}
+                {exec.feature ?? exec.executionId}
               </div>
               <div className="row gap-2" style={{ fontSize: 11.5, color: 'var(--text-2)' }}>
                 <span
@@ -819,7 +819,7 @@ export function ExecutionDetail() {
                 <span style={{ color: 'var(--text-3)' }}>/</span>
                 <span>{exec.feature}</span>
                 <span style={{ color: 'var(--text-3)' }}>·</span>
-                <span>iniciada {fmtTimestamp(exec.iniciadaEm)}</span>
+                <span>iniciada {fmtTimestamp(exec.startedAt)}</span>
               </div>
             </div>
             {/* Botoes decorativos (CARD-EX-02) — recursos externos ao painel */}
@@ -847,14 +847,14 @@ export function ExecutionDetail() {
           {/* Stats row */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 12, marginBottom: 14 }}>
             {[
-              { label: 'Etapa corrente',  value: exec.etapaCorrente ?? '—', color: exec.status === 'em_andamento' ? 'var(--inprogress)' : 'var(--text-0)', mono: true },
-              { label: 'Duracao',         value: fmtDur(exec.duracaoSegundos) },
+              { label: 'Etapa corrente',  value: exec.currentStage ?? '—', color: exec.status === 'em_andamento' ? 'var(--inprogress)' : 'var(--text-0)', mono: true },
+              { label: 'Duracao',         value: fmtDur(exec.durationSeconds) },
               { label: 'Custo · proxy',   value: fmtNum(exec.toolCallsTotal) },
-              { label: 'Ondas',           value: String(exec.ondasTotal ?? '—') },
-              { label: 'Subagentes',      value: String(exec.subagentesSpawned ?? '—') },
-              { label: 'Prof. maxima',    value: String(exec.profundidadeMax ?? '—') },
-              { label: 'Decisoes',        value: String(exec.decisoesTotal ?? '—') },
-              { label: 'Bloqueios',       value: String(exec.bloqueiosHumanosTotal ?? '—') },
+              { label: 'Ondas',           value: String(exec.wavesTotal ?? '—') },
+              { label: 'Subagentes',      value: String(exec.subagentsSpawned ?? '—') },
+              { label: 'Prof. maxima',    value: String(exec.maxDepth ?? '—') },
+              { label: 'Decisoes',        value: String(exec.decisionsTotal ?? '—') },
+              { label: 'Bloqueios',       value: String(exec.humanBlocksTotal ?? '—') },
             ].map(s => (
               <div key={s.label}>
                 <div style={{ fontSize: 10, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 2 }}>{s.label}</div>
@@ -868,11 +868,11 @@ export function ExecutionDetail() {
             ))}
           </div>
 
-          <PipelineProgress etapa={exec.etapaCorrente} status={exec.status} labeled />
+          <PipelineProgress etapa={exec.currentStage} status={exec.status} labeled />
 
-          {stackDisplayItems(exec.stackSugerida).length > 0 && (
+          {stackDisplayItems(exec.suggestedStack).length > 0 && (
             <div style={{ marginTop: 10, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {stackDisplayItems(exec.stackSugerida).map(s => (
+              {stackDisplayItems(exec.suggestedStack).map(s => (
                 <span key={s} style={{
                   padding: '2px 7px', borderRadius: 8, fontSize: 11,
                   background: 'var(--bg-3)', color: 'var(--text-1)',

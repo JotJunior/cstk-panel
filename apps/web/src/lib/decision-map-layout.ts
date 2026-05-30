@@ -107,7 +107,7 @@ export interface MapLayout {
 // ---------------------------------------------------------------------------
 
 /**
- * Parseia `opcoes` (JSON array cru, ex.: `["haiku","sonnet"]`) defensivamente.
+ * Parseia `options` (JSON array cru, ex.: `["haiku","sonnet"]`) defensivamente.
  * Retorna `[]` para null, JSON inválido, ou valor não-array (FR-V3-005).
  */
 export function parseOpcoes(raw: string | null): string[] {
@@ -129,16 +129,16 @@ function norm(s: string | null): string {
  * Deriva as opções de uma decisão + qual é a escolhida.
  *
  * Regras (defensivas):
- *  - opções vêm de `opcoes`; a escolhida é a que casa (trim/lower) com `escolha`.
- *  - se `escolha` existe mas não está entre as opções, ela é ANEXADA como opção
+ *  - opções vêm de `options`; a escolhida é a que casa (trim/lower) com `choice`.
+ *  - se `choice` existe mas não está entre as opções, ela é ANEXADA como opção
  *    escolhida (o usuário precisa ver a escolha real, ainda que não listada).
- *  - se `escolha` existe e não há opções, vira a única opção (escolhida).
- *  - se `escolha` é nula/vazia, `chosenIdx = -1` (sem escolha → espinha parte da
+ *  - se `choice` existe e não há opções, vira a única opção (escolhida).
+ *  - se `choice` é nula/vazia, `chosenIdx = -1` (sem escolha → espinha parte da
  *    própria decisão).
  */
 export function deriveOptions(d: DecisionDTO): { opts: string[]; chosenIdx: number } {
-  const opts = parseOpcoes(d.opcoes);
-  const esc = d.escolha;
+  const opts = parseOpcoes(d.options);
+  const esc = d.choice;
   if (esc == null || esc === '') {
     return { opts, chosenIdx: -1 };
   }
@@ -182,7 +182,7 @@ export function computeLayout(items: DecisionDTO[]): MapLayout {
     nodes.push({
       key: pillKey,
       kind: 'decision',
-      label: d.etapa ?? 'decisão',
+      label: d.stage ?? 'decisão',
       decision: d,
       decisionIndex: i,
       optionIndex: -1,

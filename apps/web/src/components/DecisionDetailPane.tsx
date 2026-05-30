@@ -87,8 +87,8 @@ export function DecisionDetailPane({
   }, []);
 
   // Opções de decisão (chips)
-  const opts = decisionOptions(decision.opcoes);
-  const chosenIdx = chosenOptionIndex(opts, decision.escolha);
+  const opts = decisionOptions(decision.options);
+  const chosenIdx = chosenOptionIndex(opts, decision.choice);
 
   return (
     <div
@@ -126,7 +126,7 @@ export function DecisionDetailPane({
             whiteSpace: 'nowrap',
           }}
         >
-          <TextRaw value={decision.escolha} maxLength={60} />
+          <TextRaw value={decision.choice} maxLength={60} />
         </span>
 
         {/* Navegação prev/next — 2.3.8 / 2.3.9 (disabled nos extremos) */}
@@ -211,7 +211,7 @@ export function DecisionDetailPane({
         </span>
 
         {/* Etapa — somente se presente */}
-        {decision.etapa && (
+        {decision.stage && (
           <span
             style={{
               fontFamily: 'var(--font-mono, monospace)',
@@ -222,7 +222,7 @@ export function DecisionDetailPane({
               borderRadius: 4,
             }}
           >
-            {decision.etapa}
+            {decision.stage}
           </span>
         )}
 
@@ -230,7 +230,7 @@ export function DecisionDetailPane({
         <ScoreChip score={decision.score} />
 
         {/* Agente — UNTRUSTED, somente se presente — 2.3.6 */}
-        {decision.agente && (
+        {decision.agent && (
           <span
             style={{
               fontFamily: 'var(--font-mono, monospace)',
@@ -242,7 +242,7 @@ export function DecisionDetailPane({
               maxWidth: 180,
             }}
           >
-            <TextRaw value={decision.agente} maxLength={40} />
+            <TextRaw value={decision.agent} maxLength={40} />
           </span>
         )}
       </div>
@@ -298,18 +298,18 @@ export function DecisionDetailPane({
         )}
 
         {/* Contexto — 2.3.4 (somente se presente — 2.3.7) */}
-        {decision.contexto && (
+        {decision.context && (
           <div>
             <SectionLabel>contexto</SectionLabel>
-            <TextRaw value={decision.contexto} />
+            <TextRaw value={decision.context} />
           </div>
         )}
 
         {/* Justificativa — 2.3.4 (somente se presente — 2.3.7) */}
-        {decision.justificativa && (
+        {decision.rationale && (
           <div>
             <SectionLabel>justificativa</SectionLabel>
-            <TextRaw value={decision.justificativa} />
+            <TextRaw value={decision.rationale} />
           </div>
         )}
 

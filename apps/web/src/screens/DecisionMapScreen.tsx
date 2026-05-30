@@ -71,9 +71,9 @@ export function DecisionMapScreen() {
                 )}
               </div>
               <div className="row gap-2" style={{ fontSize: 11.5, color: 'var(--text-2)' }}>
-                <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent)' }}>{exec.execucaoId}</span>
+                <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent)' }}>{exec.executionId}</span>
                 <span style={{ color: 'var(--text-3)' }}>·</span>
-                <span>{exec.decisoesTotal ?? 0} decisões</span>
+                <span>{exec.decisionsTotal ?? 0} decisões</span>
               </div>
             </div>
             <div className="row gap-2" style={{ flexShrink: 0 }}>

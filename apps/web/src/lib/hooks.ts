@@ -12,7 +12,7 @@ import {
   TaskDTOSchema,
   EventDTOSchema,
   AlertSignalDTOSchema,
-  BloqueioDTOSchema,
+  BlockDTOSchema,
   SkillDTOSchema,
   ProjectRollupSchema,
   FeatureRollupSchema,
@@ -27,7 +27,7 @@ import { z } from 'zod';
 const WaveListSchema = z.array(WaveDTOSchema);
 const EventListSchema = z.array(EventDTOSchema);
 const AlertListSchema = z.array(AlertSignalDTOSchema);
-const BloqueioListSchema = z.array(BloqueioDTOSchema);
+const BlockListSchema = z.array(BlockDTOSchema);
 const SkillListSchema = z.array(SkillDTOSchema);
 const SuggestionListSchema = z.array(SuggestionDTOSchema);
 const ProjectListSchema = z.array(ProjectRollupSchema);
@@ -212,7 +212,7 @@ export function useAlertsByExecution(execucaoId: string) {
 export function useBloqueios(execucaoId: string) {
   return useQuery({
     queryKey: ['bloqueios', execucaoId],
-    queryFn: () => fetchApi(`/executions/${encodeURIComponent(execucaoId)}/bloqueios`, BloqueioListSchema),
+    queryFn: () => fetchApi(`/executions/${encodeURIComponent(execucaoId)}/bloqueios`, BlockListSchema),
     enabled: Boolean(execucaoId),
   });
 }

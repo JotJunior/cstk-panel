@@ -28,14 +28,14 @@ import type { DecisionDTO } from '@cstk-panel/shared-types';
 function mkDecision(wave: string, overrides: Partial<DecisionDTO> = {}): DecisionDTO {
   return {
     wave,
-    execucaoId: 'exec-test',
-    etapa: 'plan',
-    agente: null,
-    escolha: 'B',
-    opcoes: JSON.stringify(['A', 'B', 'C']),
+    executionId: 'exec-test',
+    stage: 'plan',
+    agent: null,
+    choice: 'B',
+    options: JSON.stringify(['A', 'B', 'C']),
     score: null,
-    contexto: null,
-    justificativa: null,
+    context: null,
+    rationale: null,
     evidencia: null,
     ...overrides,
   };
@@ -62,30 +62,30 @@ describe('parseOpcoes', () => {
 
 describe('deriveOptions', () => {
   it('marca a opção escolhida pelo match com escolha', () => {
-    const { opts, chosenIdx } = deriveOptions(mkDecision('w', { opcoes: '["A","B","C"]', escolha: 'B' }));
+    const { opts, chosenIdx } = deriveOptions(mkDecision('w', { options: '["A","B","C"]', choice: 'B' }));
     expect(opts).toEqual(['A', 'B', 'C']);
     expect(chosenIdx).toBe(1);
   });
 
   it('match é tolerante a espaços/caixa', () => {
-    const { chosenIdx } = deriveOptions(mkDecision('w', { opcoes: '["Haiku","Sonnet"]', escolha: '  sonnet ' }));
+    const { chosenIdx } = deriveOptions(mkDecision('w', { options: '["Haiku","Sonnet"]', choice: '  sonnet ' }));
     expect(chosenIdx).toBe(1);
   });
 
   it('escolha ausente das opcoes é anexada como escolhida', () => {
-    const { opts, chosenIdx } = deriveOptions(mkDecision('w', { opcoes: '["A","B"]', escolha: 'Z' }));
+    const { opts, chosenIdx } = deriveOptions(mkDecision('w', { options: '["A","B"]', choice: 'Z' }));
     expect(opts).toEqual(['A', 'B', 'Z']);
     expect(chosenIdx).toBe(2);
   });
 
   it('sem opcoes mas com escolha → escolha vira a única opção', () => {
-    const { opts, chosenIdx } = deriveOptions(mkDecision('w', { opcoes: null, escolha: 'X' }));
+    const { opts, chosenIdx } = deriveOptions(mkDecision('w', { options: null, choice: 'X' }));
     expect(opts).toEqual(['X']);
     expect(chosenIdx).toBe(0);
   });
 
   it('escolha nula → chosenIdx -1', () => {
-    const { opts, chosenIdx } = deriveOptions(mkDecision('w', { opcoes: '["A","B"]', escolha: null }));
+    const { opts, chosenIdx } = deriveOptions(mkDecision('w', { options: '["A","B"]', choice: null }));
     expect(opts).toEqual(['A', 'B']);
     expect(chosenIdx).toBe(-1);
   });
@@ -106,7 +106,7 @@ describe('computeLayout — array vazio', () => {
 });
 
 describe('computeLayout — 1 decisão com 3 opções (escolha = B)', () => {
-  const items = [mkDecision('onda-001', { opcoes: '["A","B","C"]', escolha: 'B' })];
+  const items = [mkDecision('onda-001', { options: '["A","B","C"]', choice: 'B' })];
   const layout = computeLayout(items);
 
   it('produz 1 pill + 3 opções + Fim = 5 nós', () => {
@@ -145,9 +145,9 @@ describe('computeLayout — 1 decisão com 3 opções (escolha = B)', () => {
 
 describe('computeLayout — cadeia de 3 decisões', () => {
   const items = [
-    mkDecision('onda-001', { etapa: 'specify', opcoes: '["A","B","C"]', escolha: 'B' }),
-    mkDecision('onda-002', { etapa: 'plan', opcoes: '["D","E","F"]', escolha: 'D' }),
-    mkDecision('onda-003', { etapa: 'tasks', opcoes: '["G","H","I"]', escolha: 'I' }),
+    mkDecision('onda-001', { stage: 'specify', options: '["A","B","C"]', choice: 'B' }),
+    mkDecision('onda-002', { stage: 'plan', options: '["D","E","F"]', choice: 'D' }),
+    mkDecision('onda-003', { stage: 'tasks', options: '["G","H","I"]', choice: 'I' }),
   ];
   const layout = computeLayout(items);
 
@@ -195,9 +195,9 @@ describe('computeLayout — normalização', () => {
   it('nenhum x é negativo; menor x === PADDING', () => {
     // Escolhas à esquerda forçam a espinha a derivar — exige normalização.
     const items = [
-      mkDecision('w', { opcoes: '["A","B","C"]', escolha: 'A' }),
-      mkDecision('w', { opcoes: '["D","E","F"]', escolha: 'D' }),
-      mkDecision('w', { opcoes: '["G","H","I"]', escolha: 'G' }),
+      mkDecision('w', { options: '["A","B","C"]', choice: 'A' }),
+      mkDecision('w', { options: '["D","E","F"]', choice: 'D' }),
+      mkDecision('w', { options: '["G","H","I"]', choice: 'G' }),
     ];
     const layout = computeLayout(items);
     const minX = Math.min(...layout.nodes.map((n) => n.x));
@@ -206,7 +206,7 @@ describe('computeLayout — normalização', () => {
   });
 
   it('svgWidth e svgHeight encapsulam todos os nós com PADDING', () => {
-    const items = [mkDecision('w', { opcoes: '["A","B","C"]', escolha: 'B' })];
+    const items = [mkDecision('w', { options: '["A","B","C"]', choice: 'B' })];
     const layout = computeLayout(items);
     const maxRight = Math.max(...layout.nodes.map((n) => n.x + n.w));
     const maxBottom = Math.max(...layout.nodes.map((n) => n.y + n.h));
@@ -220,7 +220,7 @@ describe('computeLayout — normalização', () => {
 // ---------------------------------------------------------------------------
 
 describe('computeLayout — decisão sem opções nem escolha', () => {
-  const items = [mkDecision('w', { opcoes: null, escolha: null })];
+  const items = [mkDecision('w', { options: null, choice: null })];
   const layout = computeLayout(items);
 
   it('produz só o pill + Fim (sem opções)', () => {
@@ -238,7 +238,7 @@ describe('computeLayout — decisão sem opções nem escolha', () => {
 });
 
 describe('computeLayout — escolha null com opções (nenhuma escolhida)', () => {
-  const items = [mkDecision('w', { opcoes: '["A","B"]', escolha: null })];
+  const items = [mkDecision('w', { options: '["A","B"]', choice: null })];
   const layout = computeLayout(items);
 
   it('renderiza as opções mas nenhuma é chosen', () => {
@@ -261,8 +261,8 @@ describe('computeLayout — performance', () => {
   it('< 10ms para 100 decisões', () => {
     const items: DecisionDTO[] = Array.from({ length: 100 }, (_, i) =>
       mkDecision(`onda-${String(Math.floor(i / 10) + 1).padStart(3, '0')}`, {
-        opcoes: '["A","B","C"]',
-        escolha: 'B',
+        options: '["A","B","C"]',
+        choice: 'B',
       })
     );
     const t0 = performance.now();
@@ -278,9 +278,9 @@ describe('computeLayout — performance', () => {
 
 describe('prevKey / nextKey — navegam entre decisões', () => {
   const items = [
-    mkDecision('w', { escolha: 'B' }),
-    mkDecision('w', { escolha: 'B' }),
-    mkDecision('w', { escolha: 'B' }),
+    mkDecision('w', { choice: 'B' }),
+    mkDecision('w', { choice: 'B' }),
+    mkDecision('w', { choice: 'B' }),
   ];
   const { nodes } = computeLayout(items);
 
@@ -321,7 +321,7 @@ describe('computeLayout — pureza e determinismo', () => {
   });
 
   it('mesmo input → mesmo output', () => {
-    const items = [mkDecision('w', { escolha: 'A' }), mkDecision('w', { escolha: 'C' })];
+    const items = [mkDecision('w', { choice: 'A' }), mkDecision('w', { choice: 'C' })];
     const l1 = computeLayout(items);
     const l2 = computeLayout(items);
     expect(JSON.stringify(l1)).toBe(JSON.stringify(l2));

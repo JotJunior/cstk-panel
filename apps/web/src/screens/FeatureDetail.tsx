@@ -39,10 +39,10 @@ export function FeatureDetail() {
   const status = rollup?.latestStatus ?? null;
 
   // Stack: primeira execucao com stack_sugerida (CARD-FTD-02)
-  const stack = executions.find(e => e.stackSugerida)?.stackSugerida ?? null;
+  const stack = executions.find(e => e.suggestedStack)?.suggestedStack ?? null;
   const stackItems = stackDisplayItems(stack);
   // Execucao mais recente para "Ver execução" (CARD-FTD-03)
-  const latestExecId = executions[0]?.execucaoId ?? null;
+  const latestExecId = executions[0]?.executionId ?? null;
 
   return (
     <div className="col gap-4">
@@ -127,15 +127,15 @@ export function FeatureDetail() {
               {executions.length === 0 ? (
                 <tr><td colSpan={8} style={{ textAlign: 'center', color: 'var(--text-3)', padding: 24 }}>Sem execuções.</td></tr>
               ) : executions.map((e, idx) => (
-                <tr key={e.execucaoId || idx} className="clickable" onClick={() => navigate(`/executions/${encodeURIComponent(e.execucaoId)}`)}>
-                  <td className="mono" style={{ color: 'var(--accent)', fontSize: 11.5 }}>{e.execucaoId.slice(0, 40)}</td>
+                <tr key={e.executionId || idx} className="clickable" onClick={() => navigate(`/executions/${encodeURIComponent(e.executionId)}`)}>
+                  <td className="mono" style={{ color: 'var(--accent)', fontSize: 11.5 }}>{e.executionId.slice(0, 40)}</td>
                   <td><StatusBadge status={e.status} /></td>
-                  <td className="mono" style={{ fontSize: 11.5 }}>{fmtTimestamp(e.iniciadaEm)}</td>
-                  <td className="mono" style={{ fontSize: 11.5 }}>{fmtTimestamp(e.terminadaEm)}</td>
-                  <td className="num">{fmtDur(e.duracaoSegundos)}</td>
-                  <td className="num">{e.ondasTotal ?? '—'}</td>
+                  <td className="mono" style={{ fontSize: 11.5 }}>{fmtTimestamp(e.startedAt)}</td>
+                  <td className="mono" style={{ fontSize: 11.5 }}>{fmtTimestamp(e.finishedAt)}</td>
+                  <td className="num">{fmtDur(e.durationSeconds)}</td>
+                  <td className="num">{e.wavesTotal ?? '—'}</td>
                   <td className="num">{fmtNum(e.toolCallsTotal)}</td>
-                  <td className="mono muted" style={{ fontSize: 11.5 }}>{e.motivoTermino ?? '—'}</td>
+                  <td className="mono muted" style={{ fontSize: 11.5 }}>{e.terminationReason ?? '—'}</td>
                 </tr>
               ))}
             </tbody>
@@ -156,12 +156,12 @@ export function FeatureDetail() {
             </div>
           ) : (
             retros.map((r, idx) => (
-              <div key={`${r.execucaoId}/${r.wave}/${idx}`} style={{ background: 'var(--bg-2)', padding: 12, borderRadius: 'var(--r-sm)', border: '1px solid var(--border)' }}>
+              <div key={`${r.executionId}/${r.wave}/${idx}`} style={{ background: 'var(--bg-2)', padding: 12, borderRadius: 'var(--r-sm)', border: '1px solid var(--border)' }}>
                 <div className="row gap-2" style={{ marginBottom: 6 }}>
                   <span className="tag accent">retro</span>
                   <span className="mono muted" style={{ fontSize: 11.5 }}>{r.wave}</span>
                 </div>
-                <div style={{ color: 'var(--text-1)', fontSize: 12.5 }}>{r.texto ?? '—'}</div>
+                <div style={{ color: 'var(--text-1)', fontSize: 12.5 }}>{r.text ?? '—'}</div>
               </div>
             ))
           )}

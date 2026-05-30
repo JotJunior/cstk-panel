@@ -74,13 +74,13 @@ export function Executions() {
                 <tbody>
                   {items.map((e, idx) => (
                     <tr
-                      key={e.execucaoId || idx}
+                      key={e.executionId || idx}
                       className="clickable"
-                      onClick={() => navigate(`/executions/${encodeURIComponent(e.execucaoId)}`)}
+                      onClick={() => navigate(`/executions/${encodeURIComponent(e.executionId)}`)}
                     >
                       <td>
                         <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--accent)' }}>
-                          {e.execucaoId.slice(0, 32)}{e.execucaoId.length > 32 ? '…' : ''}
+                          {e.executionId.slice(0, 32)}{e.executionId.length > 32 ? '…' : ''}
                         </span>
                       </td>
                       <td>
@@ -88,13 +88,13 @@ export function Executions() {
                         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10.5, color: 'var(--text-2)' }}>{e.project}</div>
                       </td>
                       <td><StatusBadge status={e.status} /></td>
-                      <td><PipelineProgress etapa={e.etapaCorrente} status={e.status} /></td>
-                      <td className="num">{e.ondasTotal ?? '—'}</td>
+                      <td><PipelineProgress etapa={e.currentStage} status={e.status} /></td>
+                      <td className="num">{e.wavesTotal ?? '—'}</td>
                       <td className="num">{fmtNum(e.toolCallsTotal)}</td>
-                      <td className="num">{fmtDur(e.wallclockTotalSegundos)}</td>
-                      <td className="num">{e.decisoesTotal ?? '—'}</td>
-                      <td><span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-2)' }}>{fmtTimestamp(e.iniciadaEm)}</span></td>
-                      <td><span style={{ fontFamily: 'var(--font-mono)', fontSize: 10.5, color: 'var(--text-2)' }}>{e.motivoTermino ?? '—'}</span></td>
+                      <td className="num">{fmtDur(e.wallclockTotalSeconds)}</td>
+                      <td className="num">{e.decisionsTotal ?? '—'}</td>
+                      <td><span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-2)' }}>{fmtTimestamp(e.startedAt)}</span></td>
+                      <td><span style={{ fontFamily: 'var(--font-mono)', fontSize: 10.5, color: 'var(--text-2)' }}>{e.terminationReason ?? '—'}</span></td>
                     </tr>
                   ))}
                 </tbody>

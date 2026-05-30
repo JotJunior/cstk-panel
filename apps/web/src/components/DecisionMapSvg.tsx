@@ -44,7 +44,7 @@ function nodeAriaLabel(node: MapNode): string {
       : `Opção considerada: ${node.label ?? 'sem texto'}`;
   }
   // decisão — usa a escolha real ou um fallback explícito quando null
-  return node.decision?.escolha ?? 'decisão sem escolha';
+  return node.decision?.choice ?? 'decisão sem escolha';
 }
 
 // ---------------------------------------------------------------------------

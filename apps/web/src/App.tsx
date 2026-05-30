@@ -48,8 +48,8 @@ export default function App() {
   };
   const alertItems: AlertSignalDTO[] = alertsQ.data?.data?.alerts ?? [];
   const alertCount = alertItems.filter((a) =>
-    a.valorConsumido != null && a.valorThreshold != null && a.valorThreshold > 0
-      ? a.valorConsumido / a.valorThreshold >= 1
+    a.consumedValue != null && a.thresholdValue != null && a.thresholdValue > 0
+      ? a.consumedValue / a.thresholdValue >= 1
       : false,
   ).length;
 
