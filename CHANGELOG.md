@@ -5,6 +5,20 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.8.2] - 2026-05-30
+
+### Corrigido
+
+- **Árvore de decisões — painel de detalhe fixo (sticky)**: o painel lateral que
+  abre ao clicar num nó era clipado pelo ancestral `.card { overflow: hidden }` e
+  rolava junto com a página; clicar num nó no fim da árvore exigia rolar de volta
+  ao topo para ler o conteúdo. Agora o painel permanece **fixo logo abaixo da
+  topbar** (`top: 60px`) enquanto a árvore rola, mantendo o detalhe sempre
+  visível. Fix: `overflow: visible` no card do mapa (o SVG já trata o próprio
+  scroll horizontal) + ajuste do `top` do sticky para limpar a topbar (52px).
+  Verificado via Playwright contra a `knowledge.db` v7 real (árvore de 215
+  decisões, scroll a ~20,6k px → painel fixo e visível).
+
 ## [0.8.1] - 2026-05-30
 
 Patch de qualidade pós-0.8.0.
