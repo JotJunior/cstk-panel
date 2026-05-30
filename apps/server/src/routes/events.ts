@@ -43,12 +43,12 @@ export async function eventRoutes(server: FastifyInstance): Promise<void> {
 
       const data = {
         events: rows.map(r => ({
-          execucaoId: r.execucao_id,
+          executionId: r.execution_id,
           project: r.project,
           feature: r.feature,
           eventType: r.event_type,
           timestamp: r.timestamp,
-          descricao: r.descricao,
+          description: r.description,
         })),
         pagination: {
           limit: pagination.limit,

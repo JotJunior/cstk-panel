@@ -1,9 +1,11 @@
 /**
  * Testes unitarios dos mappers — task 3.4.6.
- * Garante: lint_ok=0→false, lint_ok=1→true; etapas permanece string;
+ * Garante: lint_ok=0→false, lint_ok=1→true; stages permanece string;
  * score=2→2; campos UNTRUSTED nao transformados.
  *
  * Tambem task 3.4.7: parse Zod sobre saida de cada mapper (.success===true).
+ *
+ * FASE 3 (new-schema): Row fixtures migradas pt-BR→EN snake_case (task 3.4.6).
  */
 import { describe, it, expect } from 'vitest';
 import {
@@ -13,7 +15,7 @@ import {
   TaskDTOSchema,
   EventDTOSchema,
   AlertSignalDTOSchema,
-  BloqueioDTOSchema,
+  BlockDTOSchema,
   SkillDTOSchema,
 } from '@cstk-panel/shared-types';
 import { mapExecution } from '../../src/mappers/execution.js';
@@ -22,7 +24,7 @@ import { mapDecision } from '../../src/mappers/decision.js';
 import { mapTask } from '../../src/mappers/task.js';
 import { mapEvent } from '../../src/mappers/event.js';
 import { mapAlert } from '../../src/mappers/alert.js';
-import { mapBloqueio } from '../../src/mappers/bloqueio.js';
+import { mapBlock } from '../../src/mappers/block.js';
 import { mapSkill } from '../../src/mappers/skill.js';
 
 const ISO = '2025-01-15T10:00:00.000Z';
@@ -30,8 +32,8 @@ const ISO = '2025-01-15T10:00:00.000Z';
 describe('mapTask', () => {
   it('lint_ok=1 → lintOk=true', () => {
     const row = {
-      wave: 'onda-001', execucao_id: 'e1', outcome: 'pass',
-      testes_rodados: 3, testes_passados: 3, lint_ok: 1, arquivos_tocados: 5,
+      wave: 'onda-001', execution_id: 'e1', title: '', outcome: 'pass',
+      tests_run: 3, tests_passed: 3, lint_ok: 1, touched_files: 5,
     };
     const dto = mapTask(row);
     expect(dto.lintOk).toBe(true);
@@ -40,8 +42,8 @@ describe('mapTask', () => {
 
   it('lint_ok=0 → lintOk=false', () => {
     const row = {
-      wave: 'onda-001', execucao_id: 'e1', outcome: 'fail',
-      testes_rodados: 0, testes_passados: 0, lint_ok: 0, arquivos_tocados: 2,
+      wave: 'onda-001', execution_id: 'e1', title: '', outcome: 'fail',
+      tests_run: 0, tests_passed: 0, lint_ok: 0, touched_files: 2,
     };
     const dto = mapTask(row);
     expect(dto.lintOk).toBe(false);
@@ -50,48 +52,48 @@ describe('mapTask', () => {
 
   it('lint_ok=null → lintOk=null', () => {
     const row = {
-      wave: 'onda-001', execucao_id: 'e1', outcome: null,
-      testes_rodados: null, testes_passados: null, lint_ok: null, arquivos_tocados: null,
+      wave: 'onda-001', execution_id: 'e1', title: '', outcome: null,
+      tests_run: null, tests_passed: null, lint_ok: null, touched_files: null,
     };
     const dto = mapTask(row);
     expect(dto.lintOk).toBeNull();
   });
 
-  it('arquivos_tocados=5 → arquivosTocadosCount=5 (number, nao array)', () => {
+  it('touched_files=5 → touchedFilesCount=5 (number, nao array)', () => {
     const row = {
-      wave: 'onda-001', execucao_id: 'e1', outcome: 'pass',
-      testes_rodados: 1, testes_passados: 1, lint_ok: 1, arquivos_tocados: 5,
+      wave: 'onda-001', execution_id: 'e1', title: '', outcome: 'pass',
+      tests_run: 1, tests_passed: 1, lint_ok: 1, touched_files: 5,
     };
     const dto = mapTask(row);
-    expect(typeof dto.arquivosTocadosCount).toBe('number');
-    expect(dto.arquivosTocadosCount).toBe(5);
-    expect(Array.isArray(dto.arquivosTocadosCount)).toBe(false);
+    expect(typeof dto.touchedFilesCount).toBe('number');
+    expect(dto.touchedFilesCount).toBe(5);
+    expect(Array.isArray(dto.touchedFilesCount)).toBe(false);
   });
 
-  it('titulo (v3) presente → mapeado verbatim', () => {
+  it('title (v7 EN) presente → mapeado verbatim', () => {
     const row = {
-      wave: 'onda-001', execucao_id: 'e1', titulo: 'Implementar login', outcome: 'pass',
-      testes_rodados: 3, testes_passados: 3, lint_ok: 1, arquivos_tocados: 5,
+      wave: 'onda-001', execution_id: 'e1', title: 'Implementar login', outcome: 'pass',
+      tests_run: 3, tests_passed: 3, lint_ok: 1, touched_files: 5,
     };
     const dto = mapTask(row);
-    expect(dto.titulo).toBe('Implementar login');
+    expect(dto.title).toBe('Implementar login');
   });
 
-  it('titulo ausente (base v2) → "" (retro-compat, FR-V3-004)', () => {
-    // Row de uma base v2 sem a coluna titulo (a query projeta '' mas validamos
+  it('title ausente (base v2) → "" (retro-compat, FR-V3-004)', () => {
+    // Row de uma base v2 sem a coluna title (a query projeta '' mas validamos
     // a defesa do mapper tambem).
     const row = {
-      wave: 'onda-001', execucao_id: 'e1', outcome: 'pass',
-      testes_rodados: 1, testes_passados: 1, lint_ok: 1, arquivos_tocados: 0,
+      wave: 'onda-001', execution_id: 'e1', outcome: 'pass',
+      tests_run: 1, tests_passed: 1, lint_ok: 1, touched_files: 0,
     } as unknown as Parameters<typeof mapTask>[0];
     const dto = mapTask(row);
-    expect(dto.titulo).toBe('');
+    expect(dto.title).toBe('');
   });
 
   it('paridade round-trip: TaskDTOSchema.safeParse(mapTask(row)).success===true', () => {
     const row = {
-      wave: 'onda-001', execucao_id: 'e1', titulo: 'Task X', outcome: 'pass',
-      testes_rodados: 3, testes_passados: 3, lint_ok: 1, arquivos_tocados: 5,
+      wave: 'onda-001', execution_id: 'e1', title: 'Task X', outcome: 'pass',
+      tests_run: 3, tests_passed: 3, lint_ok: 1, touched_files: 5,
     };
     const dto = mapTask(row);
     const r = TaskDTOSchema.safeParse(dto);
@@ -100,23 +102,23 @@ describe('mapTask', () => {
 });
 
 describe('mapWave', () => {
-  it('etapas permanece string (nao converte para array)', () => {
+  it('stages permanece string (nao converte para array)', () => {
     const row = {
-      wave: 'onda-007', execucao_id: 'e1', etapas: 'execute-task',
-      inicio: ISO, fim: null, wallclock_seconds: 120, tool_calls: 25,
-      motivo_termino: null, n_etapas: 1, n_skills: 3,
+      wave: 'onda-007', execution_id: 'e1', stages: 'execute-task',
+      started_at: ISO, finished_at: null, wallclock_seconds: 120, tool_calls: 25,
+      termination_reason: null, n_stages: 1, n_skills: 3,
     };
     const dto = mapWave(row);
-    expect(typeof dto.etapas).toBe('string');
-    expect(Array.isArray(dto.etapas)).toBe(false);
-    expect(dto.etapas).toBe('execute-task');
+    expect(typeof dto.stages).toBe('string');
+    expect(Array.isArray(dto.stages)).toBe(false);
+    expect(dto.stages).toBe('execute-task');
   });
 
   it('paridade round-trip: WaveDTOSchema.safeParse(mapWave(row)).success===true', () => {
     const row = {
-      wave: 'onda-007', execucao_id: 'e1', etapas: 'execute-task',
-      inicio: ISO, fim: null, wallclock_seconds: 120, tool_calls: 25,
-      motivo_termino: null, n_etapas: 1, n_skills: 3,
+      wave: 'onda-007', execution_id: 'e1', stages: 'execute-task',
+      started_at: ISO, finished_at: null, wallclock_seconds: 120, tool_calls: 25,
+      termination_reason: null, n_stages: 1, n_skills: 3,
     };
     const r = WaveDTOSchema.safeParse(mapWave(row));
     expect(r.success).toBe(true);
@@ -126,51 +128,51 @@ describe('mapWave', () => {
 describe('mapDecision', () => {
   it('score=2 → 2 (tipo correto)', () => {
     const row = {
-      wave: 'onda-001', execucao_id: 'e1', etapa: 'execute-task',
-      agente: 'orquestrador', escolha: 'ok', opcoes: null, score: 2,
-      contexto: 'ctx UNTRUSTED', justificativa: 'just', evidencia: null,
+      wave: 'onda-001', execution_id: 'e1', stage: 'execute-task',
+      agent: 'orquestrador', choice: 'ok', options: null, score: 2,
+      context: 'ctx UNTRUSTED', rationale: 'just', evidence: null,
     };
     const dto = mapDecision(row);
     expect(dto.score).toBe(2);
   });
 
-  it('opcoes JSON cru preservado sem transformacao (schema v6)', () => {
-    const OPCOES = '["haiku","sonnet","opus"]';
+  it('options JSON cru preservado sem transformacao (schema v6/v7)', () => {
+    const OPTIONS = '["haiku","sonnet","opus"]';
     const row = {
-      wave: 'onda-001', execucao_id: 'e1', etapa: 'model-routing',
-      agente: 'orquestrador', escolha: 'model:sonnet', opcoes: OPCOES, score: 0,
-      contexto: 'ctx', justificativa: 'just', evidencia: null,
+      wave: 'onda-001', execution_id: 'e1', stage: 'model-routing',
+      agent: 'orquestrador', choice: 'model:sonnet', options: OPTIONS, score: 0,
+      context: 'ctx', rationale: 'just', evidence: null,
     };
     // Mapper repassa o array JSON cru — FE deriva os chips
-    expect(mapDecision(row).opcoes).toBe(OPCOES);
+    expect(mapDecision(row).options).toBe(OPTIONS);
   });
 
-  it('opcoes ausente em base v<6 → null (FR-V3-005)', () => {
+  it('options ausente em base v<6 → null (FR-V3-005)', () => {
     const row = {
-      wave: 'onda-001', execucao_id: 'e1', etapa: 'execute-task',
-      agente: 'orquestrador', escolha: 'ok', opcoes: null, score: 1,
-      contexto: 'ctx', justificativa: 'just', evidencia: null,
+      wave: 'onda-001', execution_id: 'e1', stage: 'execute-task',
+      agent: 'orquestrador', choice: 'ok', options: null, score: 1,
+      context: 'ctx', rationale: 'just', evidence: null,
     };
-    expect(mapDecision(row).opcoes).toBeNull();
+    expect(mapDecision(row).options).toBeNull();
   });
 
   it('campos UNTRUSTED preservados sem transformacao', () => {
     const HOSTIL = '<script>alert(1)</script>';
     const row = {
-      wave: 'onda-001', execucao_id: 'e1', etapa: null, agente: null,
-      escolha: null, opcoes: null, score: 0, contexto: HOSTIL, justificativa: HOSTIL, evidencia: null,
+      wave: 'onda-001', execution_id: 'e1', stage: null, agent: null,
+      choice: null, options: null, score: 0, context: HOSTIL, rationale: HOSTIL, evidence: null,
     };
     const dto = mapDecision(row);
     // Mapper NAO sanitiza — preserva cru para FE renderizar via textContent
-    expect(dto.contexto).toBe(HOSTIL);
-    expect(dto.justificativa).toBe(HOSTIL);
+    expect(dto.context).toBe(HOSTIL);
+    expect(dto.rationale).toBe(HOSTIL);
   });
 
   it('paridade round-trip: DecisionDTOSchema', () => {
     const row = {
-      wave: 'onda-001', execucao_id: 'e1', etapa: 'execute-task',
-      agente: 'agente', escolha: 'ok', opcoes: '["ok","cancelar"]', score: 3,
-      contexto: 'ctx', justificativa: 'just', evidencia: 'ev',
+      wave: 'onda-001', execution_id: 'e1', stage: 'execute-task',
+      agent: 'agente', choice: 'ok', options: '["ok","cancelar"]', score: 3,
+      context: 'ctx', rationale: 'just', evidence: 'ev',
     };
     const r = DecisionDTOSchema.safeParse(mapDecision(row));
     expect(r.success).toBe(true);
@@ -180,13 +182,13 @@ describe('mapDecision', () => {
 describe('mapExecution', () => {
   it('paridade round-trip: ExecutionDTOSchema', () => {
     const row = {
-      project: 'cstk', feature: 'cstk-panel', execucao_id: 'exec-001',
-      status: 'em_andamento', motivo_termino: null, etapa_corrente: 'execute-task',
-      iniciada_em: ISO, terminada_em: null, duracao_segundos: null,
-      stack_sugerida: 'node+ts', ondas_total: 7, tool_calls_total: 120,
-      wallclock_total_segundos: 3600, subagentes_spawned: 0, profundidade_max: 1,
-      decisoes_total: 38, bloqueios_humanos_total: 1, sugestoes_skills_total: 0,
-      issues_toolkit_abertas: 0,
+      project: 'cstk', feature: 'cstk-panel', execution_id: 'exec-001',
+      status: 'em_andamento', termination_reason: null, current_stage: 'execute-task',
+      started_at: ISO, finished_at: null, duration_seconds: null,
+      suggested_stack: 'node+ts', waves_total: 7, tool_calls_total: 120,
+      wallclock_total_seconds: 3600, subagents_spawned: 0, max_depth: 1,
+      decisions_total: 38, human_blocks_total: 1, skill_suggestions_total: 0,
+      toolkit_issues_opened: 0,
     };
     const r = ExecutionDTOSchema.safeParse(mapExecution(row));
     expect(r.success).toBe(true);
@@ -196,8 +198,8 @@ describe('mapExecution', () => {
 describe('mapEvent', () => {
   it('paridade round-trip: EventDTOSchema', () => {
     const row = {
-      execucao_id: 'e1', event_type: 'schedule_wait',
-      timestamp: ISO, descricao: null,
+      execution_id: 'e1', event_type: 'schedule_wait',
+      timestamp: ISO, description: null,
     };
     const r = EventDTOSchema.safeParse(mapEvent(row));
     expect(r.success).toBe(true);
@@ -205,8 +207,8 @@ describe('mapEvent', () => {
 
   it('recall_consulted (v3) NAO e reclassificado como schedule_wait (FR-V3-006)', () => {
     const row = {
-      execucao_id: 'e1', event_type: 'recall_consulted',
-      timestamp: ISO, descricao: 'etapa=specify hits=3',
+      execution_id: 'e1', event_type: 'recall_consulted',
+      timestamp: ISO, description: 'etapa=specify hits=3',
     };
     const dto = mapEvent(row);
     expect(dto.eventType).toBe('recall_consulted');
@@ -215,8 +217,8 @@ describe('mapEvent', () => {
 
   it('tipo desconhecido continua caindo no fallback schedule_wait', () => {
     const row = {
-      execucao_id: 'e1', event_type: 'tipo_inexistente',
-      timestamp: ISO, descricao: null,
+      execution_id: 'e1', event_type: 'tipo_inexistente',
+      timestamp: ISO, description: null,
     };
     expect(mapEvent(row).eventType).toBe('schedule_wait');
   });
@@ -225,23 +227,23 @@ describe('mapEvent', () => {
 describe('mapAlert', () => {
   it('paridade round-trip: AlertSignalDTOSchema', () => {
     const row = {
-      execucao_id: 'e1', tipo: 'circular', subtipo: null,
-      valor_consumido: null, valor_threshold: null,
-      descricao: 'ciclo detectado', wave: 'onda-001',
+      execution_id: 'e1', type: 'circular', subtype: null,
+      consumed_value: null, threshold_value: null,
+      description: 'ciclo detectado', wave: 'onda-001',
     };
     const r = AlertSignalDTOSchema.safeParse(mapAlert(row));
     expect(r.success).toBe(true);
   });
 });
 
-describe('mapBloqueio', () => {
-  it('paridade round-trip: BloqueioDTOSchema', () => {
+describe('mapBlock', () => {
+  it('paridade round-trip: BlockDTOSchema', () => {
     const row = {
-      execucao_id: 'e1', status: 'respondido', pergunta: 'Confirmar?',
-      contexto_para_resposta: null, resposta: 'sim', decisao_id: 'dec-001',
-      disparado_em: ISO, respondido_em: ISO, latencia_segundos: 42,
+      execution_id: 'e1', status: 'respondido', question: 'Confirmar?',
+      context_for_answer: null, answer: 'sim', decision_id: 'dec-001',
+      triggered_at: ISO, answered_at: ISO, latency_seconds: 42,
     };
-    const r = BloqueioDTOSchema.safeParse(mapBloqueio(row));
+    const r = BlockDTOSchema.safeParse(mapBlock(row));
     expect(r.success).toBe(true);
   });
 });
@@ -249,7 +251,7 @@ describe('mapBloqueio', () => {
 describe('mapSkill', () => {
   it('paridade round-trip: SkillDTOSchema', () => {
     const row = {
-      execucao_id: 'e1', skill_name: 'briefing', decisao_id: 'dec-001', wave: 'onda-001',
+      execution_id: 'e1', skill_name: 'briefing', decision_id: 'dec-001', wave: 'onda-001',
     };
     const r = SkillDTOSchema.safeParse(mapSkill(row));
     expect(r.success).toBe(true);

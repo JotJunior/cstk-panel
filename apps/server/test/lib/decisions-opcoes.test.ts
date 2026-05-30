@@ -1,11 +1,14 @@
 /**
- * Testes de integracao da coluna `decisions.opcoes` (schema v6) na rota
- * GET /executions/:execucaoId/decisions.
+ * Testes de integracao da coluna `decisions.options` (schema v7 EN) na rota
+ * GET /executions/:executionId/decisions.
  *
- * Constroi uma base v6 (com a coluna `opcoes`) e uma base v5 (SEM a coluna) em
- * tmpdir, exercitando: passagem crua do JSON array de opcoes, e degradacao
- * graciosa para `opcoes=null` em bases v<6 (Principio II / FR-V3-005), sem
+ * Constroi uma base v7 (com a coluna `options`) e uma base v6 (SEM a coluna) em
+ * tmpdir, exercitando: passagem crua do JSON array de options, e degradacao
+ * graciosa para `options=null` em bases v<7 (Principio II / FR-V3-005), sem
  * quebrar o SELECT.
+ *
+ * FASE 3 (new-schema): base migrada pt-BR→EN snake_case.
+ * Back-compat: base v6 SEM a coluna `options` continua sendo suportada (degrada).
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import Fastify from 'fastify';
@@ -27,31 +30,31 @@ function tmpFile(name: string): string {
 
 const EXEC = `
   CREATE TABLE executions (
-    execucao_id TEXT PRIMARY KEY, project TEXT, feature TEXT, status TEXT,
+    execution_id TEXT PRIMARY KEY, project TEXT, feature TEXT, status TEXT,
     ingested_at TEXT
   );
-  INSERT INTO executions (execucao_id, project, feature, status, ingested_at)
+  INSERT INTO executions (execution_id, project, feature, status, ingested_at)
   VALUES ('exec-001', 'cstk', 'recall', 'concluida', '2026-05-27T18:00:00Z');
 `;
 
-/** Base v6 com a coluna `opcoes` e 2 decisoes. */
-function makeV6Db(path: string): void {
+/** Base v7 EN com a coluna `options` e 2 decisoes. */
+function makeV7Db(path: string): void {
   const db = new Database(path);
   db.exec(`
     CREATE TABLE schema_meta (key TEXT PRIMARY KEY, value TEXT);
-    INSERT INTO schema_meta VALUES ('schema_version', '6');
+    INSERT INTO schema_meta VALUES ('schema_version', '7');
     ${EXEC}
     CREATE TABLE decisions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       project TEXT NOT NULL, feature TEXT NOT NULL, wave TEXT NOT NULL,
-      execucao_id TEXT NOT NULL, source_ts TEXT NOT NULL, source_id TEXT NOT NULL,
-      agente TEXT, etapa TEXT, escolha TEXT, opcoes TEXT, score INTEGER,
-      contexto TEXT, justificativa TEXT, evidencia TEXT, ingested_at TEXT NOT NULL,
+      execution_id TEXT NOT NULL, source_ts TEXT NOT NULL, source_id TEXT NOT NULL,
+      agent TEXT, stage TEXT, choice TEXT, options TEXT, score INTEGER,
+      context TEXT, rationale TEXT, evidence TEXT, ingested_at TEXT NOT NULL,
       UNIQUE(project, feature, wave, source_id)
     );
     INSERT INTO decisions
-      (project, feature, wave, execucao_id, source_ts, source_id, agente, etapa,
-       escolha, opcoes, score, contexto, justificativa, evidencia, ingested_at)
+      (project, feature, wave, execution_id, source_ts, source_id, agent, stage,
+       choice, options, score, context, rationale, evidence, ingested_at)
     VALUES
       ('cstk','recall','init','exec-001','2026-05-27T10:00:00Z','dec-001',
        'orchestrator','model-routing','model:sonnet',
@@ -65,24 +68,24 @@ function makeV6Db(path: string): void {
   db.close();
 }
 
-/** Base v5 SEM a coluna `opcoes` — exercita a tolerancia de schema. */
-function makeV5Db(path: string): void {
+/** Base v6 SEM a coluna `options` — exercita a tolerancia de schema. */
+function makeV6Db(path: string): void {
   const db = new Database(path);
   db.exec(`
     CREATE TABLE schema_meta (key TEXT PRIMARY KEY, value TEXT);
-    INSERT INTO schema_meta VALUES ('schema_version', '5');
+    INSERT INTO schema_meta VALUES ('schema_version', '6');
     ${EXEC}
     CREATE TABLE decisions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       project TEXT NOT NULL, feature TEXT NOT NULL, wave TEXT NOT NULL,
-      execucao_id TEXT NOT NULL, source_ts TEXT NOT NULL, source_id TEXT NOT NULL,
-      agente TEXT, etapa TEXT, escolha TEXT, score INTEGER,
-      contexto TEXT, justificativa TEXT, evidencia TEXT, ingested_at TEXT NOT NULL,
+      execution_id TEXT NOT NULL, source_ts TEXT NOT NULL, source_id TEXT NOT NULL,
+      agent TEXT, stage TEXT, choice TEXT, score INTEGER,
+      context TEXT, rationale TEXT, evidence TEXT, ingested_at TEXT NOT NULL,
       UNIQUE(project, feature, wave, source_id)
     );
     INSERT INTO decisions
-      (project, feature, wave, execucao_id, source_ts, source_id, agente, etapa,
-       escolha, score, contexto, justificativa, evidencia, ingested_at)
+      (project, feature, wave, execution_id, source_ts, source_id, agent, stage,
+       choice, score, context, rationale, evidence, ingested_at)
     VALUES
       ('cstk','recall','init','exec-001','2026-05-27T10:00:00Z','dec-001',
        'orchestrator','plan','proceder', 2,
@@ -105,7 +108,7 @@ async function buildServer(dbPath: string): Promise<FastifyInstance> {
 
 interface DecisionsBody {
   data: {
-    decisions: Array<{ escolha: string | null; opcoes: string | null }>;
+    decisions: Array<{ choice: string | null; options: string | null }>;
   } | null;
   meta: { degraded: boolean; schemaVersion: string };
 }
@@ -119,7 +122,35 @@ afterAll(() => {
   }
 });
 
-describe('GET /executions/:id/decisions — base v6 com coluna opcoes', () => {
+describe('GET /executions/:id/decisions — base v7 com coluna options (EN)', () => {
+  let server: FastifyInstance;
+  const dbPath = tmpFile('knowledge-v7.db');
+
+  beforeAll(async () => {
+    makeV7Db(dbPath);
+    server = await buildServer(dbPath);
+  });
+  afterAll(async () => { await server.close(); });
+
+  it('retorna o JSON array de options cru (200, nao-degradado)', async () => {
+    const res = await server.inject({ method: 'GET', url: '/api/v1/executions/exec-001/decisions' });
+    expect(res.statusCode).toBe(200);
+    const body = res.json<DecisionsBody>();
+    expect(body.meta.degraded).toBe(false);
+    expect(body.meta.schemaVersion).toBe('7');
+    const d1 = body.data!.decisions[0]!;
+    expect(d1.choice).toBe('model:sonnet');
+    expect(d1.options).toBe('["haiku","sonnet","opus","manter-atual"]');
+  });
+
+  it('preserva array vazio "[]" como string crua', async () => {
+    const res = await server.inject({ method: 'GET', url: '/api/v1/executions/exec-001/decisions' });
+    const body = res.json<DecisionsBody>();
+    expect(body.data!.decisions[1]!.options).toBe('[]');
+  });
+});
+
+describe('GET /executions/:id/decisions — base v6 SEM a coluna options (Principio II — back-compat)', () => {
   let server: FastifyInstance;
   const dbPath = tmpFile('knowledge-v6.db');
 
@@ -129,41 +160,13 @@ describe('GET /executions/:id/decisions — base v6 com coluna opcoes', () => {
   });
   afterAll(async () => { await server.close(); });
 
-  it('retorna o JSON array de opcoes cru (200, nao-degradado)', async () => {
-    const res = await server.inject({ method: 'GET', url: '/api/v1/executions/exec-001/decisions' });
-    expect(res.statusCode).toBe(200);
-    const body = res.json<DecisionsBody>();
-    expect(body.meta.degraded).toBe(false);
-    expect(body.meta.schemaVersion).toBe('6');
-    const d1 = body.data!.decisions[0]!;
-    expect(d1.escolha).toBe('model:sonnet');
-    expect(d1.opcoes).toBe('["haiku","sonnet","opus","manter-atual"]');
-  });
-
-  it('preserva array vazio "[]" como string crua', async () => {
-    const res = await server.inject({ method: 'GET', url: '/api/v1/executions/exec-001/decisions' });
-    const body = res.json<DecisionsBody>();
-    expect(body.data!.decisions[1]!.opcoes).toBe('[]');
-  });
-});
-
-describe('GET /executions/:id/decisions — base v5 SEM a coluna (Principio II)', () => {
-  let server: FastifyInstance;
-  const dbPath = tmpFile('knowledge-v5.db');
-
-  beforeAll(async () => {
-    makeV5Db(dbPath);
-    server = await buildServer(dbPath);
-  });
-  afterAll(async () => { await server.close(); });
-
-  it('degrada opcoes para null sem quebrar o SELECT', async () => {
+  it('degrada options para null sem quebrar o SELECT', async () => {
     const res = await server.inject({ method: 'GET', url: '/api/v1/executions/exec-001/decisions' });
     expect(res.statusCode).toBe(200);
     const body = res.json<DecisionsBody>();
     expect(body.meta.degraded).toBe(false);
     const d1 = body.data!.decisions[0]!;
-    expect(d1.escolha).toBe('proceder');
-    expect(d1.opcoes).toBeNull();
+    expect(d1.choice).toBe('proceder');
+    expect(d1.options).toBeNull();
   });
 });

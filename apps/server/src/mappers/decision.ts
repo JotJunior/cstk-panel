@@ -18,18 +18,18 @@ function toScore(raw: number | null): ValidScore | null {
 export function mapDecision(row: DecisionRow): DecisionDTO {
   return {
     wave: row.wave,
-    execucaoId: row.execucao_id,
-    etapa: row.etapa,
-    agente: row.agente,
-    escolha: row.escolha,
+    executionId: row.execution_id,
+    stage: row.stage,
+    agent: row.agent,
+    choice: row.choice,
     // JSON array cru (estruturado, sem scrub na ingestao) — FE deriva chips
-    opcoes: row.opcoes,
+    options: row.options,
     score: toScore(row.score),
     // Campos UNTRUSTED — preservar crus, sem sanitizacao aqui
     // FE renderiza via textContent/pre, NUNCA innerHTML
-    contexto: row.contexto,
-    justificativa: row.justificativa,
-    evidencia: row.evidencia,
+    context: row.context,
+    rationale: row.rationale,
+    evidencia: row.evidence,
   };
 }
 

@@ -21,10 +21,10 @@ function toEventType(raw: string): ValidEventType {
 
 export function mapEvent(row: EventRow): EventDTO {
   return {
-    execucaoId: row.execucao_id,
+    executionId: row.execution_id,
     eventType: toEventType(row.event_type),
     timestamp: row.timestamp,
-    descricao: row.descricao,
+    description: row.description,
   };
 }
 

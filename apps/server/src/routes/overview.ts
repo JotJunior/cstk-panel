@@ -23,9 +23,9 @@ const PeriodSchema = z.enum(['24h', '7d', '30d', 'all']).optional().default('7d'
 const QuerySchema = z.object({ period: PeriodSchema });
 
 type AllExecRow = {
-  project: string; feature: string; execucao_id: string; status: string | null;
-  tool_calls_total: number | null; ondas_total: number | null;
-  decisoes_total: number | null; iniciada_em: string | null; terminada_em: string | null;
+  project: string; feature: string; execution_id: string; status: string | null;
+  tool_calls_total: number | null; waves_total: number | null;
+  decisions_total: number | null; started_at: string | null; finished_at: string | null;
 };
 
 function filterByPeriod(rows: AllExecRow[], period: string): AllExecRow[] {
@@ -34,8 +34,8 @@ function filterByPeriod(rows: AllExecRow[], period: string): AllExecRow[] {
            : period === '7d'  ? 7 * 86400_000
            : 30 * 86400_000;
   return rows.filter(r => {
-    if (!r.iniciada_em) return false;
-    return Date.now() - new Date(r.iniciada_em).getTime() <= ms;
+    if (!r.started_at) return false;
+    return Date.now() - new Date(r.started_at).getTime() <= ms;
   });
 }
 
@@ -63,10 +63,16 @@ export async function overviewRoutes(server: FastifyInstance): Promise<void> {
       const costSeries = getCostSeries(db);
 
       // Filtrar por periodo para leaderboard
+      const { hasColumn } = await import('../db/columns.js');
+      const execIdCol = hasColumn(db, 'executions', 'execution_id') ? 'execution_id' : 'NULL as execution_id';
+      const wavesTotalCol = hasColumn(db, 'executions', 'waves_total') ? 'waves_total' : 'NULL as waves_total';
+      const decTotalCol = hasColumn(db, 'executions', 'decisions_total') ? 'decisions_total' : 'NULL as decisions_total';
+      const startedAtCol = hasColumn(db, 'executions', 'started_at') ? 'started_at' : 'NULL as started_at';
+      const finishedAtCol = hasColumn(db, 'executions', 'finished_at') ? 'finished_at' : 'NULL as finished_at';
       const allExecs = db
         .prepare(`
-          SELECT project, feature, execucao_id, status, tool_calls_total,
-                 ondas_total, decisoes_total, iniciada_em, terminada_em
+          SELECT project, feature, ${execIdCol}, status, tool_calls_total,
+                 ${wavesTotalCol}, ${decTotalCol}, ${startedAtCol}, ${finishedAtCol}
           FROM executions
           ORDER BY tool_calls_total DESC NULLS LAST
         `)
@@ -75,12 +81,13 @@ export async function overviewRoutes(server: FastifyInstance): Promise<void> {
       const filtered = period === 'all' ? allExecs : filterByPeriod(allExecs, period);
 
       // Funil de etapas
+      const stageCol = hasColumn(db, 'executions', 'current_stage') ? 'current_stage' : 'NULL';
       const funnelRows = db
         .prepare(`
-          SELECT etapa_corrente as etapa, count(*) as count
+          SELECT ${stageCol} as etapa, count(*) as count
           FROM executions
-          WHERE etapa_corrente IS NOT NULL
-          GROUP BY etapa_corrente
+          WHERE ${stageCol} IS NOT NULL
+          GROUP BY etapa
           ORDER BY count DESC
         `)
         .all() as { etapa: string; count: number }[];
@@ -102,46 +109,46 @@ export async function overviewRoutes(server: FastifyInstance): Promise<void> {
           totalFeatures: kpis.total_features,
         },
         recentAlerts: recentAlerts.map(a => ({
-          execucaoId: a.execucao_id,
-          tipo: a.tipo,
-          subtipo: a.subtipo,
-          descricao: a.descricao,
+          executionId: a.execution_id,
+          type: a.type,
+          subtype: a.subtype,
+          description: a.description,
           wave: a.wave,
-          valorConsumido: a.valor_consumido,
-          valorThreshold: a.valor_threshold,
+          consumedValue: a.consumed_value,
+          thresholdValue: a.threshold_value,
         })),
         inProgress: activeExecutions.map(e => ({
-          execucaoId: e.execucao_id,
+          executionId: e.execution_id,
           project: e.project,
           feature: e.feature,
           status: e.status,
-          etapaCorrente: e.etapa_corrente,
-          iniciadaEm: e.iniciada_em,
-          ondasTotal: e.ondas_total,
+          currentStage: e.current_stage,
+          startedAt: e.started_at,
+          wavesTotal: e.waves_total,
           toolCallsTotal: e.tool_calls_total,
-          wallclockSegundos: e.wallclock_total_segundos,
+          wallclockTotalSeconds: e.wallclock_total_seconds,
         })),
         /** mix derivado de decisoes de roteamento logadas (FR-010: nao e o
          *  relatorio canonico; UI rotula como derivado). */
         modelMix: modelMix.map(m => ({ modelo: m.modelo, n: m.n })),
         recentActivity: recentActivity.map(a => ({
-          execucaoId: a.execucao_id,
+          executionId: a.execution_id,
           project: a.project,
           feature: a.feature,
           wave: a.wave,
           eventType: a.event_type,
           timestamp: a.timestamp,
-          descricao: a.descricao,
+          description: a.description,
         })),
         costSeries,
         leaderboard: filtered.slice(0, 10).map(e => ({
-          execucaoId: e.execucao_id,
+          executionId: e.execution_id,
           project: e.project,
           feature: e.feature,
           status: e.status,
           toolCallsTotal: e.tool_calls_total,
-          ondasTotal: e.ondas_total,
-          decisoesTotal: e.decisoes_total,
+          wavesTotal: e.waves_total,
+          decisionsTotal: e.decisions_total,
         })),
         funnel: funnelRows,
         projectRollups: projectRollups.map(r => ({

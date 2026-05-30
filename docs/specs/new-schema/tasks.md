@@ -267,61 +267,62 @@ Ref: spec.md FR-013; quickstart.md §Scenario A
 
 Ref: spec.md FR-006; data-model.md §Entity: executions
 
-- [ ] 3.1.1 Em `apps/server/src/mappers/execution.ts`: atualizar `mapExecution` para ler os campos EN de `ExecutionRow` (ex: `row.execution_id`, `row.termination_reason`, `row.current_stage`, `row.started_at`, etc.) e escrever os campos EN de `ExecutionDTO` (`executionId`, `terminationReason`, `currentStage`, `startedAt`, etc.)
-- [ ] 3.1.2 Verificar que não há referência a nenhum campo pt-BR no mapper após a atualização
+- [x] 3.1.1 Em `apps/server/src/mappers/execution.ts`: atualizar `mapExecution` para ler os campos EN de `ExecutionRow` (ex: `row.execution_id`, `row.termination_reason`, `row.current_stage`, `row.started_at`, etc.) e escrever os campos EN de `ExecutionDTO` (`executionId`, `terminationReason`, `currentStage`, `startedAt`, etc.)
+- [x] 3.1.2 Verificar que não há referência a nenhum campo pt-BR no mapper após a atualização
 
 ### 3.2 Atualizar mapper wave.ts [C]
 
 Ref: spec.md FR-006; data-model.md §Entity: waves
 
-- [ ] 3.2.1 Em `apps/server/src/mappers/wave.ts`: atualizar `mapWave` para ler `row.execution_id`, `row.stages`, `row.started_at`, `row.finished_at`, `row.termination_reason`, `row.n_stages` e escrever `executionId`, `stages`, `startedAt`, `finishedAt`, `terminationReason`, `nStages`
-- [ ] 3.2.2 Manter comentário que `stages` permanece `string` (não array) do schema v2
+- [x] 3.2.1 Em `apps/server/src/mappers/wave.ts`: atualizar `mapWave` para ler `row.execution_id`, `row.stages`, `row.started_at`, `row.finished_at`, `row.termination_reason`, `row.n_stages` e escrever `executionId`, `stages`, `startedAt`, `finishedAt`, `terminationReason`, `nStages`
+- [x] 3.2.2 Manter comentário que `stages` permanece `string` (não array) do schema v2
 
 ### 3.3 Atualizar mapper decision.ts [C]
 
 Ref: spec.md FR-006; data-model.md §Entity: decisions
 
-- [ ] 3.3.1 Em `apps/server/src/mappers/decision.ts`: atualizar `mapDecision` para ler `row.execution_id`, `row.stage`, `row.agent`, `row.choice`, `row.options`, `row.context`, `row.rationale`, `row.evidence` e escrever os campos EN do `DecisionDTO`
-- [ ] 3.3.2 Manter comentários `@untrusted` nos campos textuais
+- [x] 3.3.1 Em `apps/server/src/mappers/decision.ts`: atualizar `mapDecision` para ler `row.execution_id`, `row.stage`, `row.agent`, `row.choice`, `row.options`, `row.context`, `row.rationale`, `row.evidence` e escrever os campos EN do `DecisionDTO`
+- [x] 3.3.2 Manter comentários `@untrusted` nos campos textuais
 
 ### 3.4 Atualizar mapper task.ts [C]
 
 Ref: spec.md FR-006; data-model.md §Entity: tasks
 
-- [ ] 3.4.1 Em `apps/server/src/mappers/task.ts`: atualizar `mapTask` para ler `row.execution_id`, `row.title`, `row.tests_run`, `row.tests_passed`, `row.touched_files` e escrever `executionId`, `title`, `testsRun`, `testsPassed`, `touchedFilesCount`
-- [ ] 3.4.2 Manter a conversão `lint_ok: INTEGER 0/1 → boolean` (campo inalterado)
+- [x] 3.4.1 Em `apps/server/src/mappers/task.ts`: atualizar `mapTask` para ler `row.execution_id`, `row.title`, `row.tests_run`, `row.tests_passed`, `row.touched_files` e escrever `executionId`, `title`, `testsRun`, `testsPassed`, `touchedFilesCount`
+- [x] 3.4.2 Manter a conversão `lint_ok: INTEGER 0/1 → boolean` (campo inalterado)
 
 ### 3.5 Renomear bloqueio.ts → block.ts: mapBloqueio→mapBlock [C]
 
 Ref: spec.md FR-002, FR-006; data-model.md §Entity: blocks
 
-- [ ] 3.5.1 Em `apps/server/src/mappers/bloqueio.ts`: renomear a função `mapBloqueio→mapBlock`, `mapBloqueios→mapBlocks` e atualizar a assinatura para usar `BlockRow` (import de `bloqueios.ts`) e `BlockDTO` (import de shared-types)
-- [ ] 3.5.2 Atualizar `mapBlock` para ler `row.execution_id`, `row.question`, `row.context_for_answer`, `row.answer`, `row.decision_id`, `row.triggered_at`, `row.answered_at`, `row.latency_seconds` e escrever campos EN do `BlockDTO`
-- [ ] 3.5.3 Atualizar `apps/server/src/mappers/index.ts` para re-exportar `mapBlock`, `mapBlocks` (remover `mapBloqueio`, `mapBloqueios`)
-- [ ] 3.5.4 Atualizar todos os imports de `mapBloqueio`/`BloqueioDTO` nas routes para usar os novos nomes
+- [x] 3.5.1 Criado `apps/server/src/mappers/block.ts` com `mapBlock`/`mapBlocks` usando `BlockRow` e `BlockDTO` (EN)
+- [x] 3.5.2 `mapBlock` lê `row.execution_id`, `row.question`, `row.context_for_answer`, `row.answer`, `row.decision_id`, `row.triggered_at`, `row.answered_at`, `row.latency_seconds` e escreve campos EN do `BlockDTO`
+- [x] 3.5.3 Atualizado `apps/server/src/mappers/index.ts` para importar de `block.js`; removido `bloqueio.ts` órfão
+- [x] 3.5.4 Routes atualizadas para usar novos nomes EN
 
 ### 3.6 Atualizar mappers event.ts, alert.ts, skill.ts, suggestion.ts [C]
 
 Ref: spec.md FR-006; data-model.md §todos os entities
 
-- [ ] 3.6.1 Em `mappers/event.ts`: atualizar `mapEvent` para ler `row.execution_id`, `row.description` e escrever `executionId`, `description`
-- [ ] 3.6.2 Em `mappers/alert.ts`: atualizar `mapAlert` para ler `row.execution_id`, `row.type`, `row.subtype`, `row.consumed_value`, `row.threshold_value`, `row.description` e escrever os campos EN de `AlertSignalDTO`
-- [ ] 3.6.3 Em `mappers/skill.ts`: atualizar `mapSkill` para ler `row.execution_id`, `row.decision_id` e escrever `executionId`, `decisionId`
-- [ ] 3.6.4 Em `mappers/suggestion.ts`: atualizar `mapSuggestion` para ler os campos EN da `SuggestionRow` e escrever `executionId`, `affectedSkill`, `severity`, `diagnosis`, `proposal`, `issueOpened`, `createdAt`
+- [x] 3.6.1 Em `mappers/event.ts`: atualizar `mapEvent` para ler `row.execution_id`, `row.description` e escrever `executionId`, `description`
+- [x] 3.6.2 Em `mappers/alert.ts`: atualizar `mapAlert` para ler `row.execution_id`, `row.type`, `row.subtype`, `row.consumed_value`, `row.threshold_value`, `row.description` e escrever os campos EN de `AlertSignalDTO`
+- [x] 3.6.3 Em `mappers/skill.ts`: atualizar `mapSkill` para ler `row.execution_id`, `row.decision_id` e escrever `executionId`, `decisionId`
+- [x] 3.6.4 Em `mappers/suggestion.ts`: atualizar `mapSuggestion` para ler os campos EN da `SuggestionRow` e escrever `executionId`, `affectedSkill`, `severity`, `diagnosis`, `proposal`, `issueOpened`, `createdAt`
 
 ### 3.7 Atualizar mapper retro (se existir) [A]
 
 Ref: spec.md FR-006; data-model.md §Entity: retros
 
-- [ ] 3.7.1 Verificar se existe `mappers/retro.ts`; se não existir, criar com `mapRetro(row: RetroRow): RetroDTO` lendo `row.execution_id`, `row.text` e retornando `{ executionId, text, wave }`
-- [ ] 3.7.2 Garantir que a rota que usa retros chama o mapper correto
+- [x] 3.7.1 `mappers/retro.ts` verificado — existe e já usa EN (executionId, text); nenhuma alteração necessária
+- [x] 3.7.2 Rota features.ts usa `listRetrosByFeature` diretamente sem mapper intermediário — correto
 
 ### 3.8 Gate de fase 3: tsc do server completo [C]
 
 Ref: spec.md FR-013; quickstart.md §Scenario A
 
-- [ ] 3.8.1 Executar `pnpm --filter @cstk-panel/server exec tsc --noEmit` — deve retornar 0 erros (FASE 2 + FASE 3 concluídas)
-- [ ] 3.8.2 Grep de vocabulário: `grep -rn "execucao_id\|motivo_termino\|etapa_corrente\|iniciada_em\|etapas\b\|escolha\b\|justificativa\b\|pergunta\b\|testes_rodados" apps/server/src/mappers/ apps/server/src/db/queries/` deve retornar zero fora de guards/comentários
+- [x] 3.8.1 `npx tsc --noEmit -p apps/server/tsconfig.json` retorna 0 erros (FASE 2 + FASE 3 concluídas)
+- [x] 3.8.2 Grep confirma: zero referências pt-BR em mappers/ e db/queries/ (fora de comentários históricos)
+- [x] 3.8.3 `npx vitest run --root apps/server` retorna 146/146 testes passando (zero regressões)
 
 ---
 

@@ -187,8 +187,8 @@ describe.skipIf(!FIXTURE_EXISTS)('Rotas com fixture real — GET /api/v1/*', () 
   it('GET /executions/:id/decisions com limit=5 retorna no maximo 5 itens', async () => {
     // Pegar primeira execucao da fixture
     const overviewRes = await server.inject({ method: 'GET', url: '/api/v1/overview' });
-    const overviewBody = overviewRes.json<{ data: { inProgress: { execucaoId: string }[]; leaderboard: { execucaoId: string }[] } }>();
-    const execId = overviewBody.data.leaderboard[0]?.execucaoId ?? overviewBody.data.inProgress[0]?.execucaoId;
+    const overviewBody = overviewRes.json<{ data: { inProgress: { executionId: string }[]; leaderboard: { executionId: string }[] } }>();
+    const execId = overviewBody.data.leaderboard[0]?.executionId ?? overviewBody.data.inProgress[0]?.executionId;
 
     if (!execId) return; // skip se nao ha execucoes
 
@@ -242,7 +242,7 @@ describe.skipIf(!FIXTURE_EXISTS)('Rotas com fixture real — GET /api/v1/*', () 
     expect(res.statusCode).toBe(200);
     const body = res.json<{ data: { tasks: Record<string, unknown>[] } | null }>();
     if (!body.data || body.data.tasks.length === 0) return;
-    expect('titulo' in body.data.tasks[0]!).toBe(true);
+    expect('title' in body.data.tasks[0]!).toBe(true);
   });
 
   // recall-memory-mirror — /memories degrada graciosamente em base v3 (sem a

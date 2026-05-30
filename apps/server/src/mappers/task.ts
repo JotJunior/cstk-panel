@@ -18,16 +18,16 @@ function toOutcome(raw: string | null): ValidOutcome | null {
 export function mapTask(row: TaskRow): TaskDTO {
   return {
     wave: row.wave,
-    execucaoId: row.execucao_id,
-    // titulo (schema v3): texto livre untrusted; '' em bases v2 (query garante)
-    titulo: row.titulo ?? '',
+    executionId: row.execution_id,
+    // title (schema v7 EN): texto livre untrusted; '' em bases v2 (query garante)
+    title: row.title ?? '',
     outcome: toOutcome(row.outcome),
-    testesRodados: row.testes_rodados,
-    testesPassados: row.testes_passados,
+    testsRun: row.tests_run,
+    testsPassed: row.tests_passed,
     // INTEGER 0/1 → boolean (null permanece null)
     lintOk: row.lint_ok === null ? null : row.lint_ok === 1,
     // INTEGER contagem → number (NAO array)
-    arquivosTocadosCount: row.arquivos_tocados,
+    touchedFilesCount: row.touched_files,
   };
 }
 

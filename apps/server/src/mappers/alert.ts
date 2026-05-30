@@ -5,22 +5,22 @@
 import type { AlertSignalDTO } from '@cstk-panel/shared-types';
 import type { AlertRow } from '../db/queries/alerts.js';
 
-type ValidTipo = 'circular' | 'budget_breach';
-const VALID_TIPOS = new Set<string>(['circular', 'budget_breach']);
+type ValidType = 'circular' | 'budget_breach';
+const VALID_TYPES = new Set<string>(['circular', 'budget_breach']);
 
-function toTipo(raw: string): ValidTipo {
-  if (VALID_TIPOS.has(raw)) return raw as ValidTipo;
+function toTipo(raw: string): ValidType {
+  if (VALID_TYPES.has(raw)) return raw as ValidType;
   return 'budget_breach';
 }
 
 export function mapAlert(row: AlertRow): AlertSignalDTO {
   return {
-    execucaoId: row.execucao_id,
-    tipo: toTipo(row.tipo),
-    subtipo: row.subtipo,
-    valorConsumido: row.valor_consumido,
-    valorThreshold: row.valor_threshold,
-    descricao: row.descricao,
+    executionId: row.execution_id,
+    type: toTipo(row.type),
+    subtype: row.subtype,
+    consumedValue: row.consumed_value,
+    thresholdValue: row.threshold_value,
+    description: row.description,
     wave: row.wave,
   };
 }

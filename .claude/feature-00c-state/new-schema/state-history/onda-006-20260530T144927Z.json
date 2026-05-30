@@ -12,7 +12,7 @@
     "short_name": "new-schema"
   },
   "current_stage": "execute-task",
-  "next_instruction": "FASE 4: apps/web — atualizar hooks.ts e componentes React para consumir campos EN dos DTOs (executionId, stages, choice, options, etc). Tarefa 4.1-4.8. Gate: npx tsc --noEmit -p apps/web/tsconfig.json = 0 erros.",
+  "next_instruction": "execute-task FASE 3: server mappers (execution.ts, wave.ts, decision.ts, task.ts, event.ts, alert.ts, skill.ts, suggestion.ts, retro.ts) — update mappers to read EN Row fields and write EN DTO fields. Gate: tsc server 0 errors (FASE 2+3 complete).",
   "waves": [
     {
       "id": "onda-001",
@@ -135,25 +135,6 @@
           "skill": "execute-task",
           "timestamp": "2026-05-30T14:42:08Z",
           "decision_id": null
-        }
-      ]
-    },
-    {
-      "id": "onda-007",
-      "started_at": "2026-05-30T14:49:27Z",
-      "finished_at": "2026-05-30T15:06:15Z",
-      "executed_stages": [
-        "execute-task"
-      ],
-      "tool_calls": 0,
-      "wallclock_seconds": 1008,
-      "termination_reason": "etapa_concluida_avancando",
-      "next_wave_scheduled_for": null,
-      "skills_invoked": [
-        {
-          "skill": "execute-task",
-          "timestamp": "2026-05-30T15:05:31Z",
-          "decision_id": "dec-019"
         }
       ]
     }
@@ -501,25 +482,6 @@
       "evidence": null,
       "references": [],
       "originating_artifact": null
-    },
-    {
-      "id": "dec-019",
-      "wave_id": "onda-007",
-      "timestamp": "2026-05-30T15:05:19Z",
-      "stage": "execute-task",
-      "agent": "agente-00c-feature-orchestrator",
-      "context": "FASE 3 mappers+routes: gate tsc=0 e vitest=146/146",
-      "options_considered": [
-        "concluir-fase3",
-        "aguardar-revisao",
-        "abortar"
-      ],
-      "choice": "concluir-fase3",
-      "rationale": "todos os 8 mappers corrigidos, bloqueio.ts→block.ts, 6 routes corrigidas, fixture migrada pt→EN, schema_version=7 aceito; tsc=0 erros, vitest 146/146 passando",
-      "justification_score": 3,
-      "evidence": "npx tsc --noEmit exit=0; npx vitest run: Test Files 14 passed (14), Tests 146 passed (146)",
-      "references": [],
-      "originating_artifact": null
     }
   ],
   "human_blocks": [],
@@ -534,15 +496,15 @@
     "wallclock_threshold_seconds": 5400,
     "state_size_threshold_bytes": 1048576,
     "tool_calls_current_wave": 0,
-    "current_wave_start": "2026-05-30T14:49:27Z"
+    "current_wave_start": "2026-05-30T14:34:19Z"
   },
   "accumulated_metrics": {
-    "waves_total": 7,
+    "waves_total": 6,
     "tool_calls_total": 0,
-    "wallclock_total_seconds": 3308,
+    "wallclock_total_seconds": 2300,
     "max_depth_reached": 1,
     "subagents_spawned": 0,
-    "decisions_total": 19,
+    "decisions_total": 18,
     "human_blocks_total": 0,
     "global_skill_suggestions_total": 0,
     "toolkit_issues_opened": 0,
@@ -587,11 +549,6 @@
       "event_type": "schedule_wait",
       "timestamp": "2026-05-30T14:05:35Z",
       "description": "onda-003 plan encerrada; aguardando wakeup para create-tasks"
-    },
-    {
-      "event_type": "schedule_wait",
-      "timestamp": "2026-05-30T15:05:40Z",
-      "description": "onda-007 execute-task FASE3 concluida: tsc=0 vitest=146/146"
     }
   ],
   "tasks": [
@@ -756,37 +713,6 @@
       "lint_ok": true,
       "touched_files": [],
       "recorded_at": "2026-05-30T14:42:17Z",
-      "source": "execute-task"
-    },
-    {
-      "task_id": "3.1-3.8",
-      "title": "FASE 3: mappers pt→EN + fixture migrada",
-      "wave_id": "onda-007",
-      "outcome": "pass",
-      "tests_run": 146,
-      "tests_passed": 146,
-      "lint_ok": true,
-      "touched_files": [
-        "apps/server/src/mappers/execution.ts",
-        "apps/server/src/mappers/wave.ts",
-        "apps/server/src/mappers/decision.ts",
-        "apps/server/src/mappers/task.ts",
-        "apps/server/src/mappers/event.ts",
-        "apps/server/src/mappers/alert.ts",
-        "apps/server/src/mappers/skill.ts",
-        "apps/server/src/mappers/suggestion.ts",
-        "apps/server/src/mappers/block.ts",
-        "apps/server/src/mappers/index.ts",
-        "apps/server/src/routes/alerts.ts",
-        "apps/server/src/routes/events.ts",
-        "apps/server/src/routes/features.ts",
-        "apps/server/src/routes/overview.ts",
-        "apps/server/src/routes/projects.ts",
-        "apps/server/src/routes/tasks.ts",
-        "apps/server/src/config.ts",
-        "apps/server/test/knowledge-fixture.db"
-      ],
-      "recorded_at": "2026-05-30T15:05:31Z",
       "source": "execute-task"
     }
   ]

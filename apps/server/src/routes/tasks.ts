@@ -43,15 +43,15 @@ export async function taskRoutes(server: FastifyInstance): Promise<void> {
       const data = {
         tasks: rows.map(r => ({
           wave: r.wave,
-          execucaoId: r.execucao_id,
+          executionId: r.execution_id,
           project: r.project,
           feature: r.feature,
-          titulo: r.titulo,
+          title: r.title,
           outcome: r.outcome,
-          testesRodados: r.testes_rodados,
-          testesPassados: r.testes_passados,
+          testsRun: r.tests_run,
+          testsPassed: r.tests_passed,
           lintOk: r.lint_ok === null ? null : r.lint_ok === 1,
-          arquivosTocadosCount: r.arquivos_tocados,
+          touchedFilesCount: r.touched_files,
         })),
         pagination: {
           limit: pagination.limit,

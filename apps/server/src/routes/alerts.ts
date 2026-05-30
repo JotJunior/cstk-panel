@@ -14,7 +14,7 @@ import { listCrossAlerts, countCrossAlerts } from '../db/queries/cross.js';
 import type { Period } from '../db/queries/cross.js';
 
 const QuerySchema = z.object({
-  tipo: z.string().optional(),
+  type: z.string().optional(),
   project: z.string().optional(),
   feature: z.string().optional(),
   period: z.enum(['24h', '7d', '30d', 'all']).optional(),
@@ -25,9 +25,9 @@ export async function alertRoutes(server: FastifyInstance): Promise<void> {
 
   server.get('/alerts', async (request, reply) => {
     const qResult = QuerySchema.safeParse(request.query);
-    const { tipo, project, feature, period } = qResult.success
+    const { type, project, feature, period } = qResult.success
       ? qResult.data
-      : { tipo: undefined, project: undefined, feature: undefined, period: undefined };
+      : { type: undefined, project: undefined, feature: undefined, period: undefined };
 
     const pagination = safeParsePagination(request.query as Record<string, string | undefined>);
 
@@ -38,13 +38,13 @@ export async function alertRoutes(server: FastifyInstance): Promise<void> {
     try {
       const filters: import('../db/queries/cross.js').CrossAlertFilters = {
         ...pagination,
-        ...(tipo !== undefined ? { tipo } : {}),
+        ...(type !== undefined ? { type } : {}),
         ...(project !== undefined ? { project } : {}),
         ...(feature !== undefined ? { feature } : {}),
         ...(period !== undefined ? { period: period as Period } : {}),
       };
       const countFilters: Omit<import('../db/queries/cross.js').CrossAlertFilters, 'limit' | 'offset'> = {
-        ...(tipo !== undefined ? { tipo } : {}),
+        ...(type !== undefined ? { type } : {}),
         ...(project !== undefined ? { project } : {}),
         ...(feature !== undefined ? { feature } : {}),
         ...(period !== undefined ? { period: period as Period } : {}),
@@ -54,14 +54,14 @@ export async function alertRoutes(server: FastifyInstance): Promise<void> {
 
       const data = {
         alerts: rows.map(r => ({
-          execucaoId: r.execucao_id,
+          executionId: r.execution_id,
           project: r.project,
           feature: r.feature,
-          tipo: r.tipo,
-          subtipo: r.subtipo,
-          valorConsumido: r.valor_consumido,
-          valorThreshold: r.valor_threshold,
-          descricao: r.descricao,
+          type: r.type,
+          subtype: r.subtype,
+          consumedValue: r.consumed_value,
+          thresholdValue: r.threshold_value,
+          description: r.description,
           wave: r.wave,
         })),
         pagination: {

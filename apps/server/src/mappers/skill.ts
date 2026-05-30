@@ -7,9 +7,9 @@ import type { SkillRow } from '../db/queries/skills.js';
 
 export function mapSkill(row: SkillRow): SkillDTO {
   return {
-    execucaoId: row.execucao_id,
+    executionId: row.execution_id,
     skillName: row.skill_name,
-    decisaoId: row.decisao_id,
+    decisionId: row.decision_id,
     wave: row.wave,
   };
 }

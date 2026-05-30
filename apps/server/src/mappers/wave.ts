@@ -10,14 +10,14 @@ import type { WaveRow } from '../db/queries/waves.js';
 export function mapWave(row: WaveRow): WaveDTO {
   return {
     wave: row.wave,
-    execucaoId: row.execucao_id,
-    etapas: row.etapas,           // string unica — NAO array
-    inicio: row.inicio,
-    fim: row.fim,
+    executionId: row.execution_id,
+    stages: row.stages,           // string unica — NAO array
+    startedAt: row.started_at,
+    finishedAt: row.finished_at,
     wallclockSeconds: row.wallclock_seconds,
     toolCalls: row.tool_calls,
-    motivoTermino: row.motivo_termino,
-    nEtapas: row.n_etapas,
+    terminationReason: row.termination_reason,
+    nStages: row.n_stages,
     nSkills: row.n_skills,
   };
 }

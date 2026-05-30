@@ -46,6 +46,11 @@ export function listSuggestionsByExecution(
   const diagnosisCol = hasColumn(db, 'suggestions', 'diagnosis') ? 'diagnosis' : 'NULL as diagnosis';
   const proposalCol = hasColumn(db, 'suggestions', 'proposal') ? 'proposal' : 'NULL as proposal';
   const issueOpenedCol = hasColumn(db, 'suggestions', 'issue_opened') ? 'issue_opened' : 'NULL as issue_opened';
+  // `referencias` coluna de CSV de paths (mantida como `referencias` no schema v5-v7;
+  // coluna nao foi renomeada — `references` seria keyword SQL, mas nao e o nome do campo).
+  const referenciasCol = hasColumn(db, 'suggestions', 'referencias')
+    ? 'referencias'
+    : 'NULL as referencias';
   // `created_at` maps to `source_ts` in the DB (ingested as created_at field)
   const createdAtCol = hasColumn(db, 'suggestions', 'created_at')
     ? 'created_at'
@@ -56,7 +61,7 @@ export function listSuggestionsByExecution(
   return db
     .prepare(`
       SELECT ${execIdCol}, source_id, ${affectedSkillCol}, ${severityCol},
-             ${diagnosisCol}, ${proposalCol}, "references" as referencias,
+             ${diagnosisCol}, ${proposalCol}, ${referenciasCol},
              ${issueOpenedCol}, ${createdAtCol}
       FROM suggestions
       WHERE execution_id = ?

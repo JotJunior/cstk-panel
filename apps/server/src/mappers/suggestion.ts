@@ -31,15 +31,15 @@ function emptyToNull(s: string | null): string | null {
 
 export function mapSuggestion(row: SuggestionRow): SuggestionDTO {
   return {
-    execucaoId: row.execucao_id,
+    executionId: row.execution_id,
     sourceId: row.source_id,
-    skillAfetada: emptyToNull(row.skill_afetada),
-    severidade: toSeveridade(row.severidade),
-    diagnostico: row.diagnostico,
-    proposta: row.proposta,
+    affectedSkill: emptyToNull(row.affected_skill),
+    severity: toSeveridade(row.severity),
+    diagnosis: row.diagnosis,
+    proposal: row.proposal,
     referencias: splitReferencias(row.referencias),
-    issueAberta: emptyToNull(row.issue_aberta),
-    criadaEm: emptyToNull(row.source_ts),
+    issueOpened: emptyToNull(row.issue_opened),
+    createdAt: emptyToNull(row.created_at),
   };
 }
 

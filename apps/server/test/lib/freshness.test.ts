@@ -172,10 +172,10 @@ describe.skipIf(!FIXTURE_EXISTS)('7.5.3 Frescor — maxIngestedAt avanca com nov
     const writeDb = new Database(dbPath);
     const futureTs = new Date(Date.now() + 3600_000).toISOString(); // +1h
     const uniqueId = `exec-freshness-${Date.now()}`;
-    // executions tem NOT NULL em: project, feature, wave, execucao_id, source_ts, source_id, ingested_at
+    // executions tem NOT NULL em: project, feature, wave, execution_id, source_ts, source_id, ingested_at
     writeDb.exec(`
       INSERT OR IGNORE INTO executions
-        (execucao_id, project, feature, wave, source_ts, source_id, status, ingested_at)
+        (execution_id, project, feature, wave, source_ts, source_id, status, ingested_at)
       VALUES
         ('${uniqueId}', 'proj-fresh', 'feat-fresh', 'onda-001',
          '${futureTs}', '${uniqueId}', 'concluida', '${futureTs}')
