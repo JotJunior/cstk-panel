@@ -2,64 +2,152 @@
  * decision-map-layout.ts
  *
  * Engine de layout determinístico para o Decision Map Panel.
- * Converte DecisionDTO[] → MapLayout (nós com x/y + arestas).
+ * Converte DecisionDTO[] → MapLayout — uma ÁRVORE de decisões.
  *
- * Zero dependências de React/DOM — módulo TypeScript puro.
- * Função pura: sem side effects, sem estado global.
+ * Modelo da árvore (mirror do mockup aprovado):
+ *   - Cada decisão é um nó "decisão" (pill arredondado) — o ponto de decisão.
+ *   - As `opcoes_consideradas` viram nós "opção" (retângulos) abaixo da decisão,
+ *     ligados por arestas de galho (branch).
+ *   - A opção ESCOLHIDA (`escolha`) é destacada e é dela que parte a aresta de
+ *     espinha (spine) que desce para a PRÓXIMA decisão.
+ *   - Após a última decisão, um nó terminal "Fim".
  *
- * Ref: spec §FR-002, FR-005; plan §decision-map-layout.ts;
- *      data-model §Entity MapNode, §LayoutConfig
+ * A espinha serpenteia horizontalmente: a próxima decisão nasce sob a opção
+ * escolhida da anterior (que pode estar à esquerda/centro/direita), formando os
+ * galhos. As coordenadas são calculadas em espaço livre (x pode ficar negativo)
+ * e depois normalizadas para caber no SVG com PADDING nas bordas.
+ *
+ * Zero dependências de React/DOM — módulo TypeScript puro, função pura.
+ *
+ * Ref: spec §FR-002, FR-003, FR-004, FR-005; data-model §Entity MapNode
  */
 
 import type { DecisionDTO } from '@cstk-panel/shared-types';
 
 // ---------------------------------------------------------------------------
-// Constantes de layout (data-model §Entity LayoutConfig)
+// Constantes de geometria
 // ---------------------------------------------------------------------------
 
-export const NODE_WIDTH = 200;
-export const NODE_HEIGHT = 72;
-export const COL_GAP = 48;
-export const ROW_GAP = 12;
-export const HEADER_Y = 28;
-export const PADDING = 16;
+/** Largura do nó decisão (pill). */
+export const PILL_W = 176;
+/** Altura do nó decisão (pill). */
+export const PILL_H = 48;
+/** Largura do nó opção (retângulo). */
+export const OPT_W = 140;
+/** Altura do nó opção (retângulo). */
+export const OPT_H = 58;
+/** Largura do nó terminal "Fim". */
+export const END_W = 96;
+/** Altura do nó terminal "Fim". */
+export const END_H = 44;
+/** Espaço horizontal entre opções irmãs. */
+export const H_GAP = 24;
+/** Espaço vertical entre níveis (pill→opções e opções→próxima pill). */
+export const V_GAP = 54;
+/** Padding em torno do conteúdo do SVG. */
+export const PADDING = 24;
 
 // ---------------------------------------------------------------------------
 // Tipos de saída
 // ---------------------------------------------------------------------------
 
-/** Nó do mapa SVG derivado de um DecisionDTO. */
+export type MapNodeKind = 'decision' | 'option' | 'end';
+
+/** Nó do mapa SVG. */
 export interface MapNode {
-  /** Chave sintética estável: `${wave}::${indexFlat}` */
+  /** Chave estável: `dec::${i}` | `opt::${i}::${j}` | `end`. */
   key: string;
-  /** Referência ao DTO original (UNTRUSTED — renderizar via TextRaw) */
-  decision: DecisionDTO;
-  /** Posição x do canto superior esquerdo do nó (px) */
+  /** Tipo do nó — controla forma (pill vs retângulo) e interação. */
+  kind: MapNodeKind;
+  /**
+   * Texto principal exibido no nó (UNTRUSTED — renderizar via TextRaw).
+   * decisão → `etapa` (ponto de decisão); opção → texto da opção; end → "Fim".
+   */
+  label: string | null;
+  /**
+   * DTO da decisão a que este nó pertence (`null` apenas no nó `end`).
+   * Decisões e opções referenciam a MESMA decisão — clicar em qualquer um abre
+   * o detalhe daquela decisão.
+   */
+  decision: DecisionDTO | null;
+  /** Índice da decisão na cadeia (0-based). O nó `end` usa `n` (último+1). */
+  decisionIndex: number;
+  /** Para `option`: índice da opção dentro da decisão; senão -1. */
+  optionIndex: number;
+  /** Para `option`: é a opção escolhida (da qual parte a espinha). */
+  chosen: boolean;
+  /** Posição x do canto superior esquerdo (px). */
   x: number;
-  /** Posição y do canto superior esquerdo do nó (px) */
+  /** Posição y do canto superior esquerdo (px). */
   y: number;
-  /** Índice da onda no array de ondas únicas (0-based) */
-  waveIndex: number;
-  /** Índice do nó dentro da onda (0-based) */
-  nodeIndexInWave: number;
+  /** Largura do nó (px). */
+  w: number;
+  /** Altura do nó (px). */
+  h: number;
 }
 
-/** Aresta direcional entre dois nós consecutivos. */
+/** Aresta direcional entre dois nós. */
 export interface MapEdge {
-  /** Chave do nó de origem */
   from: string;
-  /** Chave do nó de destino */
   to: string;
+  /** `branch`: decisão→opção (curva). `spine`: opção escolhida→próxima decisão. */
+  kind: 'branch' | 'spine';
 }
 
 /** Layout completo do mapa SVG. */
 export interface MapLayout {
   nodes: MapNode[];
   edges: MapEdge[];
-  /** Largura total do SVG (px) */
   svgWidth: number;
-  /** Altura total do SVG (px) */
   svgHeight: number;
+}
+
+// ---------------------------------------------------------------------------
+// Helpers de parsing (defensivos — dados UNTRUSTED de schema variável)
+// ---------------------------------------------------------------------------
+
+/**
+ * Parseia `opcoes` (JSON array cru, ex.: `["haiku","sonnet"]`) defensivamente.
+ * Retorna `[]` para null, JSON inválido, ou valor não-array (FR-V3-005).
+ */
+export function parseOpcoes(raw: string | null): string[] {
+  if (!raw) return [];
+  try {
+    const v: unknown = JSON.parse(raw);
+    if (Array.isArray(v)) return v.map((x) => (x == null ? '' : String(x)));
+  } catch {
+    /* JSON inválido → sem opções (degradação graciosa) */
+  }
+  return [];
+}
+
+function norm(s: string | null): string {
+  return (s ?? '').trim().toLowerCase();
+}
+
+/**
+ * Deriva as opções de uma decisão + qual é a escolhida.
+ *
+ * Regras (defensivas):
+ *  - opções vêm de `opcoes`; a escolhida é a que casa (trim/lower) com `escolha`.
+ *  - se `escolha` existe mas não está entre as opções, ela é ANEXADA como opção
+ *    escolhida (o usuário precisa ver a escolha real, ainda que não listada).
+ *  - se `escolha` existe e não há opções, vira a única opção (escolhida).
+ *  - se `escolha` é nula/vazia, `chosenIdx = -1` (sem escolha → espinha parte da
+ *    própria decisão).
+ */
+export function deriveOptions(d: DecisionDTO): { opts: string[]; chosenIdx: number } {
+  const opts = parseOpcoes(d.opcoes);
+  const esc = d.escolha;
+  if (esc == null || esc === '') {
+    return { opts, chosenIdx: -1 };
+  }
+  let chosenIdx = opts.findIndex((o) => norm(o) === norm(esc));
+  if (chosenIdx === -1) {
+    opts.push(esc);
+    chosenIdx = opts.length - 1;
+  }
+  return { opts, chosenIdx };
 }
 
 // ---------------------------------------------------------------------------
@@ -67,126 +155,149 @@ export interface MapLayout {
 // ---------------------------------------------------------------------------
 
 /**
- * Calcula o layout determinístico do mapa de decisões.
+ * Calcula o layout em árvore do mapa de decisões.
  *
- * Algoritmo:
- * 1. Agrupa decisões por `wave` preservando a ordem do array flat.
- * 2. Cada onda ocupa uma coluna; nós da mesma onda são empilhados
- *    verticalmente (top→bottom), separados por ROW_GAP.
- * 3. A chave de cada nó é `${wave}::${indexFlat}` (posição 0-based no
- *    array flat recebido — estável dentro de uma request).
- * 4. Arestas conectam pares consecutivos no array flat (sem considerar
- *    troca de onda — a sequência é a ordem de inserção).
- * 5. svgWidth e svgHeight são calculados para encapsular todos os nós
- *    com PADDING nas 4 bordas.
+ * Caso base: `computeLayout([])` → layout vazio.
  *
- * Caso base: `computeLayout([])` retorna layout vazio sem erro.
- * Caso limiar: 1 nó → 0 arestas.
- *
- * @param items Array de DecisionDTO na ordem retornada pela API (rowid ASC).
- *              A ordenação correta é premissa documentada em plan §Convencoes
- *              de Borda (CHK059): backend ordena por rowid ASC.
+ * @param items DecisionDTO[] na ordem da cadeia (rowid ASC — premissa do backend).
  */
 export function computeLayout(items: DecisionDTO[]): MapLayout {
   if (items.length === 0) {
     return { nodes: [], edges: [], svgWidth: 0, svgHeight: 0 };
   }
 
-  // 1. Mapear ondas únicas preservando ordem de aparição no array flat
-  const waveOrder: string[] = [];
-  const waveMap = new Map<string, number>(); // wave → waveIndex
-
-  for (const item of items) {
-    if (!waveMap.has(item.wave)) {
-      waveMap.set(item.wave, waveOrder.length);
-      waveOrder.push(item.wave);
-    }
-  }
-
-  // 2. Calcular x de cada coluna de onda
-  //    x(waveIndex) = PADDING + waveIndex * (NODE_WIDTH + COL_GAP)
-  const colX = (wi: number): number => PADDING + wi * (NODE_WIDTH + COL_GAP);
-
-  // 3. Rastrear quantos nós já foram inseridos em cada onda
-  //    para calcular y de cada nó
-  const waveNodeCount = new Map<string, number>();
-
-  // 4. Construir nós
-  const nodes: MapNode[] = items.map((decision, indexFlat) => {
-    const wave = decision.wave;
-    const waveIndex = waveMap.get(wave)!;
-    const nodeIndexInWave = waveNodeCount.get(wave) ?? 0;
-    waveNodeCount.set(wave, nodeIndexInWave + 1);
-
-    const x = colX(waveIndex);
-    const y = PADDING + HEADER_Y + nodeIndexInWave * (NODE_HEIGHT + ROW_GAP);
-    const key = `${wave}::${indexFlat}`;
-
-    return { key, decision, x, y, waveIndex, nodeIndexInWave };
-  });
-
-  // 5. Construir arestas — pares consecutivos no array flat
+  const n = items.length;
+  const nodes: MapNode[] = [];
   const edges: MapEdge[] = [];
-  for (let i = 0; i < nodes.length - 1; i++) {
-    const fromNode = nodes[i];
-    const toNode = nodes[i + 1];
-    if (fromNode && toNode) {
-      edges.push({ from: fromNode.key, to: toNode.key });
+  /** Por decisão: chave do nó de onde a espinha continua para a próxima. */
+  const spineFrom: string[] = new Array(n).fill('');
+
+  let y = PADDING;
+  let center = 0; // centro x da decisão corrente (coordenadas livres)
+
+  for (let i = 0; i < n; i++) {
+    const d = items[i]!;
+    const pillKey = `dec::${i}`;
+
+    nodes.push({
+      key: pillKey,
+      kind: 'decision',
+      label: d.etapa ?? 'decisão',
+      decision: d,
+      decisionIndex: i,
+      optionIndex: -1,
+      chosen: false,
+      x: center - PILL_W / 2,
+      y,
+      w: PILL_W,
+      h: PILL_H,
+    });
+
+    const { opts, chosenIdx } = deriveOptions(d);
+
+    if (opts.length > 0) {
+      const groupW = opts.length * OPT_W + (opts.length - 1) * H_GAP;
+      const optY = y + PILL_H + V_GAP;
+      const firstLeft = center - groupW / 2;
+
+      let spineKey = pillKey;
+      let nextCenter = center;
+
+      for (let j = 0; j < opts.length; j++) {
+        const optLeft = firstLeft + j * (OPT_W + H_GAP);
+        const optKey = `opt::${i}::${j}`;
+        const chosen = j === chosenIdx;
+
+        nodes.push({
+          key: optKey,
+          kind: 'option',
+          label: opts[j] ?? '',
+          decision: d,
+          decisionIndex: i,
+          optionIndex: j,
+          chosen,
+          x: optLeft,
+          y: optY,
+          w: OPT_W,
+          h: OPT_H,
+        });
+        edges.push({ from: pillKey, to: optKey, kind: 'branch' });
+
+        if (chosen) {
+          spineKey = optKey;
+          nextCenter = optLeft + OPT_W / 2;
+        }
+      }
+
+      spineFrom[i] = spineKey;
+      center = chosenIdx >= 0 ? nextCenter : center;
+      y = optY + OPT_H + V_GAP;
+    } else {
+      // Decisão sem opções nem escolha registrada: espinha parte da própria pill.
+      spineFrom[i] = pillKey;
+      y = y + PILL_H + V_GAP;
     }
   }
 
-  // 6. Calcular dimensões do SVG
-  //    svgWidth: coluna mais à direita + NODE_WIDTH + PADDING
-  const numWaves = waveOrder.length;
-  const svgWidth = PADDING + numWaves * NODE_WIDTH + (numWaves - 1) * COL_GAP + PADDING;
-
-  //    svgHeight: coluna com mais nós define a altura
-  let maxNodesInColumn = 0;
-  for (const count of waveNodeCount.values()) {
-    if (count > maxNodesInColumn) maxNodesInColumn = count;
+  // Arestas de espinha: opção escolhida da decisão i → pill da decisão i+1.
+  for (let i = 0; i < n - 1; i++) {
+    edges.push({ from: spineFrom[i]!, to: `dec::${i + 1}`, kind: 'spine' });
   }
-  const svgHeight =
-    PADDING + HEADER_Y + maxNodesInColumn * NODE_HEIGHT +
-    (maxNodesInColumn - 1) * ROW_GAP + PADDING;
+
+  // Nó terminal "Fim" sob a opção escolhida da última decisão.
+  const endKey = 'end';
+  nodes.push({
+    key: endKey,
+    kind: 'end',
+    label: 'Fim',
+    decision: null,
+    decisionIndex: n,
+    optionIndex: -1,
+    chosen: false,
+    x: center - END_W / 2,
+    y,
+    w: END_W,
+    h: END_H,
+  });
+  edges.push({ from: spineFrom[n - 1]!, to: endKey, kind: 'spine' });
+
+  // Normalização: desloca tudo para que minX = PADDING (a espinha pode ter
+  // derivado para x negativo) e calcula dimensões do SVG.
+  let minX = Infinity;
+  let maxRight = -Infinity;
+  let maxBottom = -Infinity;
+  for (const nd of nodes) {
+    if (nd.x < minX) minX = nd.x;
+    if (nd.x + nd.w > maxRight) maxRight = nd.x + nd.w;
+    if (nd.y + nd.h > maxBottom) maxBottom = nd.y + nd.h;
+  }
+  const dx = PADDING - minX;
+  for (const nd of nodes) {
+    nd.x += dx;
+  }
+
+  const svgWidth = maxRight - minX + PADDING * 2;
+  const svgHeight = maxBottom + PADDING;
 
   return { nodes, edges, svgWidth, svgHeight };
 }
 
 // ---------------------------------------------------------------------------
-// Helpers de navegação (usados pelo DecisionDetailPane)
+// Helpers de navegação do painel de detalhe (navegam entre DECISÕES)
 // ---------------------------------------------------------------------------
 
-/**
- * Retorna a chave do nó anterior no array flat, ou null se for o primeiro.
- */
+/** Chave da pill da decisão anterior à do nó atual, ou null. */
 export function prevKey(nodes: MapNode[], currentKey: string): string | null {
-  const idx = nodes.findIndex(n => n.key === currentKey);
-  if (idx <= 0) return null;
-  return nodes[idx - 1]?.key ?? null;
+  const cur = nodes.find((nd) => nd.key === currentKey);
+  if (!cur) return null;
+  const prev = nodes.find((nd) => nd.kind === 'decision' && nd.decisionIndex === cur.decisionIndex - 1);
+  return prev?.key ?? null;
 }
 
-/**
- * Retorna a chave do próximo nó no array flat, ou null se for o último.
- */
+/** Chave da pill da próxima decisão à do nó atual, ou null. */
 export function nextKey(nodes: MapNode[], currentKey: string): string | null {
-  const idx = nodes.findIndex(n => n.key === currentKey);
-  if (idx === -1 || idx === nodes.length - 1) return null;
-  return nodes[idx + 1]?.key ?? null;
-}
-
-/**
- * Retorna as ondas únicas na ordem de aparição (para rótulos de coluna).
- */
-export function waveLabels(nodes: MapNode[]): Array<{ wave: string; x: number; waveIndex: number }> {
-  const seen = new Map<string, number>(); // wave → x
-  for (const node of nodes) {
-    if (!seen.has(node.decision.wave)) {
-      seen.set(node.decision.wave, node.x);
-    }
-  }
-  return Array.from(seen.entries()).map(([wave, x], waveIndex) => ({
-    wave,
-    x,
-    waveIndex,
-  }));
+  const cur = nodes.find((nd) => nd.key === currentKey);
+  if (!cur) return null;
+  const nxt = nodes.find((nd) => nd.kind === 'decision' && nd.decisionIndex === cur.decisionIndex + 1);
+  return nxt?.key ?? null;
 }

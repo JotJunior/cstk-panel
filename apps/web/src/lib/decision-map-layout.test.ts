@@ -1,37 +1,38 @@
 /**
- * Testes unitários do engine de layout do Decision Map Panel.
+ * Testes unitários do engine de layout (árvore) do Decision Map Panel.
  *
- * Ref: tasks 1.2.1–1.2.8; spec §SC-002; plan §Fase 1
+ * Modelo: cada decisão é um pill; suas opcoes viram retângulos-opção; a opção
+ * escolhida liga à próxima decisão (espinha). Nó terminal "Fim" ao final.
+ *
+ * Ref: spec §FR-002..FR-005, §SC-002
  * Execução: vitest run apps/web/src/lib/decision-map-layout.test.ts
  */
 
 import { describe, it, expect } from 'vitest';
 import {
   computeLayout,
+  deriveOptions,
+  parseOpcoes,
   prevKey,
   nextKey,
-  waveLabels,
-  NODE_WIDTH,
-  NODE_HEIGHT,
-  COL_GAP,
-  ROW_GAP,
-  HEADER_Y,
   PADDING,
+  PILL_W,
+  OPT_W,
 } from './decision-map-layout.js';
 import type { DecisionDTO } from '@cstk-panel/shared-types';
 
 // ---------------------------------------------------------------------------
-// Helper: criar um DecisionDTO mínimo para testes
+// Helpers
 // ---------------------------------------------------------------------------
 
 function mkDecision(wave: string, overrides: Partial<DecisionDTO> = {}): DecisionDTO {
   return {
     wave,
     execucaoId: 'exec-test',
-    etapa: null,
+    etapa: 'plan',
     agente: null,
-    escolha: `escolha-${wave}`,
-    opcoes: null,
+    escolha: 'B',
+    opcoes: JSON.stringify(['A', 'B', 'C']),
     score: null,
     contexto: null,
     justificativa: null,
@@ -40,18 +41,62 @@ function mkDecision(wave: string, overrides: Partial<DecisionDTO> = {}): Decisio
   };
 }
 
-function mkDecisions(wave: string, count: number): DecisionDTO[] {
-  return Array.from({ length: count }, (_, i) =>
-    mkDecision(wave, { escolha: `escolha-${wave}-${i}` })
-  );
-}
+// ---------------------------------------------------------------------------
+// parseOpcoes / deriveOptions
+// ---------------------------------------------------------------------------
+
+describe('parseOpcoes', () => {
+  it('parseia JSON array', () => {
+    expect(parseOpcoes('["a","b"]')).toEqual(['a', 'b']);
+  });
+  it('null → []', () => {
+    expect(parseOpcoes(null)).toEqual([]);
+  });
+  it('JSON inválido → [] (degradação graciosa)', () => {
+    expect(parseOpcoes('{nope')).toEqual([]);
+  });
+  it('não-array → []', () => {
+    expect(parseOpcoes('"x"')).toEqual([]);
+  });
+});
+
+describe('deriveOptions', () => {
+  it('marca a opção escolhida pelo match com escolha', () => {
+    const { opts, chosenIdx } = deriveOptions(mkDecision('w', { opcoes: '["A","B","C"]', escolha: 'B' }));
+    expect(opts).toEqual(['A', 'B', 'C']);
+    expect(chosenIdx).toBe(1);
+  });
+
+  it('match é tolerante a espaços/caixa', () => {
+    const { chosenIdx } = deriveOptions(mkDecision('w', { opcoes: '["Haiku","Sonnet"]', escolha: '  sonnet ' }));
+    expect(chosenIdx).toBe(1);
+  });
+
+  it('escolha ausente das opcoes é anexada como escolhida', () => {
+    const { opts, chosenIdx } = deriveOptions(mkDecision('w', { opcoes: '["A","B"]', escolha: 'Z' }));
+    expect(opts).toEqual(['A', 'B', 'Z']);
+    expect(chosenIdx).toBe(2);
+  });
+
+  it('sem opcoes mas com escolha → escolha vira a única opção', () => {
+    const { opts, chosenIdx } = deriveOptions(mkDecision('w', { opcoes: null, escolha: 'X' }));
+    expect(opts).toEqual(['X']);
+    expect(chosenIdx).toBe(0);
+  });
+
+  it('escolha nula → chosenIdx -1', () => {
+    const { opts, chosenIdx } = deriveOptions(mkDecision('w', { opcoes: '["A","B"]', escolha: null }));
+    expect(opts).toEqual(['A', 'B']);
+    expect(chosenIdx).toBe(-1);
+  });
+});
 
 // ---------------------------------------------------------------------------
-// Caso 1.2.2 — array vazio
+// computeLayout — casos base
 // ---------------------------------------------------------------------------
 
 describe('computeLayout — array vazio', () => {
-  it('retorna svgWidth=0, svgHeight=0, nodes=[], edges=[]', () => {
+  it('retorna layout vazio', () => {
     const layout = computeLayout([]);
     expect(layout.nodes).toEqual([]);
     expect(layout.edges).toEqual([]);
@@ -60,251 +105,223 @@ describe('computeLayout — array vazio', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// Caso 1.2.3 — 1 decisão (1 nó, 0 arestas)
-// ---------------------------------------------------------------------------
-
-describe('computeLayout — 1 decisão', () => {
-  const items = [mkDecision('onda-001')];
+describe('computeLayout — 1 decisão com 3 opções (escolha = B)', () => {
+  const items = [mkDecision('onda-001', { opcoes: '["A","B","C"]', escolha: 'B' })];
   const layout = computeLayout(items);
 
-  it('produz 1 nó e 0 arestas', () => {
-    expect(layout.nodes).toHaveLength(1);
-    expect(layout.edges).toHaveLength(0);
+  it('produz 1 pill + 3 opções + Fim = 5 nós', () => {
+    expect(layout.nodes).toHaveLength(5);
+    expect(layout.nodes.filter((n) => n.kind === 'decision')).toHaveLength(1);
+    expect(layout.nodes.filter((n) => n.kind === 'option')).toHaveLength(3);
+    expect(layout.nodes.filter((n) => n.kind === 'end')).toHaveLength(1);
   });
 
-  it('nó está na posição PADDING, HEADER_Y + PADDING', () => {
-    const node = layout.nodes[0]!;
-    expect(node.x).toBe(PADDING);
-    expect(node.y).toBe(PADDING + HEADER_Y);
+  it('3 arestas de galho + 1 de espinha (escolhida → Fim)', () => {
+    const branch = layout.edges.filter((e) => e.kind === 'branch');
+    const spine = layout.edges.filter((e) => e.kind === 'spine');
+    expect(branch).toHaveLength(3);
+    expect(spine).toHaveLength(1);
+    expect(spine[0]!.from).toBe('opt::0::1'); // B escolhida
+    expect(spine[0]!.to).toBe('end');
   });
 
-  it('chave sintética é wave::0', () => {
-    expect(layout.nodes[0]!.key).toBe('onda-001::0');
+  it('a opção escolhida é a de índice 1 (B)', () => {
+    const chosen = layout.nodes.filter((n) => n.kind === 'option' && n.chosen);
+    expect(chosen).toHaveLength(1);
+    expect(chosen[0]!.key).toBe('opt::0::1');
+    expect(chosen[0]!.label).toBe('B');
   });
 
-  it('svgWidth e svgHeight positivos', () => {
-    expect(layout.svgWidth).toBeGreaterThan(0);
-    expect(layout.svgHeight).toBeGreaterThan(0);
+  it('chaves estáveis dec::/opt::/end', () => {
+    expect(layout.nodes[0]!.key).toBe('dec::0');
+    expect(layout.nodes.some((n) => n.key === 'opt::0::0')).toBe(true);
+    expect(layout.nodes.some((n) => n.key === 'end')).toBe(true);
   });
 });
 
 // ---------------------------------------------------------------------------
-// Caso 1.2.4 — 3 decisões, 1 onda → 3 nós mesma coluna, 2 arestas
+// computeLayout — cadeia de várias decisões (galhos)
 // ---------------------------------------------------------------------------
 
-describe('computeLayout — 3 decisões, 1 onda', () => {
-  const items = mkDecisions('onda-001', 3);
-  const layout = computeLayout(items);
-
-  it('produz 3 nós e 2 arestas', () => {
-    expect(layout.nodes).toHaveLength(3);
-    expect(layout.edges).toHaveLength(2);
-  });
-
-  it('todos os nós na mesma coluna (mesmo x)', () => {
-    const xs = layout.nodes.map(n => n.x);
-    expect(new Set(xs).size).toBe(1);
-    expect(xs[0]!).toBe(PADDING);
-  });
-
-  it('nós empilhados verticalmente com ROW_GAP', () => {
-    const ys = layout.nodes.map(n => n.y);
-    expect(ys[1]! - ys[0]!).toBe(NODE_HEIGHT + ROW_GAP);
-    expect(ys[2]! - ys[1]!).toBe(NODE_HEIGHT + ROW_GAP);
-  });
-
-  it('arestas ligam nós consecutivos', () => {
-    expect(layout.edges[0]!.from).toBe('onda-001::0');
-    expect(layout.edges[0]!.to).toBe('onda-001::1');
-    expect(layout.edges[1]!.from).toBe('onda-001::1');
-    expect(layout.edges[1]!.to).toBe('onda-001::2');
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Caso 1.2.5 — 4 decisões, 2 ondas (2+2) → 2 colunas
-// ---------------------------------------------------------------------------
-
-describe('computeLayout — 4 decisões, 2 ondas (2+2)', () => {
+describe('computeLayout — cadeia de 3 decisões', () => {
   const items = [
-    ...mkDecisions('onda-001', 2),
-    ...mkDecisions('onda-002', 2),
+    mkDecision('onda-001', { etapa: 'specify', opcoes: '["A","B","C"]', escolha: 'B' }),
+    mkDecision('onda-002', { etapa: 'plan', opcoes: '["D","E","F"]', escolha: 'D' }),
+    mkDecision('onda-003', { etapa: 'tasks', opcoes: '["G","H","I"]', escolha: 'I' }),
   ];
   const layout = computeLayout(items);
 
-  it('produz 4 nós e 3 arestas', () => {
-    expect(layout.nodes).toHaveLength(4);
-    expect(layout.edges).toHaveLength(3);
+  it('3 pills + 9 opções + Fim = 13 nós', () => {
+    expect(layout.nodes.filter((n) => n.kind === 'decision')).toHaveLength(3);
+    expect(layout.nodes.filter((n) => n.kind === 'option')).toHaveLength(9);
+    expect(layout.nodes.filter((n) => n.kind === 'end')).toHaveLength(1);
   });
 
-  it('nós de onda-001 na coluna 0, onda-002 na coluna 1', () => {
-    const col0x = PADDING;
-    const col1x = PADDING + NODE_WIDTH + COL_GAP;
-
-    const onda001Nodes = layout.nodes.filter(n => n.decision.wave === 'onda-001');
-    const onda002Nodes = layout.nodes.filter(n => n.decision.wave === 'onda-002');
-
-    expect(onda001Nodes.every(n => n.x === col0x)).toBe(true);
-    expect(onda002Nodes.every(n => n.x === col1x)).toBe(true);
+  it('espinha liga a opção escolhida de cada decisão à próxima decisão', () => {
+    const spine = layout.edges.filter((e) => e.kind === 'spine');
+    expect(spine).toHaveLength(3); // dec0→dec1, dec1→dec2, dec2→end
+    expect(spine[0]!.from).toBe('opt::0::1'); // B
+    expect(spine[0]!.to).toBe('dec::1');
+    expect(spine[1]!.from).toBe('opt::1::0'); // D
+    expect(spine[1]!.to).toBe('dec::2');
+    expect(spine[2]!.from).toBe('opt::2::2'); // I
+    expect(spine[2]!.to).toBe('end');
   });
 
-  it('chaves wave::indexFlat corretas', () => {
-    expect(layout.nodes[0]!.key).toBe('onda-001::0');
-    expect(layout.nodes[1]!.key).toBe('onda-001::1');
-    expect(layout.nodes[2]!.key).toBe('onda-002::2');
-    expect(layout.nodes[3]!.key).toBe('onda-002::3');
+  it('cada decisão tem 3 arestas de galho', () => {
+    expect(layout.edges.filter((e) => e.kind === 'branch')).toHaveLength(9);
   });
 
-  it('waveIndex e nodeIndexInWave corretos', () => {
-    expect(layout.nodes[0]!.waveIndex).toBe(0);
-    expect(layout.nodes[0]!.nodeIndexInWave).toBe(0);
-    expect(layout.nodes[1]!.waveIndex).toBe(0);
-    expect(layout.nodes[1]!.nodeIndexInWave).toBe(1);
-    expect(layout.nodes[2]!.waveIndex).toBe(1);
-    expect(layout.nodes[2]!.nodeIndexInWave).toBe(0);
-    expect(layout.nodes[3]!.waveIndex).toBe(1);
-    expect(layout.nodes[3]!.nodeIndexInWave).toBe(1);
+  it('a próxima decisão nasce centralizada sob a opção escolhida da anterior', () => {
+    const optChosen0 = layout.nodes.find((n) => n.key === 'opt::0::1')!;
+    const pill1 = layout.nodes.find((n) => n.key === 'dec::1')!;
+    const optCenter = optChosen0.x + OPT_W / 2;
+    const pillCenter = pill1.x + PILL_W / 2;
+    expect(Math.abs(optCenter - pillCenter)).toBeLessThan(0.5);
+  });
+
+  it('a próxima decisão fica ABAIXO das opções da anterior', () => {
+    const opt0 = layout.nodes.find((n) => n.key === 'opt::0::0')!;
+    const pill1 = layout.nodes.find((n) => n.key === 'dec::1')!;
+    expect(pill1.y).toBeGreaterThan(opt0.y + opt0.h);
   });
 });
 
 // ---------------------------------------------------------------------------
-// Caso 1.2.6 — 100 decisões, 10 ondas (10 nós por onda)
+// Normalização de coordenadas
 // ---------------------------------------------------------------------------
 
-describe('computeLayout — 100 decisões, 10 ondas', () => {
-  const items: DecisionDTO[] = [];
-  for (let w = 1; w <= 10; w++) {
-    const wave = `onda-${String(w).padStart(3, '0')}`;
-    items.push(...mkDecisions(wave, 10));
-  }
+describe('computeLayout — normalização', () => {
+  it('nenhum x é negativo; menor x === PADDING', () => {
+    // Escolhas à esquerda forçam a espinha a derivar — exige normalização.
+    const items = [
+      mkDecision('w', { opcoes: '["A","B","C"]', escolha: 'A' }),
+      mkDecision('w', { opcoes: '["D","E","F"]', escolha: 'D' }),
+      mkDecision('w', { opcoes: '["G","H","I"]', escolha: 'G' }),
+    ];
+    const layout = computeLayout(items);
+    const minX = Math.min(...layout.nodes.map((n) => n.x));
+    expect(minX).toBe(PADDING);
+    expect(layout.nodes.every((n) => n.x >= 0)).toBe(true);
+  });
+
+  it('svgWidth e svgHeight encapsulam todos os nós com PADDING', () => {
+    const items = [mkDecision('w', { opcoes: '["A","B","C"]', escolha: 'B' })];
+    const layout = computeLayout(items);
+    const maxRight = Math.max(...layout.nodes.map((n) => n.x + n.w));
+    const maxBottom = Math.max(...layout.nodes.map((n) => n.y + n.h));
+    expect(layout.svgWidth).toBeGreaterThanOrEqual(maxRight + PADDING);
+    expect(layout.svgHeight).toBeGreaterThanOrEqual(maxBottom);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Casos defensivos
+// ---------------------------------------------------------------------------
+
+describe('computeLayout — decisão sem opções nem escolha', () => {
+  const items = [mkDecision('w', { opcoes: null, escolha: null })];
   const layout = computeLayout(items);
 
-  it('nodes.length === 100', () => {
-    expect(layout.nodes).toHaveLength(100);
+  it('produz só o pill + Fim (sem opções)', () => {
+    expect(layout.nodes.filter((n) => n.kind === 'option')).toHaveLength(0);
+    expect(layout.nodes.filter((n) => n.kind === 'decision')).toHaveLength(1);
+    expect(layout.nodes.filter((n) => n.kind === 'end')).toHaveLength(1);
   });
 
-  it('edges.length === 99', () => {
-    expect(layout.edges).toHaveLength(99);
+  it('espinha parte da própria decisão para o Fim', () => {
+    const spine = layout.edges.filter((e) => e.kind === 'spine');
+    expect(spine).toHaveLength(1);
+    expect(spine[0]!.from).toBe('dec::0');
+    expect(spine[0]!.to).toBe('end');
+  });
+});
+
+describe('computeLayout — escolha null com opções (nenhuma escolhida)', () => {
+  const items = [mkDecision('w', { opcoes: '["A","B"]', escolha: null })];
+  const layout = computeLayout(items);
+
+  it('renderiza as opções mas nenhuma é chosen', () => {
+    const opts = layout.nodes.filter((n) => n.kind === 'option');
+    expect(opts).toHaveLength(2);
+    expect(opts.every((o) => !o.chosen)).toBe(true);
   });
 
-  it('10 ondas distintas (10 colunas)', () => {
-    const waves = new Set(layout.nodes.map(n => n.decision.wave));
-    expect(waves.size).toBe(10);
+  it('espinha parte da decisão (sem opção escolhida)', () => {
+    const spine = layout.edges.filter((e) => e.kind === 'spine');
+    expect(spine[0]!.from).toBe('dec::0');
   });
+});
 
-  it('benchmark: computeLayout em < 10ms para 100 itens (SC-002)', () => {
+// ---------------------------------------------------------------------------
+// Benchmark (SC-002)
+// ---------------------------------------------------------------------------
+
+describe('computeLayout — performance', () => {
+  it('< 10ms para 100 decisões', () => {
+    const items: DecisionDTO[] = Array.from({ length: 100 }, (_, i) =>
+      mkDecision(`onda-${String(Math.floor(i / 10) + 1).padStart(3, '0')}`, {
+        opcoes: '["A","B","C"]',
+        escolha: 'B',
+      })
+    );
     const t0 = performance.now();
-    for (let i = 0; i < 10; i++) {
-      computeLayout(items); // 10 repetições
-    }
+    for (let i = 0; i < 10; i++) computeLayout(items);
     const avg = (performance.now() - t0) / 10;
-    expect(avg).toBeLessThan(10); // < 10ms por chamada
+    expect(avg).toBeLessThan(10);
   });
 });
 
 // ---------------------------------------------------------------------------
-// Caso 1.2.7 — nó com escolha = null
+// Navegação prev/next (entre DECISÕES)
 // ---------------------------------------------------------------------------
 
-describe('computeLayout — nó com escolha = null', () => {
+describe('prevKey / nextKey — navegam entre decisões', () => {
   const items = [
-    mkDecision('onda-001', { escolha: null }),
-    mkDecision('onda-001'),
+    mkDecision('w', { escolha: 'B' }),
+    mkDecision('w', { escolha: 'B' }),
+    mkDecision('w', { escolha: 'B' }),
   ];
-  const layout = computeLayout(items);
-
-  it('chave gerada sem erro', () => {
-    expect(layout.nodes[0]!.key).toBe('onda-001::0');
-  });
-
-  it('decision referenciada corretamente', () => {
-    expect(layout.nodes[0]!.decision.escolha).toBeNull();
-    expect(layout.nodes[0]!.decision.wave).toBe('onda-001');
-  });
-
-  it('produz 2 nós, 1 aresta', () => {
-    expect(layout.nodes).toHaveLength(2);
-    expect(layout.edges).toHaveLength(1);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Helpers: prevKey / nextKey
-// ---------------------------------------------------------------------------
-
-describe('prevKey / nextKey', () => {
-  const items = mkDecisions('onda-001', 3);
   const { nodes } = computeLayout(items);
 
-  it('prevKey do primeiro nó é null', () => {
-    expect(prevKey(nodes, nodes[0]!.key)).toBeNull();
+  it('prevKey da primeira decisão é null', () => {
+    expect(prevKey(nodes, 'dec::0')).toBeNull();
   });
 
-  it('nextKey do último nó é null', () => {
-    expect(nextKey(nodes, nodes[2]!.key)).toBeNull();
+  it('nextKey da última decisão é null (Fim não conta)', () => {
+    expect(nextKey(nodes, 'dec::2')).toBeNull();
   });
 
-  it('prevKey do nó 1 é nó 0', () => {
-    expect(prevKey(nodes, nodes[1]!.key)).toBe(nodes[0]!.key);
+  it('prev/next da decisão do meio', () => {
+    expect(prevKey(nodes, 'dec::1')).toBe('dec::0');
+    expect(nextKey(nodes, 'dec::1')).toBe('dec::2');
   });
 
-  it('nextKey do nó 1 é nó 2', () => {
-    expect(nextKey(nodes, nodes[1]!.key)).toBe(nodes[2]!.key);
+  it('a partir de uma OPÇÃO, navega para a decisão vizinha', () => {
+    expect(prevKey(nodes, 'opt::1::0')).toBe('dec::0');
+    expect(nextKey(nodes, 'opt::1::0')).toBe('dec::2');
   });
 
-  it('chave inexistente retorna null', () => {
-    expect(prevKey(nodes, 'nao-existe::99')).toBeNull();
-    expect(nextKey(nodes, 'nao-existe::99')).toBeNull();
-  });
-});
-
-// ---------------------------------------------------------------------------
-// Helpers: waveLabels
-// ---------------------------------------------------------------------------
-
-describe('waveLabels', () => {
-  it('retorna 2 entradas para 2 ondas', () => {
-    const items = [
-      ...mkDecisions('onda-001', 2),
-      ...mkDecisions('onda-002', 2),
-    ];
-    const { nodes } = computeLayout(items);
-    const labels = waveLabels(nodes);
-    expect(labels).toHaveLength(2);
-    expect(labels[0]!.wave).toBe('onda-001');
-    expect(labels[1]!.wave).toBe('onda-002');
-  });
-
-  it('x da onda-002 é maior que x da onda-001', () => {
-    const items = [
-      ...mkDecisions('onda-001', 1),
-      ...mkDecisions('onda-002', 1),
-    ];
-    const { nodes } = computeLayout(items);
-    const labels = waveLabels(nodes);
-    expect(labels[1]!.x).toBeGreaterThan(labels[0]!.x);
-  });
-
-  it('retorna array vazio para nodes vazio', () => {
-    expect(waveLabels([])).toEqual([]);
+  it('chave inexistente → null', () => {
+    expect(prevKey(nodes, 'nao-existe')).toBeNull();
+    expect(nextKey(nodes, 'nao-existe')).toBeNull();
   });
 });
 
 // ---------------------------------------------------------------------------
-// Pureza da função (sem side effects)
+// Pureza / determinismo
 // ---------------------------------------------------------------------------
 
-describe('computeLayout — pureza', () => {
+describe('computeLayout — pureza e determinismo', () => {
   it('não modifica o array de entrada', () => {
-    const items = mkDecisions('onda-001', 3);
+    const items = [mkDecision('w'), mkDecision('w')];
     const original = JSON.stringify(items);
     computeLayout(items);
     expect(JSON.stringify(items)).toBe(original);
   });
 
-  it('chamadas sucessivas com mesmo input produzem mesmo output', () => {
-    const items = mkDecisions('onda-001', 5);
+  it('mesmo input → mesmo output', () => {
+    const items = [mkDecision('w', { escolha: 'A' }), mkDecision('w', { escolha: 'C' })];
     const l1 = computeLayout(items);
     const l2 = computeLayout(items);
     expect(JSON.stringify(l1)).toBe(JSON.stringify(l2));

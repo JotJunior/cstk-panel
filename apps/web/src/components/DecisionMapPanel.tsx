@@ -192,7 +192,7 @@ export function DecisionMapPanel({
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: selectedKey ? '3fr 2fr' : '1fr',
+          gridTemplateColumns: selectedKey && selectedDecision ? '3fr 2fr' : '1fr',
           gap: 8,
           minHeight: 0,
         }}
