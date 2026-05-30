@@ -11,8 +11,8 @@
     "finished_at": null,
     "short_name": "new-schema"
   },
-  "current_stage": "plan",
-  "next_instruction": "Onda plan — invocar skill plan sobre docs/specs/new-schema/spec.md para gerar plan.md (arquitetura, research, data-model, test scenarios, task decomposition).",
+  "current_stage": "clarify",
+  "next_instruction": "Onda clarify — invocar skill clarify sobre docs/specs/new-schema/spec.md para resolver ambiguidades remanescentes (máx 5 perguntas); se nenhuma, avançar a plan.",
   "waves": [
     {
       "id": "onda-001",
@@ -30,25 +30,6 @@
           "skill": "specify",
           "timestamp": "2026-05-30T13:24:46Z",
           "decision_id": "dec-003"
-        }
-      ]
-    },
-    {
-      "id": "onda-002",
-      "started_at": "2026-05-30T13:51:39Z",
-      "finished_at": "2026-05-30T13:53:07Z",
-      "executed_stages": [
-        "clarify"
-      ],
-      "tool_calls": 0,
-      "wallclock_seconds": 88,
-      "termination_reason": "concluido",
-      "next_wave_scheduled_for": null,
-      "skills_invoked": [
-        {
-          "skill": "clarify",
-          "timestamp": "2026-05-30T13:52:25Z",
-          "decision_id": "dec-005"
         }
       ]
     }
@@ -109,63 +90,6 @@
       "evidence": null,
       "references": [],
       "originating_artifact": null
-    },
-    {
-      "id": "dec-004",
-      "wave_id": "onda-001",
-      "timestamp": "2026-05-30T13:49:36Z",
-      "stage": "model-routing",
-      "agent": "agente-00c-feature-orchestrator",
-      "context": "Selecao de modelo para onda 1 (fase clarify)",
-      "options_considered": [
-        "haiku",
-        "sonnet",
-        "opus",
-        "manter-atual"
-      ],
-      "choice": "model:sonnet",
-      "rationale": "sugerido=sonnet aplicado=sonnet origem=mapa | faixa=media fase=clarify (mapa primario)",
-      "justification_score": 0,
-      "evidence": null,
-      "references": [],
-      "originating_artifact": null
-    },
-    {
-      "id": "dec-005",
-      "wave_id": "onda-002",
-      "timestamp": "2026-05-30T13:52:17Z",
-      "stage": "clarify",
-      "agent": "agente-00c-feature-orchestrator",
-      "context": "clarify-asker avaliou spec.md: nenhuma ambiguidade critica identificada",
-      "options_considered": [
-        "emitir-perguntas",
-        "no-op-sem-perguntas"
-      ],
-      "choice": "no-op-sem-perguntas",
-      "rationale": "Spec cobre todos os FRs com mappings explícitos da migration-map FROZEN. Guards hasColumn/hasTable pattern existente é claro. FR-009 frontend scope definido. n_skills em Provenance UNCHANGED confirmado. Nenhum ponto com score < 2.",
-      "justification_score": 2,
-      "evidence": null,
-      "references": [],
-      "originating_artifact": null
-    },
-    {
-      "id": "dec-006",
-      "wave_id": "onda-002",
-      "timestamp": "2026-05-30T13:52:37Z",
-      "stage": "clarify",
-      "agent": "agente-00c-feature-orchestrator",
-      "context": "clarify concluido sem ambiguidades — avancando para plan",
-      "options_considered": [
-        "avancar-plan",
-        "aguardar-humano",
-        "abortar"
-      ],
-      "choice": "avancar-plan",
-      "rationale": "Spec new-schema é auto-suficiente: 14 FRs cobertos, migration-map FROZEN como fonte da verdade, padrão hasColumn/hasTable já estabelecido no codebase, FR-013/FR-014 como gates de integração claros.",
-      "justification_score": 2,
-      "evidence": null,
-      "references": [],
-      "originating_artifact": null
     }
   ],
   "human_blocks": [],
@@ -180,15 +104,15 @@
     "wallclock_threshold_seconds": 5400,
     "state_size_threshold_bytes": 1048576,
     "tool_calls_current_wave": 0,
-    "current_wave_start": "2026-05-30T13:51:39Z"
+    "current_wave_start": "2026-05-30T13:19:32Z"
   },
   "accumulated_metrics": {
-    "waves_total": 2,
+    "waves_total": 1,
     "tool_calls_total": 0,
-    "wallclock_total_seconds": 522,
+    "wallclock_total_seconds": 434,
     "max_depth_reached": 1,
     "subagents_spawned": 0,
-    "decisions_total": 6,
+    "decisions_total": 3,
     "human_blocks_total": 0,
     "global_skill_suggestions_total": 0,
     "toolkit_issues_opened": 0,
