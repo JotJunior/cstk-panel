@@ -5,10 +5,10 @@
     "target_project_path": "/Users/jot/Projects/_lab/Jot/misc/cstk-panel",
     "target_project_description": "houve uma mudança drástica no ../cstk no que diz respeito aos schemas e funcoes. Muita coisa que estava misturando portugues e ingles agora foram normalizados e canonizados. Precisamos ataptar para anteder ao novo schema.",
     "suggested_stack": null,
-    "status": "concluida",
-    "termination_reason": "pipeline_completo",
+    "status": "em_andamento",
+    "termination_reason": null,
     "started_at": "2026-05-30T13:17:25Z",
-    "finished_at": "2026-05-30T17:12:34Z",
+    "finished_at": null,
     "short_name": "new-schema"
   },
   "current_stage": "review-task",
@@ -192,30 +192,6 @@
           "skill": "execute-task",
           "timestamp": "2026-05-30T15:44:31Z",
           "decision_id": "dec-023"
-        }
-      ]
-    },
-    {
-      "id": "onda-010",
-      "started_at": "2026-05-30T17:11:34Z",
-      "finished_at": "2026-05-30T17:12:18Z",
-      "executed_stages": [
-        "review-task"
-      ],
-      "tool_calls": 0,
-      "wallclock_seconds": 44,
-      "termination_reason": "concluido",
-      "next_wave_scheduled_for": null,
-      "skills_invoked": [
-        {
-          "skill": "review-task",
-          "timestamp": "2026-05-30T17:12:00Z",
-          "decision_id": null
-        },
-        {
-          "skill": "review-task",
-          "timestamp": "2026-05-30T17:12:18Z",
-          "decision_id": "dec-033"
         }
       ]
     }
@@ -804,44 +780,6 @@
       "evidence": "Roundtrip real (PORT=3099 vs ~/.claude/cstk/knowledge.db v7): /api/v1/{overview,features,events,tasks,alerts} retornam ZERO chaves pt-BR; overview recentAlerts={consumedValue,description,executionId,subtype,thresholdValue,type}, modelMix={model,n}, funnel={count,stage}; monorepo tsc=0; vitest 328/328.",
       "references": [],
       "originating_artifact": null
-    },
-    {
-      "id": "dec-032",
-      "wave_id": "onda-009",
-      "timestamp": "2026-05-30T17:10:28Z",
-      "stage": "model-routing",
-      "agent": "agente-00c-feature-orchestrator",
-      "context": "Selecao de modelo para onda 9 (fase review-task)",
-      "options_considered": [
-        "haiku",
-        "sonnet",
-        "opus",
-        "manter-atual"
-      ],
-      "choice": "model:haiku",
-      "rationale": "sugerido=haiku aplicado=haiku origem=mapa | faixa=rasa fase=review-task (mapa primario)",
-      "justification_score": 0,
-      "evidence": null,
-      "references": [],
-      "originating_artifact": null
-    },
-    {
-      "id": "dec-033",
-      "wave_id": "onda-010",
-      "timestamp": "2026-05-30T17:12:18Z",
-      "stage": "review-task",
-      "agent": "agente-00c-feature-orchestrator",
-      "context": "Conclusão de execução da feature new-schema",
-      "options_considered": [
-        "concluir",
-        "abortar"
-      ],
-      "choice": "concluir",
-      "rationale": "158/158 tarefas concluídas em tasks.md; 32 decisões auditadas; 9 ondas fechadas; release v0.8.0 lançada; PAI corrigiu drift e roundtrip v7 passou",
-      "justification_score": 2,
-      "evidence": null,
-      "references": [],
-      "originating_artifact": null
     }
   ],
   "human_blocks": [],
@@ -856,15 +794,15 @@
     "wallclock_threshold_seconds": 5400,
     "state_size_threshold_bytes": 1048576,
     "tool_calls_current_wave": 0,
-    "current_wave_start": "2026-05-30T17:11:34Z"
+    "current_wave_start": "2026-05-30T15:37:02Z"
   },
   "accumulated_metrics": {
-    "waves_total": 10,
+    "waves_total": 9,
     "tool_calls_total": 0,
-    "wallclock_total_seconds": 4890,
+    "wallclock_total_seconds": 4846,
     "max_depth_reached": 1,
     "subagents_spawned": 0,
-    "decisions_total": 33,
+    "decisions_total": 31,
     "human_blocks_total": 0,
     "global_skill_suggestions_total": 0,
     "toolkit_issues_opened": 0,

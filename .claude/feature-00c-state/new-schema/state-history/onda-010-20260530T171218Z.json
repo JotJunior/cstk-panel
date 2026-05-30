@@ -5,10 +5,10 @@
     "target_project_path": "/Users/jot/Projects/_lab/Jot/misc/cstk-panel",
     "target_project_description": "houve uma mudança drástica no ../cstk no que diz respeito aos schemas e funcoes. Muita coisa que estava misturando portugues e ingles agora foram normalizados e canonizados. Precisamos ataptar para anteder ao novo schema.",
     "suggested_stack": null,
-    "status": "concluida",
-    "termination_reason": "pipeline_completo",
+    "status": "em_andamento",
+    "termination_reason": null,
     "started_at": "2026-05-30T13:17:25Z",
-    "finished_at": "2026-05-30T17:12:34Z",
+    "finished_at": null,
     "short_name": "new-schema"
   },
   "current_stage": "review-task",
@@ -198,13 +198,11 @@
     {
       "id": "onda-010",
       "started_at": "2026-05-30T17:11:34Z",
-      "finished_at": "2026-05-30T17:12:18Z",
-      "executed_stages": [
-        "review-task"
-      ],
+      "finished_at": null,
+      "executed_stages": [],
       "tool_calls": 0,
-      "wallclock_seconds": 44,
-      "termination_reason": "concluido",
+      "wallclock_seconds": 0,
+      "termination_reason": null,
       "next_wave_scheduled_for": null,
       "skills_invoked": [
         {
@@ -859,9 +857,9 @@
     "current_wave_start": "2026-05-30T17:11:34Z"
   },
   "accumulated_metrics": {
-    "waves_total": 10,
+    "waves_total": 9,
     "tool_calls_total": 0,
-    "wallclock_total_seconds": 4890,
+    "wallclock_total_seconds": 4846,
     "max_depth_reached": 1,
     "subagents_spawned": 0,
     "decisions_total": 33,

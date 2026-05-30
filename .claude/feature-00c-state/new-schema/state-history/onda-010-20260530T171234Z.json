@@ -8,7 +8,7 @@
     "status": "concluida",
     "termination_reason": "pipeline_completo",
     "started_at": "2026-05-30T13:17:25Z",
-    "finished_at": "2026-05-30T17:12:34Z",
+    "finished_at": null,
     "short_name": "new-schema"
   },
   "current_stage": "review-task",
