@@ -5,6 +5,24 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.7.1] - 2026-05-29
+
+### Corrigido
+
+#### Árvore de decisões — layout, página e container
+- **Árvore real com galhos** (antes era uma cadeia linear): cada decisão é um nó
+  arredondado (ponto de decisão) que ramifica para suas **opções consideradas**
+  (retângulos). A **opção escolhida** é destacada (✓ + borda de acento) e dela
+  parte o galho que desce para a próxima decisão, terminando num nó "Fim".
+- **Página própria**: o botão "árvore de decisões" agora abre uma página dedicada
+  (`/executions/:id/decision-map`) em vez de substituir a tabela de decisões na
+  aba. A aba **Decisões** volta a sempre exibir a tabela.
+- **Ocupa o container de conteúdo**: a árvore não fica mais presa num box de
+  altura fixa (64vh) com scrollbars internas — cresce com a árvore e a própria
+  página rola verticalmente. O painel lateral de detalhe acompanha a rolagem
+  (sticky). Mantidos: read-only, conteúdo UNTRUSTED via TextRaw, navegação por
+  teclado.
+
 ## [0.7.0] - 2026-05-29
 
 ### Adicionado
