@@ -5,6 +5,21 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.9.1] - 2026-05-30
+
+### Corrigido
+
+- **Árvore de decisões — escolha com namespace duplicava a opção**: quando a
+  `escolha` vinha com prefixo de namespace (ex.: `model:sonnet`) e a lista de
+  opções já continha o token sem prefixo (`["haiku","sonnet","opus","manter-atual"]`),
+  o `deriveOptions` casava por igualdade crua, não encontrava `model:sonnet` entre
+  as opções e **anexava uma 5ª opção fantasma** (`model:sonnet`, marcada como
+  escolhida) — deixando `sonnet` aparecendo duas vezes na árvore. Agora
+  `deriveOptions` reusa o `chosenOptionIndex` (mesmo matcher tolerante a
+  caixa/espaço, prefixo de namespace e elaborações já usado no painel de
+  detalhe): `model:sonnet` casa com a opção `sonnet`, nada é anexado e a opção
+  real é destacada. Fecha o drift entre os dois caminhos de render.
+
 ## [0.9.0] - 2026-05-30
 
 ### Adicionado
