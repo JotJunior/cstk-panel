@@ -5,6 +5,21 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.9.2] - 2026-05-31
+
+### Corrigido
+
+- **Cabeçalho da execução — card "Ondas" defasado**: o card `ONDAS` lia
+  `exec.wavesTotal` (coluna denormalizada `executions.waves_total`), um
+  contador que o orquestrador agente-00c nem sempre incrementa — ondas em
+  modelos sonnet/haiku pulam o fechamento de onda. Resultado: o cabeçalho
+  mostrava `18` enquanto a "Linha do tempo de ondas" e a aba — ambas baseadas
+  no `COUNT` real das linhas da tabela `waves` — mostravam `40`. Agora o card
+  deriva de `waves.length` (mesma fonte da timeline), com fallback para
+  `exec.wavesTotal` enquanto a query de ondas ainda não resolveu e `—` sem
+  dados. Cabeçalho e timeline passam a bater; o painel deixa de propagar o
+  defeito de bookkeeping da origem.
+
 ## [0.9.1] - 2026-05-30
 
 ### Corrigido
@@ -499,6 +514,7 @@ execuções dos orquestradores `agente-00c` / `feature-00c`, lido diretamente da
 - Invariantes constitucionais I–VI verificáveis por scripts de _lint_.
 - `npm run lint:readonly-check` garante zero verbos de mutação SQL em `apps/server/src`.
 
+[0.9.2]: https://github.com/JotJunior/cstk-panel/compare/v0.9.1...v0.9.2
 [0.9.1]: https://github.com/JotJunior/cstk-panel/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/JotJunior/cstk-panel/compare/v0.8.2...v0.9.0
 [0.8.2]: https://github.com/JotJunior/cstk-panel/compare/v0.8.1...v0.8.2
