@@ -72,6 +72,17 @@ describe('deriveOptions', () => {
     expect(chosenIdx).toBe(1);
   });
 
+  it('escolha com prefixo de namespace casa com a opção (não anexa fantasma)', () => {
+    const { opts, chosenIdx } = deriveOptions(
+      mkDecision('w', {
+        options: '["haiku","sonnet","opus","manter-atual"]',
+        choice: 'model:sonnet',
+      }),
+    );
+    expect(opts).toEqual(['haiku', 'sonnet', 'opus', 'manter-atual']);
+    expect(chosenIdx).toBe(1);
+  });
+
   it('escolha ausente das opcoes é anexada como escolhida', () => {
     const { opts, chosenIdx } = deriveOptions(mkDecision('w', { options: '["A","B"]', choice: 'Z' }));
     expect(opts).toEqual(['A', 'B', 'Z']);

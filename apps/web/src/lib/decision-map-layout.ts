@@ -23,6 +23,7 @@
  */
 
 import type { DecisionDTO } from '@cstk-panel/shared-types';
+import { chosenOptionIndex } from './decision-options.js';
 
 // ---------------------------------------------------------------------------
 // Constantes de geometria
@@ -121,16 +122,16 @@ export function parseOpcoes(raw: string | null): string[] {
   return [];
 }
 
-function norm(s: string | null): string {
-  return (s ?? '').trim().toLowerCase();
-}
-
 /**
  * Deriva as opções de uma decisão + qual é a escolhida.
  *
  * Regras (defensivas):
- *  - opções vêm de `options`; a escolhida é a que casa (trim/lower) com `choice`.
- *  - se `choice` existe mas não está entre as opções, ela é ANEXADA como opção
+ *  - opções vêm de `options`; a escolhida é a que casa com `choice` via
+ *    `chosenOptionIndex` — match tolerante a caixa/espaço, a prefixo de namespace
+ *    (`model:sonnet` casa com a opção `sonnet`) e a elaborações da escolha. Isso
+ *    evita ANEXAR uma 5ª opção fantasma (`model:sonnet`) quando `sonnet` já está
+ *    na lista — o bug de "escolha aparece duas vezes" na árvore.
+ *  - só se `choice` NÃO casa com nenhuma opção é que ela é anexada como opção
  *    escolhida (o usuário precisa ver a escolha real, ainda que não listada).
  *  - se `choice` existe e não há opções, vira a única opção (escolhida).
  *  - se `choice` é nula/vazia, `chosenIdx = -1` (sem escolha → espinha parte da
@@ -142,7 +143,7 @@ export function deriveOptions(d: DecisionDTO): { opts: string[]; chosenIdx: numb
   if (esc == null || esc === '') {
     return { opts, chosenIdx: -1 };
   }
-  let chosenIdx = opts.findIndex((o) => norm(o) === norm(esc));
+  let chosenIdx = chosenOptionIndex(opts, esc);
   if (chosenIdx === -1) {
     opts.push(esc);
     chosenIdx = opts.length - 1;
