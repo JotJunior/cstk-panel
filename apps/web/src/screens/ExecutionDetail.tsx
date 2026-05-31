@@ -852,7 +852,11 @@ export function ExecutionDetail() {
               { label: 'Etapa corrente',  value: exec.currentStage ?? '—', color: exec.status === 'em_andamento' ? 'var(--inprogress)' : 'var(--text-0)', mono: true },
               { label: 'Duracao',         value: fmtDur(exec.durationSeconds) },
               { label: 'Custo · proxy',   value: fmtNum(exec.toolCallsTotal) },
-              { label: 'Ondas',           value: String(exec.wavesTotal ?? '—') },
+              // Contagem real das ondas (linhas da tabela waves) em vez do campo
+              // denormalizado exec.wavesTotal, que o orquestrador nem sempre
+              // incrementa (ver agente-00c wave bookkeeping defect). Fallback para
+              // o campo cacheado enquanto a lista de ondas ainda não carregou.
+              { label: 'Ondas',           value: String(waves.length || exec.wavesTotal || '—') },
               { label: 'Subagentes',      value: String(exec.subagentsSpawned ?? '—') },
               { label: 'Prof. maxima',    value: String(exec.maxDepth ?? '—') },
               { label: 'Decisoes',        value: String(exec.decisionsTotal ?? '—') },
