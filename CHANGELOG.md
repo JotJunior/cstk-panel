@@ -5,6 +5,22 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.10.0] - 2026-06-04
+
+### Adicionado
+
+- **Auto-refresh periódico do conteúdo (10s)**: as telas do painel passam a
+  se atualizar sozinhas a cada 10 segundos, sem intervenção do operador.
+  Em vez de um reload completo do navegador (que pisca, reseta o scroll e
+  re-baixa o bundle/reinicia o router), o `queryClient` ganhou
+  `refetchInterval` global (`AUTO_REFRESH_MS = 10_000`): todas as queries
+  ativas re-buscam no intervalo e o React Query reconcilia apenas o que
+  mudou. Como é um único ponto nos `defaultOptions`, vale para todas as
+  telas (Visão Geral, Execuções, Detalhe, Métricas, etc.). O `staleTime`
+  de 60s segue governando refetches por navegação/montagem — o intervalo
+  é independente. `refetchIntervalInBackground: false` pausa o polling
+  quando a aba está oculta, evitando carga inútil sobre o SQLite read-only.
+
 ## [0.9.2] - 2026-05-31
 
 ### Corrigido
@@ -514,6 +530,7 @@ execuções dos orquestradores `agente-00c` / `feature-00c`, lido diretamente da
 - Invariantes constitucionais I–VI verificáveis por scripts de _lint_.
 - `npm run lint:readonly-check` garante zero verbos de mutação SQL em `apps/server/src`.
 
+[0.10.0]: https://github.com/JotJunior/cstk-panel/compare/v0.9.2...v0.10.0
 [0.9.2]: https://github.com/JotJunior/cstk-panel/compare/v0.9.1...v0.9.2
 [0.9.1]: https://github.com/JotJunior/cstk-panel/compare/v0.9.0...v0.9.1
 [0.9.0]: https://github.com/JotJunior/cstk-panel/compare/v0.8.2...v0.9.0
