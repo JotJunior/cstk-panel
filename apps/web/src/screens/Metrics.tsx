@@ -444,7 +444,7 @@ export function Metrics({ period }: MetricsProps) {
           subtitle="distribuicao de wallclock_segundos"
           period={period}
           renderContent={(raw) => {
-            const dur = nums(raw, 'duracaoSegundos');
+            const dur = nums(raw, 'durationSeconds');
             if (!dur.length) return null;
             const m = mean(dur);
             return (
@@ -476,13 +476,13 @@ export function Metrics({ period }: MetricsProps) {
             const rows = Array.isArray(raw) ? (raw as Record<string, unknown>[]) : [];
             const points: ScatterDatum[] = rows
               .map(r => ({
-                x: (r.profundidadeMax as number | null) ?? 0,
-                y: (r.subagentesSpawned as number | null) ?? 0,
+                x: (r.maxDepth as number | null) ?? 0,
+                y: (r.subagentsSpawned as number | null) ?? 0,
                 color: 'var(--accent)',
               }))
               .filter(p => p.x > 0 || p.y > 0);
-            const depth = nums(raw, 'profundidadeMax');
-            const spawned = nums(raw, 'subagentesSpawned');
+            const depth = nums(raw, 'maxDepth');
+            const spawned = nums(raw, 'subagentsSpawned');
             if (!points.length) return null;
             const avgDepth = mean(depth);
             const avgSpawned = mean(spawned);
