@@ -5,6 +5,29 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.11.0] - 2026-06-05
+
+### Adicionado
+
+- **Proveniência de sessão de worktree (schema v8)**: as execuções e ondas
+  que rodaram dentro de uma sessão de worktree do cstk (`cstk session start`)
+  passam a exibir a sessão de origem — um selo na lista de execuções e um chip
+  no cabeçalho do detalhe, mostrados apenas quando a execução tem sessão. A
+  coluna `session` (adicionada pelo cstk 5.11, feature `recall-worktree-identity`)
+  é lida ponta a ponta (queries, DTOs, schemas Zod e mappers), degradando para
+  vazio em bases anteriores ao v8.
+
+### Corrigido
+
+- **Schema v8 da knowledge.db deixa de ser rejeitado**: o painel aceitava
+  apenas até o schema v7, então recusava abrir uma `knowledge.db` no schema v8
+  com `schema-mismatch` (tela degradada). As versões de schema aceitas por
+  padrão passam a incluir o `'8'`. Além disso, havia um segundo conjunto de
+  versões aceitas, desatualizado (parado em `['2','3','4']`), usado como
+  fallback em chamadas diretas/de teste de abertura do banco; ele agora reusa
+  a mesma fonte de verdade da configuração, eliminando o risco de divergência
+  entre os dois padrões em releases futuras.
+
 ## [0.10.1] - 2026-06-05
 
 ### Corrigido
@@ -547,6 +570,7 @@ execuções dos orquestradores `agente-00c` / `feature-00c`, lido diretamente da
 - Invariantes constitucionais I–VI verificáveis por scripts de _lint_.
 - `npm run lint:readonly-check` garante zero verbos de mutação SQL em `apps/server/src`.
 
+[0.11.0]: https://github.com/JotJunior/cstk-panel/compare/v0.10.1...v0.11.0
 [0.10.1]: https://github.com/JotJunior/cstk-panel/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/JotJunior/cstk-panel/compare/v0.9.2...v0.10.0
 [0.9.2]: https://github.com/JotJunior/cstk-panel/compare/v0.9.1...v0.9.2
