@@ -5,6 +5,23 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.10.1] - 2026-06-05
+
+### Corrigido
+
+- **Métricas: cards de duração e profundidade voltam a renderizar**: os
+  cards "Duração das execuções" e "Profundidade de subagentes" ficavam em
+  branco porque o frontend ainda lia as chaves em português (`duracaoSegundos`,
+  `profundidadeMax`, `subagentesSpawned`) enquanto o backend já serializa as
+  colunas canonizadas em inglês do schema v7 (`durationSeconds`, `maxDepth`,
+  `subagentsSpawned`). Com a chave inexistente, a agregação devolvia vazio e
+  o conteúdo nem chegava ao estado "Sem dados". As chaves lidas foram
+  alinhadas ao payload do backend.
+- **Versão no cabeçalho deixa de ser hardcoded**: a tag do menu lateral
+  estava fixada em `v3.19`, divergindo da versão real. Passa a ser injetada
+  a partir do `package.json` em build/dev (`__APP_VERSION__` via `define` do
+  Vite), acompanhando automaticamente cada release.
+
 ## [0.10.0] - 2026-06-04
 
 ### Adicionado
@@ -530,6 +547,7 @@ execuções dos orquestradores `agente-00c` / `feature-00c`, lido diretamente da
 - Invariantes constitucionais I–VI verificáveis por scripts de _lint_.
 - `npm run lint:readonly-check` garante zero verbos de mutação SQL em `apps/server/src`.
 
+[0.10.1]: https://github.com/JotJunior/cstk-panel/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/JotJunior/cstk-panel/compare/v0.9.2...v0.10.0
 [0.9.2]: https://github.com/JotJunior/cstk-panel/compare/v0.9.1...v0.9.2
 [0.9.1]: https://github.com/JotJunior/cstk-panel/compare/v0.9.0...v0.9.1
