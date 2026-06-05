@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { useExecutions } from '@/lib/hooks.js';
 import { useApiState } from '@/hooks/useApiState.js';
 import { LoadingState, EmptyState, ErrorState, DegradedBanner } from '@/states/index.js';
-import { StatusBadge, PipelineProgress } from '@/components/index.js';
+import { StatusBadge, PipelineProgress, Icon } from '@/components/index.js';
 import type { ExecutionDTO } from '@cstk-panel/shared-types';
 
 function fmtNum(n: number | null | undefined): string {
@@ -84,7 +84,25 @@ export function Executions() {
                         </span>
                       </td>
                       <td>
-                        <div style={{ fontWeight: 500, color: 'var(--text-0)', fontSize: 12.5 }}>{e.feature ?? '—'}</div>
+                        <div className="row gap-2" style={{ fontWeight: 500, color: 'var(--text-0)', fontSize: 12.5 }}>
+                          {e.feature ?? '—'}
+                          {e.session && (
+                            // sessao de worktree (schema v8) — texto livre, React escapa via textContent
+                            <span
+                              title="sessao de worktree de origem"
+                              style={{
+                                display: 'inline-flex', alignItems: 'center', gap: 3,
+                                fontFamily: 'var(--font-mono)', fontSize: 9.5, fontWeight: 600,
+                                padding: '0 6px', borderRadius: 8,
+                                background: 'var(--bg-3)', color: 'var(--text-2)',
+                                border: '1px solid var(--border)',
+                              }}
+                            >
+                              <Icon name="git-branch" size={9} aria-hidden />
+                              {e.session}
+                            </span>
+                          )}
+                        </div>
                         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10.5, color: 'var(--text-2)' }}>{e.project}</div>
                       </td>
                       <td><StatusBadge status={e.status} /></td>

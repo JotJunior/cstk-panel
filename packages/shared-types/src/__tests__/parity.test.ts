@@ -52,6 +52,7 @@ describe('Paridade schemas Zod — entidades', () => {
       humanBlocksTotal: 1,
       skillSuggestionsTotal: 0,
       toolkitIssuesOpened: 0,
+      session: null,
     };
     const r = ExecutionDTOSchema.safeParse(payload);
     expect(r.success).toBe(true);
@@ -69,6 +70,7 @@ describe('Paridade schemas Zod — entidades', () => {
       terminationReason: null,
       nStages: 1,
       nSkills: 3,
+      session: null,
     };
     const r = WaveDTOSchema.safeParse(payload);
     expect(r.success).toBe(true);

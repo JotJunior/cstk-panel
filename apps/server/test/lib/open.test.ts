@@ -245,6 +245,14 @@ describe('openDb — versoes de schema aceitas (FR-V3-001/002)', () => {
     if (result.ok) result.db.close();
   });
 
+  it('aceita schema_version=8 por default (recall-worktree-identity — coluna session)', () => {
+    const path = tmpFile('.db');
+    makeDbWithVersion(path, '8');
+    const result = openDb(path);
+    expect(result.ok).toBe(true);
+    if (result.ok) result.db.close();
+  });
+
   it('versao fora do conjunto aceito (ex.: 99) degrada como schema-mismatch', () => {
     const path = tmpFile('.db');
     makeDbWithVersion(path, '99');

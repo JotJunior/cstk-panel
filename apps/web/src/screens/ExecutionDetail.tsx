@@ -822,6 +822,25 @@ export function ExecutionDetail() {
                 <span>{exec.feature}</span>
                 <span style={{ color: 'var(--text-3)' }}>·</span>
                 <span>iniciada {fmtTimestamp(exec.startedAt)}</span>
+                {exec.session && (
+                  <>
+                    <span style={{ color: 'var(--text-3)' }}>·</span>
+                    {/* sessao de worktree (schema v8) — texto livre, React escapa via textContent */}
+                    <span
+                      title="sessao de worktree de origem"
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 4,
+                        fontFamily: 'var(--font-mono)', fontSize: 10.5,
+                        padding: '1px 7px', borderRadius: 8,
+                        background: 'var(--bg-3)', color: 'var(--text-1)',
+                        border: '1px solid var(--border)',
+                      }}
+                    >
+                      <Icon name="git-branch" size={10} aria-hidden />
+                      {exec.session}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
             {/* Botoes decorativos (CARD-EX-02) — recursos externos ao painel */}

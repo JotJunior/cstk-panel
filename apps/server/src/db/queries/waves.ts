@@ -19,6 +19,8 @@ export interface WaveRow {
   termination_reason: string | null;
   n_stages: number | null;
   n_skills: number | null;
+  /** nome da sessao de worktree de origem (schema v8); NULL fora de sessao/bases v<8 */
+  session: string | null;
 }
 
 /** Lista ondas de uma execucao, em ordem cronologica */
@@ -32,12 +34,13 @@ export function listWavesByExecution(
   const finishedCol = hasColumn(db, 'waves', 'finished_at') ? 'finished_at' : 'NULL as finished_at';
   const terminationCol = hasColumn(db, 'waves', 'termination_reason') ? 'termination_reason' : 'NULL as termination_reason';
   const nStagesCol = hasColumn(db, 'waves', 'n_stages') ? 'n_stages' : 'NULL as n_stages';
+  const sessionCol = hasColumn(db, 'waves', 'session') ? 'session' : 'NULL as session';
   const orderCol = hasColumn(db, 'waves', 'started_at') ? 'started_at' : 'rowid';
   return db
     .prepare(`
       SELECT wave, ${execIdCol}, ${stagesCol}, ${startedCol}, ${finishedCol},
              wallclock_seconds, tool_calls, ${terminationCol},
-             ${nStagesCol}, n_skills
+             ${nStagesCol}, n_skills, ${sessionCol}
       FROM waves
       WHERE execution_id = ?
       ORDER BY ${orderCol} ASC

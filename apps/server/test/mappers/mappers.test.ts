@@ -106,7 +106,7 @@ describe('mapWave', () => {
     const row = {
       wave: 'onda-007', execution_id: 'e1', stages: 'execute-task',
       started_at: ISO, finished_at: null, wallclock_seconds: 120, tool_calls: 25,
-      termination_reason: null, n_stages: 1, n_skills: 3,
+      termination_reason: null, n_stages: 1, n_skills: 3, session: null,
     };
     const dto = mapWave(row);
     expect(typeof dto.stages).toBe('string');
@@ -118,9 +118,11 @@ describe('mapWave', () => {
     const row = {
       wave: 'onda-007', execution_id: 'e1', stages: 'execute-task',
       started_at: ISO, finished_at: null, wallclock_seconds: 120, tool_calls: 25,
-      termination_reason: null, n_stages: 1, n_skills: 3,
+      termination_reason: null, n_stages: 1, n_skills: 3, session: 'minha-feature',
     };
-    const r = WaveDTOSchema.safeParse(mapWave(row));
+    const dto = mapWave(row);
+    expect(dto.session).toBe('minha-feature');
+    const r = WaveDTOSchema.safeParse(dto);
     expect(r.success).toBe(true);
   });
 });
@@ -188,9 +190,11 @@ describe('mapExecution', () => {
       suggested_stack: 'node+ts', waves_total: 7, tool_calls_total: 120,
       wallclock_total_seconds: 3600, subagents_spawned: 0, max_depth: 1,
       decisions_total: 38, human_blocks_total: 1, skill_suggestions_total: 0,
-      toolkit_issues_opened: 0,
+      toolkit_issues_opened: 0, session: 'minha-feature',
     };
-    const r = ExecutionDTOSchema.safeParse(mapExecution(row));
+    const dto = mapExecution(row);
+    expect(dto.session).toBe('minha-feature');
+    const r = ExecutionDTOSchema.safeParse(dto);
     expect(r.success).toBe(true);
   });
 });

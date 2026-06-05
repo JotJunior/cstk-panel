@@ -19,6 +19,7 @@ export function mapWave(row: WaveRow): WaveDTO {
     terminationReason: row.termination_reason,
     nStages: row.n_stages,
     nSkills: row.n_skills,
+    session: row.session,
   };
 }
 

@@ -24,6 +24,7 @@
  */
 import Database from 'better-sqlite3';
 import type { DegradedReason } from '@cstk-panel/shared-types';
+import { DEFAULT_SCHEMA_VERSIONS } from '../config.js';
 
 // Re-exportar DegradedReason para conveniencia dos consumers deste modulo
 export type { DegradedReason };
@@ -38,8 +39,10 @@ const BUSY_TIMEOUT_MS = 5000;
  * Versoes de schema aceitas por default (FR-V3-001). A fonte de verdade em
  * runtime e o env CSTK_SCHEMA_VERSIONS (resolvido em config.ts e passado pelas
  * rotas); este default cobre chamadas diretas/de teste com 1 argumento.
+ * Reusa DEFAULT_SCHEMA_VERSIONS do config para nao haver drift entre os dois
+ * defaults (o bug em que este parava em v4 enquanto o config seguia ate v8).
  */
-const DEFAULT_SUPPORTED_VERSIONS: readonly string[] = ['2', '3', '4'];
+const DEFAULT_SUPPORTED_VERSIONS: readonly string[] = DEFAULT_SCHEMA_VERSIONS;
 /** Tentativas de abertura+verificacao antes de degradar (resiliencia ao torn read). */
 const MAX_ATTEMPTS = 3;
 /** Backoff fixo entre tentativas, em ms (apenas no caminho degradado/transitorio). */

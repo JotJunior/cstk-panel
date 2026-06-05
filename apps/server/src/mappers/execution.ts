@@ -29,6 +29,7 @@ export function mapExecution(row: ExecutionRow): ExecutionDTO {
     humanBlocksTotal: row.human_blocks_total,
     skillSuggestionsTotal: row.skill_suggestions_total,
     toolkitIssuesOpened: row.toolkit_issues_opened,
+    session: row.session,
   };
 }
 

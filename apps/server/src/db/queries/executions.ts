@@ -36,6 +36,8 @@ function executionColumnsSelect(db: Database.Database): string {
     hasColumn(db, 'executions', 'human_blocks_total') ? 'human_blocks_total'       : 'NULL as human_blocks_total',
     hasColumn(db, 'executions', 'skill_suggestions_total') ? 'skill_suggestions_total' : 'NULL as skill_suggestions_total',
     hasColumn(db, 'executions', 'toolkit_issues_opened') ? 'toolkit_issues_opened' : 'NULL as toolkit_issues_opened',
+    // session (schema v8 — recall-worktree-identity): NULL em bases v<8 e em execucoes sem sessao
+    hasColumn(db, 'executions', 'session') ? 'session' : 'NULL as session',
   ];
   return cols.join(', ');
 }
@@ -60,6 +62,8 @@ export interface ExecutionRow {
   human_blocks_total: number | null;
   skill_suggestions_total: number | null;
   toolkit_issues_opened: number | null;
+  /** nome da sessao de worktree de origem (schema v8); NULL fora de sessao/bases v<8 */
+  session: string | null;
 }
 
 export interface ExecutionRollupRow {

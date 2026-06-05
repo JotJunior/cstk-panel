@@ -27,6 +27,7 @@ export const ExecutionDTOSchema = z.object({
   humanBlocksTotal: z.number().nullable(),
   skillSuggestionsTotal: z.number().nullable(),
   toolkitIssuesOpened: z.number().nullable(),
+  session: z.string().nullable(),
 });
 
 // ---------------------------------------------------------------------------
@@ -43,6 +44,7 @@ export const WaveDTOSchema = z.object({
   terminationReason: z.string().nullable(),
   nStages: z.number().nullable(),
   nSkills: z.number().nullable(),
+  session: z.string().nullable(),
 });
 
 // ---------------------------------------------------------------------------

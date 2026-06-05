@@ -30,7 +30,7 @@ import { RawApiEnvelopeSchema } from '../schemas/envelope.js';
 
 const ISO = '2026-05-06T12:57:32Z';
 
-// ExecutionDTO real (shape da rota GET /executions/:id) — schema v7 EN
+// ExecutionDTO real (shape da rota GET /executions/:id) — schema v8 EN
 const REAL_EXECUTION_PAYLOAD = {
   project: 'cad-poc',
   feature: 'unknown',
@@ -51,6 +51,7 @@ const REAL_EXECUTION_PAYLOAD = {
   humanBlocksTotal: null,
   skillSuggestionsTotal: null,
   toolkitIssuesOpened: null,
+  session: null,             // schema v8 — execucao fora de sessao de worktree
 };
 
 // WaveDTO real (shape da rota GET /executions/:id/waves)
@@ -66,6 +67,7 @@ const REAL_WAVE_PAYLOAD = {
   terminationReason: 'etapa_concluida_avancando',
   nStages: 0,
   nSkills: 0,
+  session: null,             // schema v8 — onda fora de sessao de worktree
 };
 
 // TaskDTO real (shape da rota GET /executions/:id/tasks)

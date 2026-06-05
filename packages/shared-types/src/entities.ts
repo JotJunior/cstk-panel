@@ -37,6 +37,9 @@ export interface ExecutionDTO {
   humanBlocksTotal: number | null;
   skillSuggestionsTotal: number | null;
   toolkitIssuesOpened: number | null;
+  /** nome da sessao de worktree de origem (schema v8 — recall-worktree-identity);
+   *  null fora de sessao ou em bases v<8. @untrusted leve — renderizar via textContent */
+  session: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -55,6 +58,9 @@ export interface WaveDTO {
   terminationReason: string | null;
   nStages: number | null;
   nSkills: number | null;
+  /** nome da sessao de worktree de origem (schema v8); null fora de sessao/bases v<8.
+   *  @untrusted leve — renderizar via textContent */
+  session: string | null;
 }
 
 // ---------------------------------------------------------------------------
