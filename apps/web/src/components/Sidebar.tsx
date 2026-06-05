@@ -73,7 +73,7 @@ export function Sidebar({ alertCount = 0, freshness, schemaVersion }: SidebarPro
         {!collapsed && (
           <div>
             <div className="brand-name">cstk-panel</div>
-            <div className="brand-tag">observabilidade · v3.19</div>
+            <div className="brand-tag">observabilidade · v{__APP_VERSION__}</div>
           </div>
         )}
       </div>
