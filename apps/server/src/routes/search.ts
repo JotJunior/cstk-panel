@@ -81,7 +81,7 @@ export async function searchRoutes(server: FastifyInstance): Promise<void> {
       if (!openResult.ok) {
         // DB degradado — retornar resultados vazios com meta.degraded=true
         return reply.status(200).send({
-          data: { results: [], pagination: { limit, offset, total: 0 } },
+          data: { results: [], pagination: { limit, offset, total: 0, hasMore: false } },
           meta: {
             degraded: true,
             reason: openResult.reason,
@@ -161,7 +161,7 @@ export async function searchRoutes(server: FastifyInstance): Promise<void> {
             sourceTs: r.source_ts,
             rank: r.rank,
           })),
-          pagination: { limit, offset, total },
+          pagination: { limit, offset, total, hasMore: offset + results.length < total },
         };
 
         const envelope = wrap(data, {}, config.dbPath, db);

@@ -123,6 +123,14 @@ describe('GET /search — payloads hostis', () => {
     });
   }
 
+  it('inclui pagination.hasMore (boolean) no envelope — contrato do FE', async () => {
+    const res = await server.inject({ method: 'GET', url: '/api/v1/search?q=teste' });
+    expect(res.statusCode).toBe(200);
+    const body = res.json<{ data: { pagination: { hasMore: unknown; total: number; limit: number; offset: number } } }>();
+    expect(typeof body.data.pagination.hasMore).toBe('boolean');
+    expect(typeof body.data.pagination.total).toBe('number');
+  });
+
   it('retorna 400 com mensagem descritiva para q vazio', async () => {
     const res = await server.inject({ method: 'GET', url: '/api/v1/search?q=' });
     expect(res.statusCode).toBe(400);
