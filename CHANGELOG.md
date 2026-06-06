@@ -5,6 +5,21 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.11.1] - 2026-06-06
+
+### Corrigido
+
+- **Busca de Conhecimento volta a retornar resultados**: a rota `GET /search`
+  montava o objeto `pagination` sem o campo `hasMore`, enquanto o schema Zod
+  do front (`PaginationMetaSchema`) o exige como booleano obrigatório. A
+  validação falhava no cliente, o TanStack Query descartava a resposta e a
+  busca nunca exibia resultados — mesmo quando havia ocorrências no banco —
+  acompanhada do erro `invalid_type` em `data.pagination.hasMore`. O campo
+  passa a ser calculado como `offset + results.length < total` (mesmo padrão
+  de `/executions`, `/alerts` e `/memories`) e `false` no caminho degradado.
+  O teste de rota agora trava o contrato, exigindo `pagination.hasMore`
+  booleano no envelope.
+
 ## [0.11.0] - 2026-06-05
 
 ### Adicionado
@@ -570,6 +585,7 @@ execuções dos orquestradores `agente-00c` / `feature-00c`, lido diretamente da
 - Invariantes constitucionais I–VI verificáveis por scripts de _lint_.
 - `npm run lint:readonly-check` garante zero verbos de mutação SQL em `apps/server/src`.
 
+[0.11.1]: https://github.com/JotJunior/cstk-panel/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/JotJunior/cstk-panel/compare/v0.10.1...v0.11.0
 [0.10.1]: https://github.com/JotJunior/cstk-panel/compare/v0.10.0...v0.10.1
 [0.10.0]: https://github.com/JotJunior/cstk-panel/compare/v0.9.2...v0.10.0
