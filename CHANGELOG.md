@@ -5,6 +5,23 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.11.2] - 2026-06-06
+
+### Corrigido
+
+- **Clicar num resultado da Busca de Conhecimento abre a execução certa**:
+  o resultado navegava para `/executions/{source_id}` usando o id da decisão
+  (ex.: `dec-024`) como se fosse um `execution_id`, e a tela de detalhe
+  respondia "Execucao nao encontrada". A tabela `knowledge_fts` não guarda
+  `execution_id` — apenas `source_id` —, então o backend passa a resolver a
+  execução de origem pela chave única `(project, feature, wave, source_id)`
+  na tabela-fonte de cada tipo (`decisions`/`blocks`/`skills`/`suggestions`)
+  e a expor um campo `executionId` no resultado da busca. O frontend navega
+  por esse `executionId` (preservando o filtro de onda); resultados de tipos
+  sem vínculo de execução (ex.: `memory`) deixam de ser clicáveis. Um teste
+  de rota trava o contrato, exigindo que o `executionId` resolvido exista de
+  fato em `/executions/:id`.
+
 ## [0.11.1] - 2026-06-06
 
 ### Corrigido
@@ -585,6 +602,7 @@ execuções dos orquestradores `agente-00c` / `feature-00c`, lido diretamente da
 - Invariantes constitucionais I–VI verificáveis por scripts de _lint_.
 - `npm run lint:readonly-check` garante zero verbos de mutação SQL em `apps/server/src`.
 
+[0.11.2]: https://github.com/JotJunior/cstk-panel/compare/v0.11.1...v0.11.2
 [0.11.1]: https://github.com/JotJunior/cstk-panel/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/JotJunior/cstk-panel/compare/v0.10.1...v0.11.0
 [0.10.1]: https://github.com/JotJunior/cstk-panel/compare/v0.10.0...v0.10.1
