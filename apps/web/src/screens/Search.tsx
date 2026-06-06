@@ -171,19 +171,20 @@ export function Search() {
       {!isIdle && !isLoading && !isError && items.length > 0 && (
         <div className="card">
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {items.map((hit, idx) => (
+            {items.map((hit, idx) => {
+              // So navega quando ha execucao de origem resolvida pelo backend
+              const target = hit.executionId
+                ? `/executions/${encodeURIComponent(hit.executionId)}${hit.wave && hit.wave !== 'unknown' ? `?wave=${encodeURIComponent(hit.wave)}` : ''}`
+                : null;
+              return (
               <div
                 key={idx}
                 style={{
                   padding: '14px 18px',
                   borderBottom: '1px solid var(--border-soft)',
-                  cursor: 'pointer',
+                  cursor: target ? 'pointer' : 'default',
                 }}
-                onClick={() => {
-                  if (hit.wave && hit.wave !== 'unknown') {
-                    navigate(`/executions/${encodeURIComponent(hit.sourceId)}?wave=${hit.wave}`);
-                  }
-                }}
+                onClick={() => { if (target) navigate(target); }}
               >
                 <div className="row" style={{ justifyContent: 'space-between', marginBottom: 6 }}>
                   <div className="row gap-2">
@@ -209,7 +210,8 @@ export function Search() {
                   <TextRaw value={hit.body} maxLength={300} />
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Paginacao */}

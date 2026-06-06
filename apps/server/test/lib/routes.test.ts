@@ -210,6 +210,22 @@ describe.skipIf(!FIXTURE_EXISTS)('Rotas com fixture real — GET /api/v1/*', () 
     expect(body.data.pagination.limit).toBe(5);
   });
 
+  // GET /search resolve executionId real para hits de decisao (navegacao do FE)
+  it('GET /search expoe executionId que resolve para uma execucao existente', async () => {
+    const res = await server.inject({ method: 'GET', url: '/api/v1/search?q=onda&type=decision&limit=5' });
+    expect(res.statusCode).toBe(200);
+    const body = res.json<{ data: { results: { type: string; executionId?: string }[] } }>();
+    const hit = body.data.results.find(r => r.type === 'decision');
+    if (!hit) return; // fixture sem decisoes no match
+    expect(typeof hit.executionId).toBe('string');
+    expect(hit.executionId!.length).toBeGreaterThan(0);
+    // executionId resolvido deve existir de fato em /executions/:id (nao 'nao encontrada')
+    const detail = await server.inject({ method: 'GET', url: `/api/v1/executions/${encodeURIComponent(hit.executionId!)}` });
+    expect(detail.statusCode).toBe(200);
+    const detailBody = detail.json<{ data: unknown | null }>();
+    expect(detailBody.data).not.toBeNull();
+  });
+
   // task 4.4.6 — /metrics/clarify-resolution tem meta.approximate=true
   it('GET /metrics/clarify-resolution tem meta.approximate=true', async () => {
     const res = await server.inject({ method: 'GET', url: '/api/v1/metrics/clarify-resolution' });

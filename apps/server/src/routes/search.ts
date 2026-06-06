@@ -97,6 +97,7 @@ export async function searchRoutes(server: FastifyInstance): Promise<void> {
         let results: {
           body: string; type: string; project: string; feature: string;
           wave: string; source_id: string; source_ts: string; rank: number;
+          execution_id: string | null;
         }[] = [];
 
         let total = 0;
@@ -108,7 +109,15 @@ export async function searchRoutes(server: FastifyInstance): Promise<void> {
             results = db
               .prepare(`
                 SELECT body, type, project, feature, wave,
-                       source_id, source_ts, bm25(knowledge_fts) AS rank
+                       source_id, source_ts, bm25(knowledge_fts) AS rank,
+                       -- Resolve a execucao de origem pela chave unica (project,feature,wave,source_id)
+                       -- na tabela-fonte do tipo. NULL para tipos sem vinculo (ex.: memory).
+                       CASE type
+                         WHEN 'decision'   THEN (SELECT execution_id FROM decisions d   WHERE d.project = knowledge_fts.project AND d.feature = knowledge_fts.feature AND d.wave = knowledge_fts.wave AND d.source_id = knowledge_fts.source_id)
+                         WHEN 'block'      THEN (SELECT execution_id FROM blocks b      WHERE b.project = knowledge_fts.project AND b.feature = knowledge_fts.feature AND b.wave = knowledge_fts.wave AND b.source_id = knowledge_fts.source_id)
+                         WHEN 'skill'      THEN (SELECT execution_id FROM skills s      WHERE s.project = knowledge_fts.project AND s.feature = knowledge_fts.feature AND s.wave = knowledge_fts.wave AND s.source_id = knowledge_fts.source_id)
+                         WHEN 'suggestion' THEN (SELECT execution_id FROM suggestions g WHERE g.project = knowledge_fts.project AND g.feature = knowledge_fts.feature AND g.wave = knowledge_fts.wave AND g.source_id = knowledge_fts.source_id)
+                       END AS execution_id
                 FROM knowledge_fts
                 WHERE knowledge_fts MATCH ?
                   AND (? IS NULL OR type = ?)
@@ -160,6 +169,8 @@ export async function searchRoutes(server: FastifyInstance): Promise<void> {
             sourceId: r.source_id,
             sourceTs: r.source_ts,
             rank: r.rank,
+            // Omitido (undefined) quando o tipo nao tem execucao de origem
+            ...(r.execution_id ? { executionId: r.execution_id } : {}),
           })),
           pagination: { limit, offset, total, hasMore: offset + results.length < total },
         };

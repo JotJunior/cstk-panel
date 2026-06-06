@@ -185,6 +185,12 @@ export interface FtsHitDTO {
   sourceTs: string;
   /** score bm25 negativo (mais negativo = mais relevante) */
   rank: number;
+  /**
+   * Execucao de origem, resolvida pelo backend a partir de
+   * (project, feature, wave, source_id) na tabela-fonte do tipo.
+   * Ausente para tipos sem vinculo de execucao (ex.: memory).
+   */
+  executionId?: string | undefined;
 }
 
 // ---------------------------------------------------------------------------

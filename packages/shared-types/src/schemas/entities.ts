@@ -146,6 +146,9 @@ export const FtsHitDTOSchema = z.object({
   sourceId: z.string(),
   sourceTs: z.string(),
   rank: z.number(),
+  // Execucao de origem resolvida a partir de (project, feature, wave, source_id)
+  // na tabela-fonte do tipo. Ausente para tipos sem vinculo de execucao (ex.: memory).
+  executionId: z.string().optional(),
 });
 
 // ---------------------------------------------------------------------------
