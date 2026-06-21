@@ -5,6 +5,30 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.12.0] - 2026-06-20
+
+### Adicionado
+
+- **Layout responsivo (mobile/tablet)**: abaixo de 768px a barra lateral
+  vira um drawer off-canvas, acionado por um botão de menu no cabeçalho,
+  com fundo escurecido (backdrop) e fechamento por clique fora, tecla `Esc`
+  ou ao navegar; no desktop o comportamento permanece idêntico. O cabeçalho
+  passa a refluir em várias linhas em telas estreitas (cada filtro em sua
+  própria linha abaixo de 480px) e a grade de KPIs e demais grades colapsam
+  de 6→3→2→1 colunas conforme a largura. Antes havia um único ponto de
+  quebra (1200px) e, abaixo de ~700px, a barra lateral fixa consumia a
+  viewport, o cabeçalho transbordava e os cartões ficavam cortados. A
+  detecção de mobile usa um hook `useMediaQuery`, evitando conflito com a
+  preferência de colapso da barra lateral (não aplicada no mobile).
+
+### Corrigido
+
+- **Cabeçalho alinhado aos limites do conteúdo**: o cabeçalho ocupava 100%
+  da largura disponível enquanto o conteúdo era restrito por `max-width`,
+  deixando busca e filtros desalinhados da grade em telas largas. A largura
+  máxima passou a ser um token compartilhado (`--content-max`) aplicado
+  tanto ao conteúdo quanto ao cabeçalho, fazendo as bordas coincidirem.
+
 ## [0.11.2] - 2026-06-06
 
 ### Corrigido
@@ -602,6 +626,7 @@ execuções dos orquestradores `agente-00c` / `feature-00c`, lido diretamente da
 - Invariantes constitucionais I–VI verificáveis por scripts de _lint_.
 - `npm run lint:readonly-check` garante zero verbos de mutação SQL em `apps/server/src`.
 
+[0.12.0]: https://github.com/JotJunior/cstk-panel/compare/v0.11.2...v0.12.0
 [0.11.2]: https://github.com/JotJunior/cstk-panel/compare/v0.11.1...v0.11.2
 [0.11.1]: https://github.com/JotJunior/cstk-panel/compare/v0.11.0...v0.11.1
 [0.11.0]: https://github.com/JotJunior/cstk-panel/compare/v0.10.1...v0.11.0
