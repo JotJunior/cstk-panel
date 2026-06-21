@@ -27,6 +27,23 @@ function fmtTimestamp(iso: string | null | undefined): string {
   return new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
+/**
+ * Chave estável e única de uma linha de execução.
+ *
+ * `execution_id` NÃO é único globalmente nesta fonte (knowledge.db): o mesmo id
+ * aparece em projetos distintos — ex.: a feature `dynamic-forms` registrada em
+ * `personal-do-zero` e em `personal-do-zero-dynamic-forms` com o id
+ * `feat-dynamic-forms-...`. Como o painel é read-only, não corrigimos o dado; a
+ * chave canônica de uma execução é o par `(project, execution_id)`. Cai para o
+ * índice quando o id está ausente (bases degradadas anteriores ao schema v7).
+ */
+export function executionRowKey(
+  e: Pick<ExecutionDTO, 'project' | 'executionId'>,
+  index: number,
+): string {
+  return e.executionId ? `${e.project}::${e.executionId}` : `exec-${index}`;
+}
+
 export function Executions() {
   const navigate = useNavigate();
   const [page, setPage] = useState(0);
@@ -74,7 +91,7 @@ export function Executions() {
                 <tbody>
                   {items.map((e, idx) => (
                     <tr
-                      key={e.executionId || idx}
+                      key={executionRowKey(e, idx)}
                       className="clickable"
                       onClick={() => navigate(`/executions/${encodeURIComponent(e.executionId)}`)}
                     >
