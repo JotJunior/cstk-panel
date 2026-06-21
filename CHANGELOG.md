@@ -5,6 +5,20 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.12.1] - 2026-06-20
+
+### Corrigido
+
+- **Lista de execuções deixa de duplicar chaves de linha**: o `execution_id`
+  não é único globalmente na knowledge.db — a mesma feature é registrada em
+  projetos distintos (ex.: `personal-do-zero` e `personal-do-zero-dynamic-forms`,
+  ambas com `feat-dynamic-forms-...`). A tabela de execuções usava apenas o id
+  como chave de linha do React, disparando o aviso "Encountered two children
+  with the same key" e arriscando linhas duplicadas ou omitidas no render. A
+  chave passou a ser o par canônico `(project, execution_id)`; o painel segue
+  read-only e exibe as duas execuções, agora com chaves distintas. Um teste
+  trava o contrato.
+
 ## [0.12.0] - 2026-06-20
 
 ### Adicionado
@@ -626,6 +640,7 @@ execuções dos orquestradores `agente-00c` / `feature-00c`, lido diretamente da
 - Invariantes constitucionais I–VI verificáveis por scripts de _lint_.
 - `npm run lint:readonly-check` garante zero verbos de mutação SQL em `apps/server/src`.
 
+[0.12.1]: https://github.com/JotJunior/cstk-panel/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/JotJunior/cstk-panel/compare/v0.11.2...v0.12.0
 [0.11.2]: https://github.com/JotJunior/cstk-panel/compare/v0.11.1...v0.11.2
 [0.11.1]: https://github.com/JotJunior/cstk-panel/compare/v0.11.0...v0.11.1
