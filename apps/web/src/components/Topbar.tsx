@@ -20,6 +20,8 @@ interface TopbarProps {
   /** Filtro global de projeto ('' = todos). Controla as métricas do dashboard. */
   projectFilter: string;
   onProjectFilterChange: (project: string) => void;
+  /** Abre a sidebar em drawer (apenas mobile — botão hambúrguer). */
+  onMenuClick?: () => void;
 }
 
 const PERIODS: { label: string; value: Period }[] = [
@@ -29,7 +31,7 @@ const PERIODS: { label: string; value: Period }[] = [
   { label: 'tudo', value: 'all' },
 ];
 
-export function Topbar({ period, onPeriodChange, projectFilter, onProjectFilterChange }: TopbarProps) {
+export function Topbar({ period, onPeriodChange, projectFilter, onProjectFilterChange, onMenuClick }: TopbarProps) {
   const navigate = useNavigate();
 
   // Lista de projetos para o filtro (cacheada via TanStack Query)
@@ -58,6 +60,14 @@ export function Topbar({ period, onPeriodChange, projectFilter, onProjectFilterC
 
   return (
     <header className="topbar">
+      <button
+        className="topbar-menu ico-btn"
+        onClick={onMenuClick}
+        aria-label="Abrir menu de navegação"
+      >
+        <Icon name="menu" size={18} aria-hidden />
+      </button>
+
       <Breadcrumb />
 
       <div className="period-tabs" aria-label="Selecionar periodo">

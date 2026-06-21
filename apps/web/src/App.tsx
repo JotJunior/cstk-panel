@@ -8,10 +8,11 @@
  *
  * Ref: spec.md FR-021, FR-022; tasks.md §5.1, §5.2, §6
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Sidebar } from '@/components/Sidebar.js';
 import { Topbar } from '@/components/Topbar.js';
+import { useMediaQuery } from '@/hooks/useMediaQuery.js';
 import { Overview } from '@/screens/Overview.js';
 import { ExecutionDetail } from '@/screens/ExecutionDetail.js';
 import { DecisionMapScreen } from '@/screens/DecisionMapScreen.js';
@@ -41,6 +42,17 @@ export default function App() {
   // '' = todos os projetos.
   const [projectFilter, setProjectFilter] = useState('');
 
+  // Layout responsivo: abaixo de 768px a sidebar vira drawer off-canvas.
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const [navOpen, setNavOpen] = useState(false);
+  // Fecha o drawer com Esc quando aberto no mobile.
+  useEffect(() => {
+    if (!isMobile || !navOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setNavOpen(false);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isMobile, navOpen]);
+
   // Frescor + contagem de alertas criticos para a Sidebar (CARD-SHELL-03).
   const healthQ = useHealth();
   const alertsQ = useAlerts({ period });
@@ -58,8 +70,20 @@ export default function App() {
 
   return (
     <div className="app">
-      {/* Sidebar 232px fixo */}
-      <Sidebar alertCount={alertCount} freshness={freshness} schemaVersion={healthQ.data?.meta?.schemaVersion} />
+      {/* Sidebar 232px fixo (desktop) / drawer off-canvas (mobile) */}
+      <Sidebar
+        alertCount={alertCount}
+        freshness={freshness}
+        schemaVersion={healthQ.data?.meta?.schemaVersion}
+        isMobile={isMobile}
+        mobileOpen={navOpen}
+        onClose={() => setNavOpen(false)}
+      />
+
+      {/* Backdrop do drawer (apenas mobile, quando aberto) */}
+      {isMobile && navOpen && (
+        <div className="nav-backdrop" onClick={() => setNavOpen(false)} aria-hidden="true" />
+      )}
 
       {/* Area principal */}
       <div className="main">
@@ -69,6 +93,7 @@ export default function App() {
           onPeriodChange={setPeriod}
           projectFilter={projectFilter}
           onProjectFilterChange={setProjectFilter}
+          onMenuClick={() => setNavOpen(true)}
         />
 
         {/* Conteudo das rotas */}
