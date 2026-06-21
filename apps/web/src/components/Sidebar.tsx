@@ -38,11 +38,24 @@ interface SidebarProps {
   freshness?: { label: string; degraded: boolean };
   /** schema_version corrente da knowledge.db (vindo de /health). */
   schemaVersion?: string | undefined;
+  /** Viewport mobile: a sidebar vira drawer off-canvas. */
+  isMobile?: boolean;
+  /** Drawer aberto (apenas mobile). */
+  mobileOpen?: boolean;
+  /** Fecha o drawer (chamado pelo backdrop e ao navegar no mobile). */
+  onClose?: () => void;
 }
 
 type Theme = 'dark' | 'light';
 
-export function Sidebar({ alertCount = 0, freshness, schemaVersion }: SidebarProps) {
+export function Sidebar({
+  alertCount = 0,
+  freshness,
+  schemaVersion,
+  isMobile = false,
+  mobileOpen = false,
+  onClose,
+}: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -65,12 +78,26 @@ export function Sidebar({ alertCount = 0, freshness, schemaVersion }: SidebarPro
 
   const toggleCollapsed = () => setCollapsed((c) => !c);
 
+  // No mobile a sidebar é drawer e sempre exibe o conteúdo expandido — a
+  // preferência de colapso (localStorage) só vale no desktop.
+  const drawerCollapsed = !isMobile && collapsed;
+
+  // Navega e, no mobile, fecha o drawer em seguida.
+  const go = (path: string) => {
+    navigate(path);
+    if (isMobile) onClose?.();
+  };
+
+  const cls = ['sidebar'];
+  if (drawerCollapsed) cls.push('sidebar--collapsed');
+  if (isMobile && mobileOpen) cls.push('sidebar--open');
+
   return (
-    <aside className={`sidebar${collapsed ? ' sidebar--collapsed' : ''}`}>
+    <aside className={cls.join(' ')}>
       {/* Brand */}
       <div className="brand">
         <img className="brand-logo" src="/cstk-logo.png" alt="cstk-panel" width={28} height={28} />
-        {!collapsed && (
+        {!drawerCollapsed && (
           <div>
             <div className="brand-name">cstk-panel</div>
             <div className="brand-tag">observabilidade · v{__APP_VERSION__}</div>
@@ -78,17 +105,21 @@ export function Sidebar({ alertCount = 0, freshness, schemaVersion }: SidebarPro
         )}
       </div>
 
-      {/* Botão de colapso/expansão (FR-013, FR-016 — acessível) */}
-      <div style={{ display: 'flex', justifyContent: collapsed ? 'center' : 'flex-end', padding: collapsed ? '4px 0' : '4px 10px' }}>
+      {/* Botão de colapso/expansão (FR-013, FR-016 — acessível).
+          Oculto no mobile (em drawer não faz sentido recolher). */}
+      <div
+        className="sidebar-collapse-row"
+        style={{ display: 'flex', justifyContent: drawerCollapsed ? 'center' : 'flex-end', padding: drawerCollapsed ? '4px 0' : '4px 10px' }}
+      >
         <button
           className="ico-btn"
           onClick={toggleCollapsed}
-          aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'}
-          aria-expanded={!collapsed}
+          aria-label={drawerCollapsed ? 'Expandir menu' : 'Recolher menu'}
+          aria-expanded={!drawerCollapsed}
           style={{ borderRadius: 'var(--r-sm)', padding: '6px' }}
         >
           <Icon
-            name={collapsed ? 'chevron-right' : 'chevron-left'}
+            name={drawerCollapsed ? 'chevron-right' : 'chevron-left'}
             size={14}
             aria-hidden
           />
@@ -97,33 +128,33 @@ export function Sidebar({ alertCount = 0, freshness, schemaVersion }: SidebarPro
 
       {/* Navigation */}
       <nav className="nav-section" aria-label="Navegacao principal">
-        {!collapsed && <div className="nav-label">observar</div>}
+        {!drawerCollapsed && <div className="nav-label">observar</div>}
         {ROUTES.slice(0, 4).map((route) => (
           <NavItem
             key={route.id}
             route={route}
             active={isRouteActive(route, location.pathname)}
-            onClick={() => navigate(route.path)}
-            collapsed={collapsed}
+            onClick={() => go(route.path)}
+            collapsed={drawerCollapsed}
           />
         ))}
 
-        {!collapsed && <div className="nav-label" style={{ marginTop: 12 }}>diagnosticar</div>}
+        {!drawerCollapsed && <div className="nav-label" style={{ marginTop: 12 }}>diagnosticar</div>}
         {ROUTES.slice(4).map((route) => (
           <NavItem
             key={route.id}
             route={route}
             active={isRouteActive(route, location.pathname)}
-            onClick={() => navigate(route.path)}
+            onClick={() => go(route.path)}
             badge={route.id === 'alerts' && alertCount > 0 ? alertCount : undefined}
-            collapsed={collapsed}
+            collapsed={drawerCollapsed}
           />
         ))}
       </nav>
 
       {/* Footer: freshness + fonte de dados + tema */}
       <div className="sidebar-foot">
-        {!collapsed && (
+        {!drawerCollapsed && (
           <>
             <div className={`freshness-widget${freshness?.degraded ? ' degraded' : ''}`}>
               <span className="fresh-dot" />
@@ -142,8 +173,8 @@ export function Sidebar({ alertCount = 0, freshness, schemaVersion }: SidebarPro
                 className="row gap-2"
                 role="link"
                 tabIndex={0}
-                onClick={() => navigate('/source')}
-                onKeyDown={(e) => e.key === 'Enter' && navigate('/source')}
+                onClick={() => go('/source')}
+                onKeyDown={(e) => e.key === 'Enter' && go('/source')}
                 style={{ cursor: 'pointer', color: 'var(--text-2)', fontSize: 11 }}
               >
                 <Icon name="database" size={12} aria-hidden />fonte de dados
@@ -161,7 +192,7 @@ export function Sidebar({ alertCount = 0, freshness, schemaVersion }: SidebarPro
         )}
 
         {/* Modo colapsado: apenas botão de toggle de tema (FR-014) */}
-        {collapsed && (
+        {drawerCollapsed && (
           <div style={{ display: 'flex', justifyContent: 'center' }}>
             <button
               className="ico-btn"
