@@ -5,6 +5,28 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.13.0] - 2026-07-11
+
+### Modificado
+
+- **Projetos em lista no desktop**: a tela de Projetos troca a grade de
+  cartões por uma tabela no mesmo padrão visual das demais listas do
+  painel, com colunas de features, concluídas, em andamento, abortadas,
+  tool calls, wallclock, decisões, alertas e última atividade — mais
+  projetos visíveis por tela e comparação direta entre linhas; o clique
+  na linha segue navegando ao detalhe do projeto. Abaixo de 768px (o
+  mesmo ponto de quebra do drawer da barra lateral) os cartões originais
+  permanecem, mais adequados ao toque e a telas estreitas; a alternância
+  é feita por CSS, com as linhas computadas uma única vez e renderizadas
+  nas duas variantes.
+
+### Removido
+
+- **Cartão "Todas as features" da tela de Projetos**: o conteúdo era
+  idêntico ao da tela Features do menu lateral (mesma tabela e mesmos
+  filtros), tornando o cartão redundante. A tela de Projetos passa a
+  mostrar apenas o rollup por projeto.
+
 ## [0.12.1] - 2026-06-20
 
 ### Corrigido
@@ -640,6 +662,7 @@ execuções dos orquestradores `agente-00c` / `feature-00c`, lido diretamente da
 - Invariantes constitucionais I–VI verificáveis por scripts de _lint_.
 - `npm run lint:readonly-check` garante zero verbos de mutação SQL em `apps/server/src`.
 
+[0.13.0]: https://github.com/JotJunior/cstk-panel/compare/v0.12.1...v0.13.0
 [0.12.1]: https://github.com/JotJunior/cstk-panel/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/JotJunior/cstk-panel/compare/v0.11.2...v0.12.0
 [0.11.2]: https://github.com/JotJunior/cstk-panel/compare/v0.11.1...v0.11.2
