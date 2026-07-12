@@ -5,6 +5,21 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.13.1] - 2026-07-11
+
+### Adicionado
+
+- **Assets verificáveis na release (CI)**: novo workflow `release.yml`,
+  disparado no push de tags `v*`, gera `cstk-panel-<versão>.tar.gz` via
+  `git archive` (um único diretório de topo, mesma estrutura que o
+  `cstk serve` extrai com `--strip-components 1`) e o checksum sibling
+  `cstk-panel-<versão>.tar.gz.sha256`, anexando ambos à GitHub Release da
+  tag — criando a release se ainda não existir, ou apenas anexando os
+  assets (idempotente com o fluxo manual de `gh release create`). Com o
+  par publicado, o guard de integridade fail-closed do
+  `cstk serve --update` (cstk ≥ 5.18.0) passa a atingir outcome
+  `verified`, e o painel atualiza sem `--allow-unverified`.
+
 ## [0.13.0] - 2026-07-11
 
 ### Modificado
@@ -662,6 +677,7 @@ execuções dos orquestradores `agente-00c` / `feature-00c`, lido diretamente da
 - Invariantes constitucionais I–VI verificáveis por scripts de _lint_.
 - `npm run lint:readonly-check` garante zero verbos de mutação SQL em `apps/server/src`.
 
+[0.13.1]: https://github.com/JotJunior/cstk-panel/compare/v0.13.0...v0.13.1
 [0.13.0]: https://github.com/JotJunior/cstk-panel/compare/v0.12.1...v0.13.0
 [0.12.1]: https://github.com/JotJunior/cstk-panel/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/JotJunior/cstk-panel/compare/v0.11.2...v0.12.0
