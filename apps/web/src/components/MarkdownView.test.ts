@@ -75,6 +75,28 @@ describe('MarkdownView — render seguro (renderToStaticMarkup, prova empirica E
     expect(html).toContain('<strong>');
   });
 
+  it('renderiza tabela GFM como <table> real (bugfix: sem remark-gfm os pipes viravam texto corrido)', () => {
+    const html = render('| Regra | Como |\n|-------|------|\n| a | b |');
+    expect(html).toContain('<table>');
+    expect(html).toContain('<th>Regra</th>');
+    expect(html).toContain('<td>a</td>');
+    // sanitize (schema default) preserva a estrutura tabular inteira
+    expect(html).toContain('<thead>');
+    expect(html).toContain('<tbody>');
+  });
+
+  it('GFM nao afrouxa a seguranca: link perigoso dentro de celula segue bloqueado', () => {
+    const html = render('| x |\n|---|\n| [clique](javascript:alert(1)) |');
+    expect(html).toContain('<table>');
+    expect(html).not.toContain('javascript:');
+  });
+
+  it('demais extensoes GFM ativas: strikethrough e task list', () => {
+    const html = render('~~riscado~~\n\n- [x] feito\n- [ ] pendente');
+    expect(html).toContain('<del>');
+    expect(html).toContain('checkbox');
+  });
+
   it('neutraliza <script> embutido no markdown — nunca vira tag executavel', () => {
     const html = render('conteudo\n\n<script>alert(1)</script>\n\nfim');
     expect(html).not.toContain('<script');
