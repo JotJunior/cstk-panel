@@ -46,4 +46,8 @@ export type DegradedReason =
   | 'db-missing'       // arquivo knowledge.db nao encontrado
   | 'db-corrupt'       // PRAGMA quick_check retornou != 'ok'
   | 'schema-mismatch'  // schema_version != '2' em schema_meta
-  | 'table-empty';     // tabela sem dados por entidade consultada
+  | 'table-empty'      // tabela sem dados por entidade consultada
+  // feature state-watchers-and-docs (FR-008/FR-012, CHK056/dec-027):
+  | 'project-path-unresolved'    // `project` sem entrada em CSTK_PROJECT_PATHS
+  | 'project-path-inaccessible'  // path configurado nao existe/sem permissao de leitura
+  | 'watcher-ingestion-failed';  // ultimo `cstk recall --ingest` do watcher falhou (2.4)

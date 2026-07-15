@@ -248,6 +248,47 @@ export interface SuggestionDTO {
 }
 
 // ---------------------------------------------------------------------------
+// FeatureDocDTO / FeatureDocsListDTO — doc-viewer (feature state-watchers-and-docs)
+// grao: 1 por artefato de documentacao SDD de uma feature (spec/plan/tasks/...).
+// Fonte: filesystem (docs/specs/<feature>/), NAO a knowledge.db (Principio I).
+// Ref: data-model.md Entity "Documentation Artifact"; contracts/docs-api.md
+// ---------------------------------------------------------------------------
+
+/** Etapa SDD que produz o artefato (mapa fixo — research.md Decision 8). */
+export type FeatureDocStage = 'specify' | 'plan' | 'checklist' | 'create-tasks';
+
+/**
+ * 1 artefato de documentacao. Usado tanto como item da listagem (sem
+ * `content` — metadados apenas, FR-005/SC-002) quanto como resposta do
+ * endpoint de conteudo de um artefato (`content` presente: string quando
+ * `produced=true`, `null` quando `produced=false` — FR-007, nunca 404-erro).
+ */
+export interface FeatureDocDTO {
+  stage: FeatureDocStage;
+  /** identificador estavel do artefato no mapa fixo (ex: 'spec', 'plan', 'tasks'); nome de arquivo sanitizado quando `extra=true` */
+  artifactId: string;
+  fileName: string;
+  /** false quando o artefato do mapa fixo ainda nao foi gerado (FR-007) — nao e erro */
+  produced: boolean;
+  /** true quando o arquivo esta presente na arvore fora do mapa fixo (SC-002) */
+  extra: boolean;
+  /**
+   * Markdown bruto do artefato — **UNTRUSTED** (Principio V, FR-010).
+   * Ausente (`undefined`) na listagem (endpoint so retorna metadados).
+   * `null` no endpoint de conteudo quando `produced=false`. Renderizar
+   * exclusivamente via `MarkdownView` com HTML bruto desabilitado — nunca
+   * `dangerouslySetInnerHTML` com HTML nao sanitizado.
+   */
+  content?: string | null;
+}
+
+export interface FeatureDocsListDTO {
+  project: string;
+  feature: string;
+  artifacts: FeatureDocDTO[];
+}
+
+// ---------------------------------------------------------------------------
 // Rollups para Overview (US1) e listas de Projects/Features (US3)
 // ---------------------------------------------------------------------------
 

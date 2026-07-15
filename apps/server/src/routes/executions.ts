@@ -18,7 +18,8 @@ import { z } from 'zod';
 import { openDb } from '../db/open.js';
 import { wrap, wrapDegraded } from '../lib/envelope.js';
 import { generateETag, etagMatches } from '../lib/etag.js';
-import { loadConfig } from '../config.js';
+import { loadConfig, resolveProjectPath } from '../config.js';
+import { deriveStateDir, getWatcherCacheEntry, isWatcherDegraded } from '../watchers/ingest-watcher.js';
 import { safeParsePagination } from '../lib/pagination.js';
 import { getExecution, listExecutions } from '../db/queries/executions.js';
 import { listWavesByExecution } from '../db/queries/waves.js';
@@ -122,6 +123,22 @@ export async function executionRoutes(server: FastifyInstance): Promise<void> {
       if (!row) return reply.status(200).send(wrap(null, {}, config.dbPath, db));
 
       const envelope = wrap(mapExecution(row), {}, config.dbPath, db);
+
+      // CHK056/dec-027 (task 2.4.1, feature state-watchers-and-docs): sinaliza
+      // degradacao do WATCHER (mecanismo de frescor em 2o plano) sem nulificar
+      // `data` — a execucao foi lida com sucesso da knowledge.db; apenas a
+      // ultima tentativa de ingestao em background para este state-dir pode
+      // ter falhado. Granularidade restrita ao detalhe (2.4.2 — a listagem
+      // GET /executions permanece inalterada).
+      const watcherProjectPath = resolveProjectPath(row.project);
+      if (watcherProjectPath) {
+        const watcherStateDir = deriveStateDir(watcherProjectPath, row.feature);
+        if (watcherStateDir && isWatcherDegraded(getWatcherCacheEntry(watcherStateDir))) {
+          envelope.meta.degraded = true;
+          envelope.meta.reason = 'watcher-ingestion-failed';
+        }
+      }
+
       const etag = generateETag(envelope.meta.freshness);
       const ifNoneMatch = request.headers['if-none-match'] as string | undefined;
       if (etag && etagMatches(ifNoneMatch, etag)) return reply.status(304).send();

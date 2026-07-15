@@ -110,6 +110,32 @@ export function listExecutions(db: Database.Database): ExecutionRow[] {
     .all() as ExecutionRow[];
 }
 
+/** Projecao minima usada pelo watcher — so as colunas necessarias para derivar o state-dir. */
+export interface ActiveExecutionRow {
+  project: string;
+  feature: string | null;
+  execution_id: string;
+}
+
+/**
+ * Lista execucoes com status `em_andamento`/`aguardando_humano` — usado pelo
+ * watcher de ingestao (task 2.1.2, FR-001/FR-003). Projecao minima (sem as
+ * ~19 colunas de metricas de `executionColumnsSelect`): o watcher so precisa
+ * de `project`/`feature` para derivar o state-dir (Decision 3) — nunca lanca
+ * (Principio II), tabela ausente/coluna ausente tratada como conjunto vazio.
+ */
+export function listActiveExecutions(db: Database.Database): ActiveExecutionRow[] {
+  const featureCol = hasColumn(db, 'executions', 'feature') ? 'feature' : 'NULL as feature';
+  const idCol = hasColumn(db, 'executions', 'execution_id') ? 'execution_id' : 'NULL as execution_id';
+  return db
+    .prepare(`
+      SELECT project, ${featureCol}, ${idCol}
+      FROM executions
+      WHERE status IN ('em_andamento', 'aguardando_humano')
+    `)
+    .all() as ActiveExecutionRow[];
+}
+
 /** Busca execucao por ID */
 export function getExecution(
   db: Database.Database,
