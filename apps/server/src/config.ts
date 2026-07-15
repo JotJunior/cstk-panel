@@ -22,7 +22,7 @@ import { resolve } from 'node:path';
  *  v8 (recall-worktree-identity) adiciona a coluna `session` em `executions` e `waves`.
  *  Todas sao aditivas, entao as telas existentes seguem operando e os recursos
  *  novos aparecem so quando a tabela/coluna esta presente (Principio II). */
-export const DEFAULT_SCHEMA_VERSIONS = ['2', '3', '4', '5', '6', '7', '8'] as const;
+export const DEFAULT_SCHEMA_VERSIONS = ['2', '3', '4', '5', '6', '7', '8', '9'] as const;
 
 export interface ServerConfig {
   /** Path absoluto canonicalizado para knowledge.db */
@@ -112,8 +112,10 @@ function resolveProjectPathsMap(): Record<string, string> {
  * (NUNCA lanca) quando o projeto nao esta no mapa — aciona a degradacao
  * graciosa de FR-012 nos consumidores (watcher, rotas de docs), nunca 5xx.
  *
- * Default (env ausente/vazio): mapa vazio -> todo projeto e "nao observavel"
- * ate o operador configurar.
+ * Default (env ausente/vazio): mapa vazio. Desde o schema v9 da knowledge.db
+ * (cstk >= 5.19) existe fallback automatico via executions.target_project_path
+ * — ver resolveProjectRoot() em lib/project-root.ts, que encadeia esta
+ * funcao (override do operador, sempre vence) com a leitura validada da db.
  */
 export function resolveProjectPath(project: string): string | null {
   const map = resolveProjectPathsMap();

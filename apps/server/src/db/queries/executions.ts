@@ -115,6 +115,10 @@ export interface ActiveExecutionRow {
   project: string;
   feature: string | null;
   execution_id: string;
+  /** Caminho do projeto-alvo persistido pelo ingest (schema v9, cstk >= 5.19);
+   *  null em db v8 (coluna ausente) ou execucao sem o campo no state.json.
+   *  UNTRUSTED — validar via validateProjectRootPath() antes de usar. */
+  target_project_path: string | null;
 }
 
 /**
@@ -127,9 +131,12 @@ export interface ActiveExecutionRow {
 export function listActiveExecutions(db: Database.Database): ActiveExecutionRow[] {
   const featureCol = hasColumn(db, 'executions', 'feature') ? 'feature' : 'NULL as feature';
   const idCol = hasColumn(db, 'executions', 'execution_id') ? 'execution_id' : 'NULL as execution_id';
+  const pathCol = hasColumn(db, 'executions', 'target_project_path')
+    ? 'target_project_path'
+    : 'NULL as target_project_path';
   return db
     .prepare(`
-      SELECT project, ${featureCol}, ${idCol}
+      SELECT project, ${featureCol}, ${idCol}, ${pathCol}
       FROM executions
       WHERE status IN ('em_andamento', 'aguardando_humano')
     `)

@@ -18,7 +18,8 @@ import { z } from 'zod';
 import { openDb } from '../db/open.js';
 import { wrap, wrapDegraded } from '../lib/envelope.js';
 import { generateETag, etagMatches } from '../lib/etag.js';
-import { loadConfig, resolveProjectPath } from '../config.js';
+import { loadConfig } from '../config.js';
+import { resolveProjectRoot } from '../lib/project-root.js';
 import { deriveStateDir, getWatcherCacheEntry, isWatcherDegraded } from '../watchers/ingest-watcher.js';
 import { safeParsePagination } from '../lib/pagination.js';
 import { getExecution, listExecutions } from '../db/queries/executions.js';
@@ -130,7 +131,7 @@ export async function executionRoutes(server: FastifyInstance): Promise<void> {
       // ultima tentativa de ingestao em background para este state-dir pode
       // ter falhado. Granularidade restrita ao detalhe (2.4.2 — a listagem
       // GET /executions permanece inalterada).
-      const watcherProjectPath = resolveProjectPath(row.project);
+      const watcherProjectPath = resolveProjectRoot(db, row.project);
       if (watcherProjectPath) {
         const watcherStateDir = deriveStateDir(watcherProjectPath, row.feature);
         if (watcherStateDir && isWatcherDegraded(getWatcherCacheEntry(watcherStateDir))) {

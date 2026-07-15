@@ -24,6 +24,7 @@ import type Database from 'better-sqlite3';
 import { openDb } from '../db/open.js';
 import { listActiveExecutions, type ActiveExecutionRow } from '../db/queries/executions.js';
 import { resolveProjectPath } from '../config.js';
+import { validateProjectRootPath } from '../lib/project-root.js';
 
 // ---------------------------------------------------------------------------
 // Constantes / defaults configuraveis via env (task 2.1.1, 2.3.4)
@@ -309,7 +310,11 @@ export async function runWatcherTick(opts: WatcherTickOptions): Promise<WatcherT
 
   await Promise.all(
     targets.map(async row => {
-      const projectPath = resolveProjectPath(row.project);
+      // Cadeia FR-008: env do operador > target_project_path da propria linha
+      // (schema v9; a conexao com a db ja fechou — o valor UNTRUSTED viaja na
+      // row e e validado aqui: realpath + diretorio + zonas proibidas).
+      const projectPath =
+        resolveProjectPath(row.project) ?? validateProjectRootPath(row.target_project_path);
       if (!projectPath) { skipped++; return; } // FR-008/FR-012 — projeto nao mapeado
 
       const stateDir = deriveStateDir(projectPath, row.feature);
