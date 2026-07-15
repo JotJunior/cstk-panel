@@ -5,6 +5,50 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.14.0] - 2026-07-15
+
+### Adicionado
+
+- **Watchers de execuções em andamento (status em tempo quase-real)**: o
+  server passa a observar o `state.json` das execuções `em_andamento`/
+  `aguardando_humano` dos projetos configurados (fs.watch + debounce) e a
+  disparar a ingestão canônica `cstk recall --ingest` via subprocesso com
+  binário pinado, cap de concorrência e backoff — novas ondas, decisões e
+  mudanças de status aparecem no painel pouco depois de acontecerem, sem
+  esperar o fechamento da onda pelo orquestrador. Degradação graciosa
+  sinalizada em `meta.degraded`/`meta.reason` no
+  `GET /executions/:executionId`. O mapeamento projeto→caminho segue a
+  cadeia de resolução descrita no item de zero-config abaixo; sem
+  resolução, o projeto fica "não observável" e o painel segue
+  funcionando como antes.
+- **Documentação da feature no painel (doc-viewer)**: novos endpoints
+  `GET /features/:project/:feature/docs` (listagem com mapeamento fixo
+  etapa-SDD→artefato e `produced:false` para "ainda não produzido" —
+  nunca 404) e `GET /features/:project/:feature/docs/:artifact`
+  (conteúdo), com leitura confinada à subárvore do projeto
+  (realpath + rejeição de symlink + fronteira de path + cap de tamanho).
+  No front, a visão da feature ganha o painel "Documentação" com abas por
+  artefato e renderização markdown segura (`react-markdown` +
+  `rehype-sanitize` + allowlist de esquemas de URL
+  http/https/mailto/relativo), acompanhando os artefatos SDD durante a
+  execução.
+- **Resolução automática do caminho do projeto (zero-config, knowledge.db
+  v9)**: com cstk ≥ 5.19 (schema v9), a ingestão persiste o
+  `target_project_path` do próprio `state.json` em `executions`, e o
+  painel resolve o caminho automaticamente — cadeia
+  `CSTK_PROJECT_PATHS` (override do operador, sempre vence) →
+  `executions.target_project_path` da execução mais recente (valor
+  UNTRUSTED validado: realpath, diretório existente, zonas sensíveis do
+  sistema rejeitadas) → degradação graciosa. Watchers e doc-viewer
+  passam a funcionar em todos os projetos ingeridos sem nenhuma env; o
+  painel aceita o schema v9 na abertura da base.
+
+### Modificado
+
+- **Guard `lint:readonly-check`**: regex refinada para exigir whitespace
+  após o verbo SQL, eliminando falso-positivo com strings legítimas como
+  `'create-tasks'` sem perder a detecção de mutações SQL reais.
+
 ## [0.13.1] - 2026-07-11
 
 ### Adicionado
@@ -677,6 +721,7 @@ execuções dos orquestradores `agente-00c` / `feature-00c`, lido diretamente da
 - Invariantes constitucionais I–VI verificáveis por scripts de _lint_.
 - `npm run lint:readonly-check` garante zero verbos de mutação SQL em `apps/server/src`.
 
+[0.14.0]: https://github.com/JotJunior/cstk-panel/compare/v0.13.1...v0.14.0
 [0.13.1]: https://github.com/JotJunior/cstk-panel/compare/v0.13.0...v0.13.1
 [0.13.0]: https://github.com/JotJunior/cstk-panel/compare/v0.12.1...v0.13.0
 [0.12.1]: https://github.com/JotJunior/cstk-panel/compare/v0.12.0...v0.12.1
