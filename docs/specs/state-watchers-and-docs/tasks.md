@@ -241,74 +241,112 @@ Ref: research.md Decision 2; `apps/server/src/index.ts` (`main()`)
 
 ## FASE 3 - Doc-Viewer: Backend de Leitura de Artefatos (US2, P2)
 
-### 3.1 Mapeamento fixo etapa-SDD → artefato(s) `[A]`
+### 3.1 Mapeamento fixo etapa-SDD → artefato(s) `[A]` ✅
 
 Ref: research.md Decision 8 (FR-005, FR-007)
 
-- [ ] 3.1.1 Definir a tabela fixa etapa→artefato(s) num módulo compartilhado
+- [x] 3.1.1 Definir a tabela fixa etapa→artefato(s) num módulo compartilhado
       do server (`specify`→`spec.md`; `plan`→`plan.md`,`research.md`,
       `data-model.md`,`quickstart.md`,`contracts/`; `checklist`→
       `checklists/*.md`; `create-tasks`→`tasks.md`)
-- [ ] 3.1.2 Implementar função que cruza o mapa fixo com os arquivos reais
+      <!-- apps/server/src/docs/artifact-map.ts (FIXED_MAP + MAPPED_SUBDIRS) -->
+- [x] 3.1.2 Implementar função que cruza o mapa fixo com os arquivos reais
       presentes no filesystem da feature, marcando `produced=true/false` e
       `extra=true` para arquivos presentes fora do mapa (SC-002)
-- [ ] 3.1.3 Escrever teste unitário do mapeamento (feature completa,
+      <!-- buildFeatureDocsList() — decisao de implementacao documentada no
+      topo do arquivo: contracts/ e checklists/ contam como "no mapa"
+      (extra:false, Decision 8), soltos na raiz fora do mapa = extra:true -->
+- [x] 3.1.3 Escrever teste unitário do mapeamento (feature completa,
       feature parcial, feature com arquivos extra fora do mapa)
+      <!-- apps/server/test/docs/artifact-map.test.ts — 12 testes, todos
+      passando (npx vitest run: "Tests  12 passed (12)") -->
 
-### 3.2 `GET /features/:project/:feature/docs` — listagem de artefatos `[A]`
+### 3.2 `GET /features/:project/:feature/docs` — listagem de artefatos `[A]` ✅
 
 Ref: contracts/docs-api.md ("listar artefatos");
 `apps/server/src/routes/features.ts` (`FeatureParamSchema` a reusar)
 
-- [ ] 3.2.1 Criar `apps/server/src/routes/docs.ts` com a rota, reusando o
+- [x] 3.2.1 Criar `apps/server/src/routes/docs.ts` com a rota, reusando o
       mesmo formato de `FeatureParamSchema` (`project`/`feature`, regex
       anti-traversal `/^[^/\\.<>]+$/`) já usado em `routes/features.ts`
-- [ ] 3.2.2 Resolver o caminho do projeto (`resolveProjectPath`, 1.1);
+- [x] 3.2.2 Resolver o caminho do projeto (`resolveProjectPath`, 1.1);
       projeto ausente do mapa ou caminho inacessível ⇒ `wrapDegraded`
       (FR-012), nunca 5xx
-- [ ] 3.2.3 Montar a resposta combinando o mapeamento fixo (3.1) com
+      <!-- resolveFeatureDir() em docs.ts; accessSync(R_OK) para inacessivel -->
+- [x] 3.2.3 Montar a resposta combinando o mapeamento fixo (3.1) com
       metadados (sem `content`), envelope `wrap()` + ETag/304 (padrão de
       `routes/executions.ts`)
-- [ ] 3.2.4 Registrar `docsRoutes` em `apps/server/src/index.ts`
+      <!-- ETag deriva do mtime dos ARQUIVOS (latestArtifactMtimeMs), nao
+      do envelope.meta.freshness (que reflete a knowledge.db) -->
+- [x] 3.2.4 Registrar `docsRoutes` em `apps/server/src/index.ts`
       (`v1.register(docsRoutes)` dentro do bloco `/api/v1`, junto às
       demais rotas)
-- [ ] 3.2.5 Escrever teste de integração: feature completa, feature
+- [x] 3.2.5 Escrever teste de integração: feature completa, feature
       parcial (`produced:false`), projeto sem entrada no mapa (degradado) —
       quickstart Cenários 5, 7
+      <!-- apps/server/test/docs/docs-routes.test.ts — describe "listagem",
+      6 testes, todos passando -->
 
-### 3.3 `GET /features/:project/:feature/docs/:artifact` — conteúdo de um artefato `[A]`
+### 3.3 `GET /features/:project/:feature/docs/:artifact` — conteúdo de um artefato `[A]` ✅
 
 Ref: contracts/docs-api.md ("conteúdo de um artefato"); data-model.md
 Entity "Documentation Artifact"
 
-- [ ] 3.3.1 Implementar a rota de conteúdo em `docs.ts`, validando
+- [x] 3.3.1 Implementar a rota de conteúdo em `docs.ts`, validando
       `:artifact` contra o mapa fixo (3.1) OU nome de arquivo extra
       sanitizado
-- [ ] 3.3.2 Ler o conteúdo markdown bruto do arquivo (cap de tamanho na
+- [x] 3.3.2 Ler o conteúdo markdown bruto do arquivo (cap de tamanho na
       leitura, research Decision 7) e retornar `content:null` +
       `produced:false` quando o artefato do mapa não existe — nunca
       404-erro (FR-007)
-- [ ] 3.3.3 Escrever teste de integração: artefato existente retorna
+      <!-- confineArtifactPath() aplica o cap (MAX_ARTIFACT_BYTES); artifactId
+      nao reconhecido (nem mapa fixo nem extra) -> data:null 200, mesmo
+      padrao de executions.ts:123 -->
+- [x] 3.3.3 Escrever teste de integração: artefato existente retorna
       `content`; artefato do mapa ausente retorna `produced:false`;
       artefato extra fora do mapa é servido (quickstart Cenários 4, 5, 6)
+      <!-- apps/server/test/docs/docs-routes.test.ts — describe "conteudo",
+      6 testes, todos passando -->
 
-### 3.4 Confinamento anti-traversal e anti-symlink na leitura de artefatos `[C]`
+### 3.4 Confinamento anti-traversal e anti-symlink na leitura de artefatos `[C]` ✅
 
 Ref: research.md Decision 7 (FR-009, gate `owasp-security` finding `HIGH`)
 
-- [ ] 3.4.1 Implementar função de guarda `isWithin(root, candidate)` com
+- [x] 3.4.1 Implementar função de guarda `isWithin(root, candidate)` com
       `path.resolve` + `fs.realpath` do arquivo final, re-confinando sob
       `realpath(root)+path.sep` (comparação de prefixo na fronteira do
       separador, não `startsWith` ingênuo)
-- [ ] 3.4.2 Rejeitar (via `lstat`) entrada symlinkada apontando para fora
+      <!-- confineArtifactPath() em apps/server/src/docs/confinement.ts -->
+- [x] 3.4.2 Rejeitar (via `lstat`) entrada symlinkada apontando para fora
       da raiz permitida (`<projectPath>/docs/specs/<feature>/`)
-- [ ] 3.4.3 Aplicar a mesma validação regex anti-traversal nos path params
+      <!-- postura CONSERVADORA: QUALQUER symlink e rejeitado, mesmo com
+      alvo dentro da raiz — ver comentario de decisao no topo do arquivo -->
+- [x] 3.4.3 Aplicar a mesma validação regex anti-traversal nos path params
       `:project`/`:feature`/`:artifact` (reuso de `FeatureParamSchema` +
       schema equivalente para `:artifact`)
-- [ ] 3.4.4 Escrever teste de segurança: tentativas de path traversal
+      <!-- DocsFeatureParamSchema/DocsArtifactParamSchema em docs.ts -->
+- [x] 3.4.4 Escrever teste de segurança: tentativas de path traversal
       (`../../etc/passwd`, variações `%2f`) e symlink escapando a raiz
       retornam `400`/rejeição, nunca conteúdo fora da fronteira (quickstart
       Cenário 9)
+      <!-- apps/server/test/docs/confinement.test.ts (12 testes unitarios)
+      + apps/server/test/docs/docs-routes.test.ts describe "seguranca"
+      (4 testes fim-a-fim, incluindo symlink real escapando a raiz via
+      HTTP — confirma content:null + meta.reason='artifact-rejected',
+      nunca vaza o segredo) -->
+
+> ⚠️ **Gate pendente (bloqueio humano registrado — dec-038/block-002,
+> onda-007)**: `npm run lint:readonly-check` (guard constitucional
+> Principio I) está VERMELHO por colisão de substring — o regex bruto do
+> gate (`\b(CREATE|...)\b`) casa a string `'create-tasks'` (valor do enum
+> `FeatureDocStage`, já ratificado na FASE 1/task 1.2), não SQL real.
+> Tentativa de refinar o regex do gate (validada empiricamente) foi
+> NEGADA pelo classificador de auto-mode do harness por alterar um guard
+> de segurança sem autorização explícita do usuário — decisão de como
+> resolver (refinar regex / extrair constante compartilhada / aceitar por
+> ora) aguarda resposta humana. Código de 3.2/3.3/3.4 está completo e
+> testado (28 testes novos aqui + 12 de 3.1 = 40 no total desta FASE);
+> typecheck limpo; só este gate específico está pendente.
 
 ---
 

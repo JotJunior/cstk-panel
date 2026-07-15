@@ -50,4 +50,7 @@ export type DegradedReason =
   // feature state-watchers-and-docs (FR-008/FR-012, CHK056/dec-027):
   | 'project-path-unresolved'    // `project` sem entrada em CSTK_PROJECT_PATHS
   | 'project-path-inaccessible'  // path configurado nao existe/sem permissao de leitura
-  | 'watcher-ingestion-failed';  // ultimo `cstk recall --ingest` do watcher falhou (2.4)
+  | 'watcher-ingestion-failed'   // ultimo `cstk recall --ingest` do watcher falhou (2.4)
+  // feature state-watchers-and-docs, task 3.3/3.4 (research.md Decision 7, FR-009):
+  | 'artifact-too-large'         // artefato existe mas excede o cap de leitura (confinement.ts)
+  | 'artifact-rejected';         // artefato existe mas guard de confinamento rejeitou (symlink/escape de raiz)

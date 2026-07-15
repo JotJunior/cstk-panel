@@ -16,6 +16,7 @@ import { healthRoutes } from './routes/health.js';
 import { overviewRoutes } from './routes/overview.js';
 import { projectRoutes } from './routes/projects.js';
 import { featureRoutes } from './routes/features.js';
+import { docsRoutes } from './routes/docs.js';
 import { executionRoutes } from './routes/executions.js';
 import { alertRoutes } from './routes/alerts.js';
 import { taskRoutes } from './routes/tasks.js';
@@ -77,6 +78,7 @@ async function main(): Promise<void> {
     await v1.register(overviewRoutes);
     await v1.register(projectRoutes);
     await v1.register(featureRoutes);
+    await v1.register(docsRoutes);
     await v1.register(executionRoutes);
     await v1.register(alertRoutes);
     await v1.register(taskRoutes);
