@@ -358,48 +358,57 @@ Ref: research.md Decision 6 (FR-006, FR-010, Princípio V, gate
 `owasp-security` finding `HIGH`); `apps/web/src/components/TextRaw.tsx`
 (postura de render seguro já adotada no projeto)
 
-- [ ] 4.1.1 Adicionar dependência de markdown seguro (ex.: `react-markdown`
+- [x] 4.1.1 Adicionar dependência de markdown seguro (ex.: `react-markdown`
       + `rehype-sanitize`, schema default) ao `apps/web/package.json`
-      **[PROPOSTA — a validar na implementação]**
-- [ ] 4.1.2 Criar `apps/web/src/components/MarkdownView.tsx` com raw HTML
+      **[PROPOSTA — a validar na implementação]** <!-- react-markdown@10.1.0 + rehype-sanitize@6.0.0, npm ls confirmado -->
+- [x] 4.1.2 Criar `apps/web/src/components/MarkdownView.tsx` com raw HTML
       desabilitado (nunca `dangerouslySetInnerHTML` com HTML não
       sanitizado) e allowlist de esquemas de URL (`http`, `https`,
       `mailto`, relativos) em links e imagens, descartando
       `javascript:`/`data:`/`vbscript:` (CWE-79/LLM01/ASI09)
-- [ ] 4.1.3 Escrever teste de segurança do componente: markdown com
+- [x] 4.1.3 Escrever teste de segurança do componente: markdown com
       `<script>` embutido não executa; link `[x](javascript:alert(1))` não
-      vira `href` navegável (quickstart Cenário 8)
+      vira `href` navegável (quickstart Cenário 8) <!-- MarkdownView.test.ts, 13/13 -->
 
 ### 4.2 Cliente de fetch para artefatos de documentação `[A]`
 
 Ref: `apps/web/src/lib/api.ts` (`fetchApi`, `ApiEnvelopeSchema`);
 `apps/web/src/lib/hooks.ts`; DTOs de 1.2
 
-- [ ] 4.2.1 Adicionar funções de fetch em `api.ts` para os dois endpoints
+- [x] 4.2.1 Adicionar funções de fetch em `api.ts` para os dois endpoints
       novos (lista + conteúdo), com parse Zod do envelope
       (`ApiEnvelopeSchema(FeatureDocsListSchema).parse` / equivalente para
-      conteúdo)
-- [ ] 4.2.2 Adicionar hooks TanStack Query correspondentes em `hooks.ts`,
+      conteúdo) <!-- reusa fetchApi(path, schema) generico de api.ts (mesmo
+      padrao de 100% dos demais recursos do painel — nenhum outro endpoint
+      tem funcao dedicada separada); featureDocsPath/featureDocPath novos
+      em hooks.ts fazem o encoding dos segmentos -->
+- [x] 4.2.2 Adicionar hooks TanStack Query correspondentes em `hooks.ts`,
       seguindo o padrão de polling (`AUTO_REFRESH_MS`) + ETag já usado
-      pelos demais hooks
-- [ ] 4.2.3 Escrever teste unitário dos hooks/parsers (mock de fetch,
-      validação de parse Zod dos DTOs de 1.2)
+      pelos demais hooks <!-- useFeatureDocs/useFeatureDocContent; polling
+      e ETag herdados do queryClient default (query.ts) + fetchApi, sem
+      override por hook, identico aos demais -->
+- [x] 4.2.3 Escrever teste unitário dos hooks/parsers (mock de fetch,
+      validação de parse Zod dos DTOs de 1.2) <!-- hooks-docs.test.ts, 11/11
+      (fetch/Response nativos do Node, sem dep nova) -->
 
 ### 4.3 Integração da visão de documentação em `FeatureDetail.tsx` `[A]`
 
 Ref: spec.md User Story 2 (Acceptance Scenarios 1-3);
 `apps/web/src/screens/FeatureDetail.tsx`
 
-- [ ] 4.3.1 Adicionar aba/painel "Documentação" na tela de detalhe da
+- [x] 4.3.1 Adicionar aba/painel "Documentação" na tela de detalhe da
       feature, listando artefatos via o hook de listagem (4.2.2)
-- [ ] 4.3.2 Renderizar o artefato selecionado via `MarkdownView` (4.1);
+      <!-- DocumentationPanel em FeatureDetail.tsx, card final da tela -->
+- [x] 4.3.2 Renderizar o artefato selecionado via `MarkdownView` (4.1);
       indicar claramente "ainda não produzido" para artefatos com
       `produced:false` (sem erro)
-- [ ] 4.3.3 Permitir navegação entre artefatos disponíveis (spec, plano,
-      tarefas, pesquisa, extras) dentro da mesma aba
-- [ ] 4.3.4 Escrever teste de componente: navegação entre artefatos,
+- [x] 4.3.3 Permitir navegação entre artefatos disponíveis (spec, plano,
+      tarefas, pesquisa, extras) dentro da mesma aba <!-- componente
+      Tabs (ate entao nao usado por nenhuma tela) reaproveitado -->
+- [x] 4.3.4 Escrever teste de componente: navegação entre artefatos,
       estado "ainda não produzido" renderizado sem erro (quickstart
-      Cenários 4-6)
+      Cenários 4-6) <!-- FeatureDetail.test.ts, 8/8 — pickDefaultArtifact +
+      contentFetchId extraidas como funcoes puras (sem jsdom no repo) -->
 
 ---
 

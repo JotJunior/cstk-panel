@@ -83,24 +83,33 @@ Retorna o conteúdo markdown bruto de UM artefato para render seguro no cliente.
 ```json
 {
   "data": {
+    "stage": "specify",
     "artifactId": "spec",
     "fileName": "spec.md",
     "produced": true,
+    "extra": false,
     "content": "# Feature Specification: …\n\n…"
   },
   "meta": { "degraded": false, "reason": null, "freshness": { … }, "schemaVersion": "8" }
 }
 ```
 
+Nota (validada empiricamente na implementação, task 4.2): `stage`/`extra` fazem
+parte de `FeatureDocDTO` (obrigatorios, sem `?`) e a rota real
+(`routes/docs.ts`, `{ ...entry, content }`) sempre os inclui — omiti-los do
+exemplo acima e um erro de brevidade do contrato, nao do wire format real.
+
 - `content`: markdown BRUTO, tratado como **UNTRUSTED** (FR-010 / Principio V). O
-  cliente renderiza via `MarkdownView` [PROPOSTA] com HTML ativo desabilitado/
-  sanitizado (Decision 6) — NUNCA `dangerouslySetInnerHTML` com HTML não sanitizado.
+  cliente renderiza via `MarkdownView` (`apps/web/src/components/MarkdownView.tsx`,
+  task 4.1 — react-markdown + rehype-sanitize + allowlist proprio de esquema de
+  URL) com HTML ativo desabilitado/sanitizado (Decision 6) — NUNCA
+  `dangerouslySetInnerHTML` com HTML não sanitizado.
 - Leitura confinada a `<projectPath>/docs/specs/<feature>/` (FR-009, Decision 7).
 
 **Response 200 "ainda não produzido"** (FR-007):
 
 ```json
-{ "data": { "artifactId": "plan", "fileName": "plan.md", "produced": false, "content": null }, "meta": { … } }
+{ "data": { "stage": "plan", "artifactId": "plan", "fileName": "plan.md", "produced": false, "extra": false, "content": null }, "meta": { … } }
 ```
 Ausência do artefato é sinalizada com `produced:false` + `content:null`, **não** 404.
 

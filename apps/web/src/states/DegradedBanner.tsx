@@ -14,6 +14,10 @@ const REASON_LABELS: Record<string, string> = {
   'db-corrupt': 'base de dados corrompida',
   'schema-mismatch': 'versao de schema incompativel',
   'table-empty': 'tabela vazia',
+  // Doc-viewer (state-watchers-and-docs, FASE 3) — degradacao por caminho
+  // de projeto, nao pela knowledge.db (artefatos vem do filesystem).
+  'project-path-unresolved': 'caminho do projeto não configurado',
+  'project-path-inaccessible': 'caminho do projeto inacessível',
 };
 
 function fmtRelative(iso: string): string {
