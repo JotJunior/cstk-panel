@@ -10,20 +10,24 @@
  *   GET /features/:project/:feature/docs/:artifact   (conteudo, task 3.3)
  *
  * Principio I (Read-Only Absoluto): fonte EXCLUSIVA e o filesystem
- * `<projectPath>/docs/specs/<feature>/` — a knowledge.db so e aberta para
- * computar `meta.freshness`/`schemaVersion` do envelope (consistencia com
- * as demais rotas); uma falha ao abrir o DB NAO degrada esta rota (os
- * artefatos sao independentes da knowledge.db).
+ * `<projectPath>/docs/specs/<feature>/` — a knowledge.db so e aberta (em
+ * modo leitura) para computar `meta.freshness`/`schemaVersion` do envelope
+ * e para o fallback de resolucao do caminho do projeto
+ * (executions.target_project_path, schema v9 — lib/project-root.ts); uma
+ * falha ao abrir o DB NAO degrada esta rota alem de desligar esse fallback
+ * (os artefatos sao independentes da knowledge.db).
  */
 import { accessSync, constants as fsConstants } from 'node:fs';
 import { join } from 'node:path';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import type Database from 'better-sqlite3';
 import type { Freshness } from '@cstk-panel/shared-types';
 import { openDb } from '../db/open.js';
 import { wrap, wrapDegraded } from '../lib/envelope.js';
 import { generateETag, etagMatches } from '../lib/etag.js';
-import { loadConfig, resolveProjectPath } from '../config.js';
+import { loadConfig } from '../config.js';
+import { resolveProjectRoot } from '../lib/project-root.js';
 import { buildFeatureDocsList, latestArtifactMtimeMs } from '../docs/artifact-map.js';
 import { confineArtifactPath, readConfinedArtifact } from '../docs/confinement.js';
 
@@ -56,12 +60,17 @@ type FeatureDirResolution =
 
 /**
  * Resolve `<projectRoot>/docs/specs/<feature>` a partir do nome logico do
- * projeto (FR-008/FR-012). NUNCA lanca. A auséncia do proprio subdiretorio
+ * projeto (FR-008/FR-012), via cadeia CSTK_PROJECT_PATHS > knowledge.db v9
+ * (resolveProjectRoot). NUNCA lanca. A auséncia do proprio subdiretorio
  * da FEATURE (feature nunca rodou `/specify`) NAO e degradacao — vira
  * produced:false uniforme em artifact-map.ts (Principio II).
  */
-function resolveFeatureDir(project: string, feature: string): FeatureDirResolution {
-  const projectRoot = resolveProjectPath(project);
+function resolveFeatureDir(
+  db: Database.Database | null,
+  project: string,
+  feature: string
+): FeatureDirResolution {
+  const projectRoot = resolveProjectRoot(db, project);
   if (!projectRoot) return { ok: false, reason: 'project-path-unresolved' };
   try {
     accessSync(projectRoot, fsConstants.R_OK);
@@ -82,14 +91,16 @@ export async function docsRoutes(server: FastifyInstance): Promise<void> {
     }
     const { project, feature } = paramResult.data;
 
-    const resolved = resolveFeatureDir(project, feature);
-    if (!resolved.ok) {
-      return reply.status(200).send(wrapDegraded(resolved.reason, config.dbPath));
-    }
-
+    // DB aberto ANTES da resolucao: alimenta o fallback de caminho via
+    // knowledge.db v9 (lib/project-root.ts) alem do meta do envelope.
     const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     const db = openResult.ok ? openResult.db : null;
     try {
+      const resolved = resolveFeatureDir(db, project, feature);
+      if (!resolved.ok) {
+        return reply.status(200).send(wrapDegraded(resolved.reason, config.dbPath));
+      }
+
       const artifacts = buildFeatureDocsList(resolved.featureDir);
       const data = { project, feature, artifacts };
       const envelope = wrap(data, {}, config.dbPath, db);
@@ -120,14 +131,15 @@ export async function docsRoutes(server: FastifyInstance): Promise<void> {
     }
     const { project, feature, artifact } = paramResult.data;
 
-    const resolved = resolveFeatureDir(project, feature);
-    if (!resolved.ok) {
-      return reply.status(200).send(wrapDegraded(resolved.reason, config.dbPath));
-    }
-
+    // DB aberto ANTES da resolucao (mesmo motivo da rota de listagem).
     const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
     const db = openResult.ok ? openResult.db : null;
     try {
+      const resolved = resolveFeatureDir(db, project, feature);
+      if (!resolved.ok) {
+        return reply.status(200).send(wrapDegraded(resolved.reason, config.dbPath));
+      }
+
       const artifacts = buildFeatureDocsList(resolved.featureDir);
       const entry = artifacts.find(a => a.artifactId === artifact);
 
