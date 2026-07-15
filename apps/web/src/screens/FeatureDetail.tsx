@@ -7,7 +7,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useFeature, useFeatureDocs, useFeatureDocContent } from '@/lib/hooks.js';
 import { useApiState } from '@/hooks/useApiState.js';
 import { LoadingState, EmptyState, ErrorState, DegradedBanner } from '@/states/index.js';
-import { StatusBadge, MiniStat, PipelineProgress, Icon, Tabs, MarkdownView } from '@/components/index.js';
+import { StatusBadge, MiniStat, PipelineProgress, Icon, MarkdownView } from '@/components/index.js';
 import { fmtNum, fmtDur, fmtTimestamp } from '@/lib/format.js';
 import { stackDisplayItems } from '@/lib/stack-display.js';
 import type { ExecutionDTO, RetroDTO } from '@cstk-panel/shared-types';
@@ -104,16 +104,43 @@ function DocumentationPanel({ project, feature }: { project: string; feature: st
       {artifacts.length === 0 ? (
         <EmptyState title="Sem artefatos de documentação" subtitle="Esta feature ainda não produziu nenhum artefato SDD." />
       ) : (
-        <>
-          <Tabs
-            items={artifacts.map(a => ({
-              value: a.artifactId,
-              label: a.produced ? a.artifactId : `${a.artifactId} (ausente)`,
-            }))}
-            value={effectiveArtifactId ?? ''}
-            onChange={setSelectedArtifactId}
-          />
-          <div className="card-pad">
+        <div className="docs-layout">
+          {/* Navegação por artefato: lista vertical à esquerda no desktop;
+              no modo estreito o CSS a troca pelo select abaixo (mesmo padrão
+              esconde/mostra de .projects-list/.projects-cards). */}
+          <nav className="docs-nav" aria-label="Artefatos de documentação">
+            {artifacts.map(a => (
+              <button
+                key={a.artifactId}
+                type="button"
+                className={[
+                  'docs-nav-item',
+                  a.artifactId === effectiveArtifactId ? 'active' : '',
+                  a.produced ? '' : 'missing',
+                ].filter(Boolean).join(' ')}
+                aria-current={a.artifactId === effectiveArtifactId ? 'true' : undefined}
+                onClick={() => setSelectedArtifactId(a.artifactId)}
+              >
+                <span className="docs-nav-label">{a.artifactId}</span>
+                {!a.produced && <span className="docs-nav-hint">ausente</span>}
+              </button>
+            ))}
+          </nav>
+          <div className="docs-select-wrap">
+            <select
+              className="docs-select"
+              value={effectiveArtifactId ?? ''}
+              onChange={e => setSelectedArtifactId(e.target.value)}
+              aria-label="Artefato de documentação"
+            >
+              {artifacts.map(a => (
+                <option key={a.artifactId} value={a.artifactId}>
+                  {a.produced ? a.artifactId : `${a.artifactId} (ausente)`}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="docs-content card-pad">
             {!selectedEntry && (
               <EmptyState title="Nenhum artefato selecionado" subtitle="Escolha um artefato acima." />
             )}
@@ -131,7 +158,7 @@ function DocumentationPanel({ project, feature }: { project: string; feature: st
               <MarkdownView content={contentQuery.data.data.content} />
             )}
           </div>
-        </>
+        </div>
       )}
     </div>
   );
