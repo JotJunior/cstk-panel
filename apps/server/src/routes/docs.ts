@@ -1,0 +1,189 @@
+/**
+ * Rotas do Doc-Viewer: leitura de artefatos de documentacao SDD de uma
+ * feature diretamente do filesystem do projeto resolvido.
+ * Ref: contracts/docs-api.md; spec.md FR-005..FR-010, FR-012; research.md
+ * Decisions 7, 8; data-model.md Entity "Documentation Artifact"
+ * Tasks 3.2, 3.3, 3.4
+ *
+ * Endpoints:
+ *   GET /features/:project/:feature/docs            (listagem, task 3.2)
+ *   GET /features/:project/:feature/docs/:artifact   (conteudo, task 3.3)
+ *
+ * Principio I (Read-Only Absoluto): fonte EXCLUSIVA e o filesystem
+ * `<projectPath>/docs/specs/<feature>/` — a knowledge.db so e aberta para
+ * computar `meta.freshness`/`schemaVersion` do envelope (consistencia com
+ * as demais rotas); uma falha ao abrir o DB NAO degrada esta rota (os
+ * artefatos sao independentes da knowledge.db).
+ */
+import { accessSync, constants as fsConstants } from 'node:fs';
+import { join } from 'node:path';
+import type { FastifyInstance } from 'fastify';
+import { z } from 'zod';
+import type { Freshness } from '@cstk-panel/shared-types';
+import { openDb } from '../db/open.js';
+import { wrap, wrapDegraded } from '../lib/envelope.js';
+import { generateETag, etagMatches } from '../lib/etag.js';
+import { loadConfig, resolveProjectPath } from '../config.js';
+import { buildFeatureDocsList, latestArtifactMtimeMs } from '../docs/artifact-map.js';
+import { confineArtifactPath, readConfinedArtifact } from '../docs/confinement.js';
+
+/** Identica ao regex anti-traversal de path params HTTP ja usado em
+ *  FeatureParamSchema (routes/features.ts) e ExecParamSchema
+ *  (routes/executions.ts) — aplicada tambem a `:artifact` (Decision 7). */
+const SAFE_SEGMENT_RE = /^[^/\\.<>]+$/;
+
+const DocsFeatureParamSchema = z.object({
+  project: z.string().min(1).max(200).regex(SAFE_SEGMENT_RE, 'invalid project'),
+  feature: z.string().min(1).max(200).regex(SAFE_SEGMENT_RE, 'invalid feature'),
+});
+
+const DocsArtifactParamSchema = DocsFeatureParamSchema.extend({
+  artifact: z.string().min(1).max(200).regex(SAFE_SEGMENT_RE, 'invalid artifact'),
+});
+
+function emptyMeta() {
+  return {
+    degraded: false,
+    reason: null,
+    freshness: { mtime: '', maxIngestedAt: '' },
+    schemaVersion: '2',
+  };
+}
+
+type FeatureDirResolution =
+  | { ok: true; featureDir: string }
+  | { ok: false; reason: 'project-path-unresolved' | 'project-path-inaccessible' };
+
+/**
+ * Resolve `<projectRoot>/docs/specs/<feature>` a partir do nome logico do
+ * projeto (FR-008/FR-012). NUNCA lanca. A auséncia do proprio subdiretorio
+ * da FEATURE (feature nunca rodou `/specify`) NAO e degradacao — vira
+ * produced:false uniforme em artifact-map.ts (Principio II).
+ */
+function resolveFeatureDir(project: string, feature: string): FeatureDirResolution {
+  const projectRoot = resolveProjectPath(project);
+  if (!projectRoot) return { ok: false, reason: 'project-path-unresolved' };
+  try {
+    accessSync(projectRoot, fsConstants.R_OK);
+  } catch {
+    return { ok: false, reason: 'project-path-inaccessible' };
+  }
+  return { ok: true, featureDir: join(projectRoot, 'docs', 'specs', feature) };
+}
+
+export async function docsRoutes(server: FastifyInstance): Promise<void> {
+  const config = loadConfig();
+
+  // ─── GET /features/:project/:feature/docs — listagem (task 3.2) ─────────
+  server.get('/features/:project/:feature/docs', async (request, reply) => {
+    const paramResult = DocsFeatureParamSchema.safeParse(request.params);
+    if (!paramResult.success) {
+      return reply.status(400).send({ data: null, meta: emptyMeta(), error: 'Invalid project or feature name' });
+    }
+    const { project, feature } = paramResult.data;
+
+    const resolved = resolveFeatureDir(project, feature);
+    if (!resolved.ok) {
+      return reply.status(200).send(wrapDegraded(resolved.reason, config.dbPath));
+    }
+
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
+    const db = openResult.ok ? openResult.db : null;
+    try {
+      const artifacts = buildFeatureDocsList(resolved.featureDir);
+      const data = { project, feature, artifacts };
+      const envelope = wrap(data, {}, config.dbPath, db);
+
+      // ETag deriva do mtime dos ARQUIVOS (contracts/docs-api.md nota de
+      // frescor), NAO de envelope.meta.freshness (que reflete a knowledge.db).
+      const latestMs = latestArtifactMtimeMs(resolved.featureDir, artifacts);
+      const fileFreshness: Freshness = {
+        mtime: latestMs !== null ? new Date(latestMs).toISOString() : '',
+        maxIngestedAt: '',
+      };
+      const etag = generateETag(fileFreshness);
+      const ifNoneMatch = request.headers['if-none-match'] as string | undefined;
+      if (etag && etagMatches(ifNoneMatch, etag)) return reply.status(304).send();
+      if (etag) void reply.header('ETag', etag);
+
+      return reply.status(200).send(envelope);
+    } finally {
+      if (db) db.close();
+    }
+  });
+
+  // ─── GET /features/:project/:feature/docs/:artifact — conteudo (task 3.3+3.4) ─
+  server.get('/features/:project/:feature/docs/:artifact', async (request, reply) => {
+    const paramResult = DocsArtifactParamSchema.safeParse(request.params);
+    if (!paramResult.success) {
+      return reply.status(400).send({ data: null, meta: emptyMeta(), error: 'Invalid project, feature or artifact name' });
+    }
+    const { project, feature, artifact } = paramResult.data;
+
+    const resolved = resolveFeatureDir(project, feature);
+    if (!resolved.ok) {
+      return reply.status(200).send(wrapDegraded(resolved.reason, config.dbPath));
+    }
+
+    const openResult = openDb(config.dbPath, config.supportedSchemaVersions);
+    const db = openResult.ok ? openResult.db : null;
+    try {
+      const artifacts = buildFeatureDocsList(resolved.featureDir);
+      const entry = artifacts.find(a => a.artifactId === artifact);
+
+      if (!entry) {
+        // artifactId nao reconhecido (nem mapa fixo, nem extra descoberto) —
+        // mesmo padrao de "recurso ausente" ja usado em executions.ts
+        // (data:null, 200) para um execucaoId sintaticamente valido mas
+        // sem correspondencia.
+        return reply.status(200).send(wrap(null, {}, config.dbPath, db));
+      }
+
+      if (!entry.produced) {
+        // FR-007 — "ainda nao produzido": sucesso, nunca erro
+        const envelope = wrap({ ...entry, content: null }, {}, config.dbPath, db);
+        return reply.status(200).send(envelope);
+      }
+
+      const confineResult = confineArtifactPath(resolved.featureDir, join(resolved.featureDir, entry.fileName));
+      if (!confineResult.ok) {
+        if (confineResult.reason === 'too-large') {
+          const envelope = wrap({ ...entry, content: null }, {}, config.dbPath, db);
+          envelope.meta.degraded = true;
+          envelope.meta.reason = 'artifact-too-large';
+          return reply.status(200).send(envelope);
+        }
+        if (confineResult.reason === 'not-found') {
+          // TOCTOU: existia na listagem, sumiu antes da leitura — trata
+          // como "ainda nao produzido" (FR-007); nao e anomalia de seguranca.
+          const envelope = wrap({ ...entry, produced: false, content: null }, {}, config.dbPath, db);
+          return reply.status(200).send(envelope);
+        }
+        // symlink-rejected / path-escapes-root — anomalia de seguranca
+        // (Decision 7). Log interno com o motivo especifico; resposta
+        // externa generica (nao vazar detalhe de exploit ao cliente).
+        server.log.warn(
+          { project, feature, artifact, reason: confineResult.reason },
+          'docs: leitura de artefato rejeitada pelo guard de confinamento'
+        );
+        const envelope = wrap({ ...entry, content: null }, {}, config.dbPath, db);
+        envelope.meta.degraded = true;
+        envelope.meta.reason = 'artifact-rejected';
+        return reply.status(200).send(envelope);
+      }
+
+      const content = readConfinedArtifact(confineResult.realPath);
+      const envelope = wrap({ ...entry, content }, {}, config.dbPath, db);
+
+      const fileFreshness: Freshness = { mtime: new Date(confineResult.mtimeMs).toISOString(), maxIngestedAt: '' };
+      const etag = generateETag(fileFreshness);
+      const ifNoneMatch = request.headers['if-none-match'] as string | undefined;
+      if (etag && etagMatches(ifNoneMatch, etag)) return reply.status(304).send();
+      if (etag) void reply.header('ETag', etag);
+
+      return reply.status(200).send(envelope);
+    } finally {
+      if (db) db.close();
+    }
+  });
+}
