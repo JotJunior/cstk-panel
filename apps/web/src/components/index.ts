@@ -5,6 +5,7 @@ export { ScoreChip } from './ScoreChip.js';
 export { OutcomePill } from './OutcomePill.js';
 export { FreshnessLabel } from './FreshnessLabel.js';
 export { TextRaw } from './TextRaw.js';
+export { MarkdownView } from './MarkdownView.js';
 export { SeverityBadge } from './SeverityBadge.js';
 export { BudgetMini } from './BudgetMini.js';
 export { PipelineProgress } from './PipelineProgress.js';

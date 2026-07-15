@@ -18,6 +18,8 @@ import {
   FtsHitDTOSchema,
   MemoryDTOSchema,
   SuggestionDTOSchema,
+  FeatureDocsListDTOSchema,
+  FeatureDocDTOSchema,
   type PeriodParam,
 } from '@cstk-panel/shared-types';
 import { z } from 'zod';
@@ -133,6 +135,49 @@ export function useFeature(project: string, feature: string) {
     queryKey: ['features', project, feature],
     queryFn: () => fetchApi(`/features/${encodeURIComponent(project)}/${encodeURIComponent(feature)}`, FeatureDetailSchema),
     enabled: Boolean(project) && Boolean(feature),
+  });
+}
+
+/**
+ * Doc-viewer (task 4.2): listagem + conteudo de artefatos de documentacao
+ * SDD de uma feature. Usa `fetchApi` diretamente — MESMO padrao de todos os
+ * demais hooks deste arquivo (nenhum recurso tem uma camada de funcoes
+ * nomeadas separada em `api.ts`; `fetchApi` ja E a funcao de fetch tipada
+ * com parse Zod do envelope que a task 4.2.1 pede, so que compartilhada).
+ * Contrato: contracts/docs-api.md; DTOs (dual-def) de 1.2.
+ */
+
+/** Path da listagem de docs de uma feature — extraida para teste unitario
+ *  direto do encoding (segmentos com `/`, espaco, etc.) sem precisar
+ *  invocar o hook (regra de hooks do React impede chamar `use*` fora de
+ *  render — ver hooks-docs.test.ts). */
+export function featureDocsPath(project: string, feature: string): string {
+  return `/features/${encodeURIComponent(project)}/${encodeURIComponent(feature)}/docs`;
+}
+
+/** Path do conteudo de UM artefato de documentacao. */
+export function featureDocPath(project: string, feature: string, artifactId: string): string {
+  return `${featureDocsPath(project, feature)}/${encodeURIComponent(artifactId)}`;
+}
+
+/** Lista de artefatos de documentacao de uma feature (metadados, sem `content`) */
+export function useFeatureDocs(project: string, feature: string) {
+  return useQuery({
+    queryKey: ['feature-docs', project, feature],
+    queryFn: () => fetchApi(featureDocsPath(project, feature), FeatureDocsListDTOSchema),
+    enabled: Boolean(project) && Boolean(feature),
+  });
+}
+
+/** Conteudo (markdown bruto, UNTRUSTED) de UM artefato de documentacao.
+ *  `data: null` quando `artifactId` nao reconhecido (nem mapa fixo nem
+ *  extra); `data.produced: false` + `content: null` quando "ainda nao
+ *  produzido" (FR-007) — em nenhum dos dois casos e erro. */
+export function useFeatureDocContent(project: string, feature: string, artifactId: string) {
+  return useQuery({
+    queryKey: ['feature-doc-content', project, feature, artifactId],
+    queryFn: () => fetchApi(featureDocPath(project, feature, artifactId), FeatureDocDTOSchema.nullable()),
+    enabled: Boolean(project) && Boolean(feature) && Boolean(artifactId),
   });
 }
 

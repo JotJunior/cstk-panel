@@ -2,14 +2,140 @@
  * FeatureDetail — cabecalho + stats + tabela de execucoes da feature.
  * Layout do prototipo (screens_main.jsx · FeatureDetailScreen).
  */
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useFeature } from '@/lib/hooks.js';
+import { useFeature, useFeatureDocs, useFeatureDocContent } from '@/lib/hooks.js';
 import { useApiState } from '@/hooks/useApiState.js';
-import { LoadingState, EmptyState, ErrorState } from '@/states/index.js';
-import { StatusBadge, MiniStat, PipelineProgress, Icon } from '@/components/index.js';
+import { LoadingState, EmptyState, ErrorState, DegradedBanner } from '@/states/index.js';
+import { StatusBadge, MiniStat, PipelineProgress, Icon, Tabs, MarkdownView } from '@/components/index.js';
 import { fmtNum, fmtDur, fmtTimestamp } from '@/lib/format.js';
 import { stackDisplayItems } from '@/lib/stack-display.js';
 import type { ExecutionDTO, RetroDTO } from '@cstk-panel/shared-types';
+
+// ---------------------------------------------------------------------------
+// Documentacao (doc-viewer, US2 — task 4.3)
+// ---------------------------------------------------------------------------
+
+/**
+ * Escolhe o artefato inicial a exibir: o primeiro PRODUZIDO na ordem da
+ * listagem (ordem = pipeline SDD: spec, plan, research, data-model,
+ * quickstart, tasks, contracts/checklists, extras). Se nenhum artefato foi
+ * produzido ainda, cai no primeiro item da lista de qualquer forma — o
+ * painel mostra o estado "ainda nao produzido" em vez de ficar vazio
+ * (Principio II Degradar-Nunca-Quebrar). `null` somente quando a listagem
+ * esta genuinamente vazia (resposta degradada, sem artefatos).
+ *
+ * Extraida como funcao pura para teste unitario direto (sem montar DOM —
+ * mesmo padrao de `stageStates` em PipelineProgress.tsx) — task 4.3.4.
+ *
+ * Parametro tipado com o subconjunto MINIMO que a funcao usa (nao
+ * `FeatureDocDTO` completo) deliberadamente: o campo `content` de
+ * `FeatureDocDTOSchema` e opcional+nullable (ausente na listagem, `null`
+ * no endpoint de conteudo quando `produced:false`) e o Zod-infer resultante
+ * colide com `exactOptionalPropertyTypes` (tsconfig.base.json) ao ser
+ * atribuido a interface manual `content?: string | null`. Como esta funcao
+ * nunca le `content`, programar contra a interface minima evita o atrito
+ * por completo (e mantem a assinatura facil de testar com fixtures leves).
+ */
+export interface ArtifactPickCandidate {
+  artifactId: string;
+  produced: boolean;
+}
+
+export function pickDefaultArtifact(artifacts: readonly ArtifactPickCandidate[]): string | null {
+  const produced = artifacts.find(a => a.produced);
+  if (produced) return produced.artifactId;
+  return artifacts[0]?.artifactId ?? null;
+}
+
+/**
+ * Decide se/qual `artifactId` buscar no endpoint de CONTEUDO: so busca
+ * quando o artefato selecionado ja foi PRODUZIDO — a listagem ja informa
+ * isso sem round-trip extra (Cenario 5, "ainda nao produzido" e servido
+ * localmente a partir da propria listagem). String vazia desabilita
+ * `useFeatureDocContent` (seu `enabled` interno e `Boolean(artifactId)`).
+ * Exportada para teste unitario direto — task 4.3.4.
+ */
+export function contentFetchId(
+  selectedEntry: ArtifactPickCandidate | null,
+  effectiveArtifactId: string | null
+): string {
+  return selectedEntry?.produced ? (effectiveArtifactId ?? '') : '';
+}
+
+function DocumentationPanel({ project, feature }: { project: string; feature: string }) {
+  const docsQuery = useFeatureDocs(project, feature);
+  const { isLoading, isError, errorMessage, isDegraded } = useApiState(docsQuery);
+  const [selectedArtifactId, setSelectedArtifactId] = useState<string | null>(null);
+
+  // Navegou para outra feature: descarta a selecao manual anterior (pode
+  // nem existir na nova lista) e deixa o default ser recalculado.
+  useEffect(() => {
+    setSelectedArtifactId(null);
+  }, [project, feature]);
+
+  const artifacts = docsQuery.data?.data?.artifacts ?? [];
+  const effectiveArtifactId = selectedArtifactId ?? pickDefaultArtifact(artifacts);
+  const selectedEntry = artifacts.find(a => a.artifactId === effectiveArtifactId) ?? null;
+
+  // So busca conteudo quando o artefato selecionado ja foi produzido —
+  // evita round-trip desnecessario (listagem ja informa produced:false).
+  const contentQuery = useFeatureDocContent(
+    project,
+    feature,
+    contentFetchId(selectedEntry, effectiveArtifactId)
+  );
+
+  if (isLoading) return <div className="card"><div className="card-pad"><LoadingState /></div></div>;
+  if (isError) return <div className="card"><div className="card-pad"><ErrorState message={errorMessage ?? 'Erro ao carregar documentação.'} /></div></div>;
+
+  return (
+    <div className="card">
+      <div className="card-head">
+        <div className="row gap-2">
+          <Icon name="doc" size={15} aria-hidden />
+          <h3>Documentação</h3>
+        </div>
+        <span className="mono muted" style={{ fontSize: 11 }}>{artifacts.length} artefato{artifacts.length !== 1 ? 's' : ''}</span>
+      </div>
+
+      {isDegraded && docsQuery.data?.meta && <div style={{ padding: '10px 14px' }}><DegradedBanner meta={docsQuery.data.meta} /></div>}
+
+      {artifacts.length === 0 ? (
+        <EmptyState title="Sem artefatos de documentação" subtitle="Esta feature ainda não produziu nenhum artefato SDD." />
+      ) : (
+        <>
+          <Tabs
+            items={artifacts.map(a => ({
+              value: a.artifactId,
+              label: a.produced ? a.artifactId : `${a.artifactId} (ausente)`,
+            }))}
+            value={effectiveArtifactId ?? ''}
+            onChange={setSelectedArtifactId}
+          />
+          <div className="card-pad">
+            {!selectedEntry && (
+              <EmptyState title="Nenhum artefato selecionado" subtitle="Escolha um artefato acima." />
+            )}
+            {selectedEntry && !selectedEntry.produced && (
+              <EmptyState
+                title="Ainda não produzido"
+                subtitle={`O artefato "${selectedEntry.artifactId}" (${selectedEntry.fileName}) ainda não foi gerado por esta feature.`}
+              />
+            )}
+            {selectedEntry?.produced && contentQuery.isLoading && <LoadingState />}
+            {selectedEntry?.produced && contentQuery.isError && (
+              <ErrorState message="Erro ao carregar conteúdo do artefato." />
+            )}
+            {selectedEntry?.produced && contentQuery.data?.data?.content != null && (
+              <MarkdownView content={contentQuery.data.data.content} />
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 interface FeatureRollupShape {
   totalExecutions: number;
@@ -167,6 +293,9 @@ export function FeatureDetail() {
           )}
         </div>
       </div>
+
+      {/* Documentacao (doc-viewer, US2 — task 4.3) */}
+      <DocumentationPanel project={project} feature={feature} />
     </div>
   );
 }
