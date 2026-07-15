@@ -18,6 +18,8 @@ import {
   RetroDTOSchema,
   FtsHitDTOSchema,
   MemoryDTOSchema,
+  FeatureDocDTOSchema,
+  FeatureDocsListDTOSchema,
   ProjectRollupSchema,
   FeatureRollupSchema,
 } from '../schemas/entities.js';
@@ -246,6 +248,73 @@ describe('Paridade schemas Zod — entidades', () => {
       description: null, body: null, path: null, indexedAt: null,
     });
     expect(r.success).toBe(false);
+  });
+
+  it('FeatureDocDTOSchema: item de listagem sem content (metadados apenas)', () => {
+    const payload = {
+      stage: 'specify',
+      artifactId: 'spec',
+      fileName: 'spec.md',
+      produced: true,
+      extra: false,
+    };
+    const r = FeatureDocDTOSchema.safeParse(payload);
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.content).toBeUndefined();
+    }
+  });
+
+  it('FeatureDocDTOSchema: conteudo de artefato produzido (content string)', () => {
+    const payload = {
+      stage: 'plan',
+      artifactId: 'plan',
+      fileName: 'plan.md',
+      produced: true,
+      extra: false,
+      content: '# Plano\n\n...',
+    };
+    const r = FeatureDocDTOSchema.safeParse(payload);
+    expect(r.success).toBe(true);
+  });
+
+  it('FeatureDocDTOSchema: artefato ainda nao produzido — content:null, nao erro (FR-007)', () => {
+    const payload = {
+      stage: 'create-tasks',
+      artifactId: 'tasks',
+      fileName: 'tasks.md',
+      produced: false,
+      extra: false,
+      content: null,
+    };
+    const r = FeatureDocDTOSchema.safeParse(payload);
+    expect(r.success).toBe(true);
+  });
+
+  it('FeatureDocDTOSchema: stage fora do enum falha', () => {
+    const r = FeatureDocDTOSchema.safeParse({
+      stage: 'clarify', // nao esta no mapa fixo (Decision 8)
+      artifactId: 'x', fileName: 'x.md', produced: true, extra: false,
+    });
+    expect(r.success).toBe(false);
+  });
+
+  it('FeatureDocsListDTOSchema: listagem com artefatos produzidos e nao-produzidos', () => {
+    const payload = {
+      project: 'cstk-panel',
+      feature: 'state-watchers-and-docs',
+      artifacts: [
+        { stage: 'specify', artifactId: 'spec', fileName: 'spec.md', produced: true, extra: false },
+        { stage: 'create-tasks', artifactId: 'tasks', fileName: 'tasks.md', produced: false, extra: false },
+        { stage: 'plan', artifactId: 'notes', fileName: 'notes.md', produced: true, extra: true },
+      ],
+    };
+    const r = FeatureDocsListDTOSchema.safeParse(payload);
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.artifacts).toHaveLength(3);
+      expect(r.data.artifacts[2]?.extra).toBe(true);
+    }
   });
 
   it('ProjectRollupSchema: payload valido passa', () => {

@@ -180,6 +180,27 @@ export const SuggestionDTOSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// FeatureDocDTO / FeatureDocsListDTO schema (feature state-watchers-and-docs)
+// Espelha EXATAMENTE os campos de entities.ts (task 1.2.1) — dual-def.
+// ---------------------------------------------------------------------------
+export const FeatureDocStageSchema = z.enum(['specify', 'plan', 'checklist', 'create-tasks']);
+
+export const FeatureDocDTOSchema = z.object({
+  stage: FeatureDocStageSchema,
+  artifactId: z.string(),
+  fileName: z.string(),
+  produced: z.boolean(),
+  extra: z.boolean(),
+  content: z.string().nullable().optional(),
+});
+
+export const FeatureDocsListDTOSchema = z.object({
+  project: z.string(),
+  feature: z.string(),
+  artifacts: z.array(FeatureDocDTOSchema),
+});
+
+// ---------------------------------------------------------------------------
 // Rollup schemas
 // ---------------------------------------------------------------------------
 export const ProjectRollupSchema = z.object({

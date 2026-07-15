@@ -23,6 +23,7 @@ import { eventRoutes } from './routes/events.js';
 import { metricsRoutes } from './routes/metrics.js';
 import { searchRoutes } from './routes/search.js';
 import { memoryRoutes } from './routes/memories.js';
+import { startIngestWatcher, DEFAULT_WATCH_INTERVAL_MS } from './watchers/ingest-watcher.js';
 
 async function main(): Promise<void> {
   const config = loadConfig();
@@ -84,6 +85,30 @@ async function main(): Promise<void> {
     await v1.register(searchRoutes);
     await v1.register(memoryRoutes);
   }, { prefix: '/api/v1' });
+
+  // Watcher de ingestao em segundo plano (US1, FR-001/FR-004/FR-013). Iniciado
+  // apos o registro das rotas — timer independente, nao depende de nenhuma
+  // rota estar servindo. Cadencia configuravel via CSTK_WATCH_INTERVAL_MS
+  // (default DEFAULT_WATCH_INTERVAL_MS, ajustado empiricamente — task 2.3.4).
+  const watchIntervalRaw = process.env['CSTK_WATCH_INTERVAL_MS'];
+  const watchIntervalMs = watchIntervalRaw && /^\d+$/.test(watchIntervalRaw)
+    ? parseInt(watchIntervalRaw, 10)
+    : DEFAULT_WATCH_INTERVAL_MS;
+  const watcherHandle = startIngestWatcher({
+    dbPath: config.dbPath,
+    supportedSchemaVersions: config.supportedSchemaVersions,
+    intervalMs: watchIntervalMs,
+    onTickError: (err: unknown) => {
+      // Falha de tick nunca derruba o processo (Principio II) — apenas logada.
+      server.log.warn({ err }, 'ingest-watcher: tick falhou');
+    },
+  });
+  // Encerramento limpo do timer no shutdown do processo (task 2.5.2) — evita
+  // handle pendente / processo que nao finaliza.
+  server.addHook('onClose', (_instance, done) => {
+    watcherHandle.stop();
+    done();
+  });
 
   // 404 handler. Rotas /api/* (e tudo quando o web nao esta habilitado) retornam
   // o envelope JSON estruturado (nunca HTML). Demais paths, com o SPA habilitado,

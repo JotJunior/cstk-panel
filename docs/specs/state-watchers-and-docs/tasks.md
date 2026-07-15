@@ -34,166 +34,208 @@ Ref: [spec.md](spec.md) | [plan.md](plan.md) | [research.md](research.md) |
 
 ## FASE 1 - Fundação: Configuração e Contratos Compartilhados
 
-### 1.1 Config: resolução `project` → caminho absoluto `[A]`
+### 1.1 Config: resolução `project` → caminho absoluto `[A]` ✅
 
 Ref: research.md Decision 1 (FR-008); `apps/server/src/config.ts`
 (`resolveDbPath()` é o padrão real a espelhar: env > default,
 `path.resolve()` anti-traversal)
 
-- [ ] 1.1.1 Implementar `resolveProjectPath(project): string | null` em
+- [x] 1.1.1 Implementar `resolveProjectPath(project): string | null` em
       `apps/server/src/config.ts`, espelhando `resolveDbPath()` (env
       `CSTK_PROJECT_PATHS` > default mapa vazio), canonicalizando cada
       entrada com `path.resolve()`
-- [ ] 1.1.2 Definir o formato de serialização do env `CSTK_PROJECT_PATHS`
+- [x] 1.1.2 Definir o formato de serialização do env `CSTK_PROJECT_PATHS`
       (ex.: `nome=/abs/path;outro=/x/y`) e o parser correspondente
       **[PROPOSTA — a validar na implementação]** (research Decision 1)
-- [ ] 1.1.3 Retornar `null` (nunca lançar erro) quando o projeto não está no
+      <!-- decisao de implementacao ratificada: formato semicolon-separated
+      "nome=/abs/path;outro=/x/y", parser resolveProjectPathsMap() em
+      config.ts, entradas malformadas ignoradas silenciosamente -->
+- [x] 1.1.3 Retornar `null` (nunca lançar erro) quando o projeto não está no
       mapa, para acionar a degradação de FR-012 downstream (2.4, 3.2)
-- [ ] 1.1.4 Escrever teste unitário de `resolveProjectPath` (mapa vazio,
+- [x] 1.1.4 Escrever teste unitário de `resolveProjectPath` (mapa vazio,
       projeto ausente, múltiplas entradas, canonicalização anti-traversal)
+      <!-- apps/server/test/lib/config.test.ts — 12 testes, todos passando -->
 
-### 1.2 DTOs compartilhados dual-def para o doc-viewer `[A]`
+### 1.2 DTOs compartilhados dual-def para o doc-viewer `[A]` ✅
 
 Ref: data-model.md Entity "Documentation Artifact"; contracts/docs-api.md;
 `packages/shared-types/src/entities.ts` + `schemas/entities.ts` (padrão
 dual-def obrigatório — memória `cstk-panel-dto-dual-definition`)
 
-- [ ] 1.2.1 Criar as interfaces `FeatureDocDTO`/`FeatureDocsListDTO` em
+- [x] 1.2.1 Criar as interfaces `FeatureDocDTO`/`FeatureDocsListDTO` em
       `packages/shared-types/src/entities.ts` (campos `camelCase`: `stage`,
       `artifactId`, `fileName`, `produced`, `extra`, `content`)
-- [ ] 1.2.2 Criar o schema Zod correspondente em
+      <!-- FeatureDocDTO = item de listagem (sem content, opcional) OU
+      resposta do endpoint de conteudo (content string|null); tambem
+      exportado em index.ts junto com FeatureDocStage -->
+- [x] 1.2.2 Criar o schema Zod correspondente em
       `packages/shared-types/src/schemas/entities.ts`, espelhando
       EXATAMENTE os mesmos campos das interfaces de 1.2.1
-- [ ] 1.2.3 Adicionar os novos valores de `reason` do envelope de degradação
+- [x] 1.2.3 Adicionar os novos valores de `reason` do envelope de degradação
       (ex.: `project-path-unresolved`, `project-path-inaccessible`,
       `watcher-ingestion-failed`) ao tipo existente em
       `packages/shared-types/src/envelope.ts` (docs-api.md "Response 200
       degradado"; contracts/watchers.md §3; CHK056/dec-027 — ver 2.4)
-- [ ] 1.2.4 Escrever/estender teste de paridade
+- [x] 1.2.4 Escrever/estender teste de paridade
       (`packages/shared-types/src/__tests__/parity*.test.ts`) cobrindo os
       DTOs novos de 1.2.1/1.2.2
+      <!-- parity.test.ts: 5 casos novos (listagem sem content, content
+      produzido, produced:false, stage invalido, lista mista) -->
 
-### 1.3 Rastreabilidade dos gaps abertos do checklist `[M]`
+### 1.3 Rastreabilidade dos gaps abertos do checklist `[M]` ✅
 
 Ref: checklists/requirements.md CHK020; checklists/security.md CHK043;
 checklists/performance.md CHK045, CHK056, CHK057; dec-027, dec-028
 (onda-005)
 
-- [ ] 1.3.1 Registrar nesta decomposição a exclusão de escopo do indicador
+- [x] 1.3.1 Registrar nesta decomposição a exclusão de escopo do indicador
       de frescor de CONTEÚDO do artefato — CHK020, resolvido via dec-028:
       **fora do MVP** (ver "Escopo Excluído" abaixo); FR-011 cobre apenas
       frescor de execução, não de artefato de documentação
-- [ ] 1.3.2 Confirmar que a postura de segurança medium/low do gate
+      <!-- verificado empiricamente: linha "CHK020 (dec-028)" presente na
+      tabela "Escopo Excluído" deste arquivo -->
+- [x] 1.3.2 Confirmar que a postura de segurança medium/low do gate
       `owasp-security` (CHK043, já ratificada em `block-001`/dec-021) está
       referenciada nas tarefas de hardening (Ref cruzada: 2.3)
-- [ ] 1.3.3 Confirmar que a medição de duração de ingestão (CHK045) e a
+      <!-- verificado empiricamente: Ref da task 2.3 cita
+      "checklists/security.md CHK043 (já ratificado dec-021/block-001)" -->
+- [x] 1.3.3 Confirmar que a medição de duração de ingestão (CHK045) e a
       validação dos defaults de tuning (CHK057) estão encaminhadas como
       subtarefas de validação empírica em FASE 2 (Ref cruzada: 2.3.4)
+      <!-- verificado empiricamente: subtarefa 2.3.4 cobre "duração real de
+      cstk recall --ingest (CHK045)" + "confirmar/ajustar WATCH_INTERVAL_MS
+      (CHK057)" -->
 
 ---
 
 ## FASE 2 - Watcher de Ingestão em Segundo Plano (US1, P1)
 
-### 2.1 Módulo de watcher — verificação recorrente e delegação ao subprocesso `cstk` `[A]`
+### 2.1 Módulo de watcher — verificação recorrente e delegação ao subprocesso `cstk` `[A]` ✅
 
 Ref: research.md Decision 2 (FR-001, FR-004, FR-013); contracts/watchers.md
 §1-2; data-model.md Entity "Observed Execution"
 
-- [ ] 2.1.1 Criar `apps/server/src/watchers/ingest-watcher.ts` com timer
+- [x] 2.1.1 Criar `apps/server/src/watchers/ingest-watcher.ts` com timer
       (`setInterval`) de cadência configurável (default
       `WATCH_INTERVAL_MS=10_000` **[PROPOSTA]**, Ref CHK057/2.3.4)
-- [ ] 2.1.2 Listar execuções com status `em_andamento`/`aguardando_humano`
+      <!-- default AJUSTADO para 5_000 apos medicao empirica — ver 2.3.4 -->
+- [x] 2.1.2 Listar execuções com status `em_andamento`/`aguardando_humano`
       reusando o padrão read-only de `db/queries/executions.ts`, abrindo/
       fechando o DB por tick via `openDb()` — sem conexão longa (Princípio
       VI)
-- [ ] 2.1.3 Derivar o caminho do projeto (`resolveProjectPath`, 1.1) e o
+      <!-- listActiveExecutions() adicionada a db/queries/executions.ts -->
+- [x] 2.1.3 Derivar o caminho do projeto (`resolveProjectPath`, 1.1) e o
       state-dir da execução (research Decision 3: layout `feature-00c` vs
       `agente-00c` pela presença/ausência de `feature`)
-- [ ] 2.1.4 Delegar a ingestão via `node:child_process.execFile('cstk',
+      <!-- deriveStateDir(); verificado empiricamente que `session` NAO
+      participa do path (apenas metadado em .execution.session_name) -->
+- [x] 2.1.4 Delegar a ingestão via `node:child_process.execFile('cstk',
       ['recall','--ingest','--state-dir', dir], { timeout, ... })` — args
       em array (sem shell-string), `timeout` explícito, captura de
       `stderr`/`stdout` (Padrões de Segurança "Subprocesso seguro")
-- [ ] 2.1.5 Ociosidade (FR-013): não disparar nenhum subprocesso quando a
+- [x] 2.1.5 Ociosidade (FR-013): não disparar nenhum subprocesso quando a
       consulta não retorna execução ativa no tick
-- [ ] 2.1.6 Escrever testes unitários do módulo watcher (mock de
+- [x] 2.1.6 Escrever testes unitários do módulo watcher (mock de
       `execFile`): tick com execução ativa dispara subprocesso; tick sem
       execução ativa não dispara (quickstart Cenário 2)
+      <!-- test/watchers/ingest-watcher.test.ts — 20 testes, todos passando -->
 
-### 2.2 Idempotência do disparo de ingestão `[A]`
+### 2.2 Idempotência do disparo de ingestão `[A]` ✅
 
 Ref: research.md Decision 4 (FR-014); data-model.md Entity "Watcher
 Signature Cache"
 
-- [ ] 2.2.1 Implementar cache em memória (não persistido — Princípio I)
+- [x] 2.2.1 Implementar cache em memória (não persistido — Princípio I)
       keyed por state-dir, com campos `{ signature, lastIngestAt, lastError,
       lastErrorAt }` (`lastError`/`lastErrorAt` adicionados nesta
       decomposição para suportar 2.4 / CHK056)
-- [ ] 2.2.2 Calcular a assinatura do `state.json` a cada tick (mtime via
+- [x] 2.2.2 Calcular a assinatura do `state.json` a cada tick (mtime via
       `fs.statSync`, ou sha256 — decisão final na implementação, research
       Decision 4 **[PROPOSTA]**)
-- [ ] 2.2.3 Disparar `cstk recall --ingest` somente quando a assinatura
+      <!-- decisao ratificada: mtimeMs (mais barato; sha256 nao necessario) -->
+- [x] 2.2.3 Disparar `cstk recall --ingest` somente quando a assinatura
       mudou desde a última vista para aquele state-dir; caso contrário,
       pular o tick
-- [ ] 2.2.4 Escrever teste unitário de idempotência: duas assinaturas
+- [x] 2.2.4 Escrever teste unitário de idempotência: duas assinaturas
       iguais consecutivas disparam ingestão apenas uma vez
 
-### 2.3 Hardening de segurança do subprocesso e do state-dir derivado `[A]`
+### 2.3 Hardening de segurança do subprocesso e do state-dir derivado `[A]` ✅
 
 Ref: research.md Decision 9 (gate `owasp-security`, findings medium);
 checklists/security.md CHK043 (já ratificado dec-021/block-001);
 checklists/performance.md CHK045, CHK057
 
-- [ ] 2.3.1 Resolver o binário `cstk` para caminho absoluto verificado (ou
+- [x] 2.3.1 Resolver o binário `cstk` para caminho absoluto verificado (ou
       pinado via config) antes do `execFile`, evitando PATH hijack
       (ASI04/A08); passar `env`/`cwd` mínimos ao subprocesso
-- [ ] 2.3.2 Aplicar a MESMA canonicalização + confinamento + regex
+      <!-- resolveCstkBinary(): CSTK_BINARY_PATH pinado OU varredura de PATH
+      com accessSync X_OK; risco de PATH hijack confirmado empiricamente
+      (node -e com execFile('cstk',...) sem shell:true resolveu via PATH) -->
+- [x] 2.3.2 Aplicar a MESMA canonicalização + confinamento + regex
       anti-traversal (`/^[^/\\.<>]+$/`) em `feature`/`session` (valores
       UNTRUSTED vindos da knowledge.db, Princípio V) antes de montar o
       state-dir (research Decision 9, item 2)
-- [ ] 2.3.3 Limitar subprocessos `cstk` concorrentes por tick (N execuções
+- [x] 2.3.3 Limitar subprocessos `cstk` concorrentes por tick (N execuções
       ativas ⇒ N spawns, com teto) e aplicar backoff quando uma ingestão
       falha persistentemente para o mesmo state-dir (research Decision 9,
       item 3)
-- [ ] 2.3.4 Medir empiricamente a duração real de `cstk recall --ingest`
+      <!-- DEFAULT_MAX_CONCURRENT=4, DEFAULT_BACKOFF_MS=60_000 -->
+- [x] 2.3.4 Medir empiricamente a duração real de `cstk recall --ingest`
       contra um `state.json` típico deste projeto (CHK045) e
       confirmar/ajustar `WATCH_INTERVAL_MS` (CHK057) e o timeout do
       subprocesso contra o orçamento de 30s (research Decision 5); registrar
       o resultado como nota no PR/Decisão de execução (nenhum número de
       duração é afirmado nesta spec como medido)
-- [ ] 2.3.5 Escrever testes dos controles de hardening (binário não
+      <!-- MEDIDO (nao estimado): `time cstk recall --ingest --state-dir
+      <SD> --db <scratch.db>` contra o state.json real desta feature
+      (49015 bytes, 6 ondas) em 2026-07-15 = "3,68s user 6,01s system 83%
+      cpu 11,644 total". Excedeu o limiar de ~10s do research.md Decision 5
+      => WATCH_INTERVAL_MS ajustado de 10_000 para 5_000 (pior caso
+      5+11.6+10=26.6s < 30s). Ver comentario em ingest-watcher.ts. -->
+- [x] 2.3.5 Escrever testes dos controles de hardening (binário não
       resolvido ⇒ falha segura sem crash; concorrência acima do cap ⇒
       enfileira/rejeita; backoff aplicado após falha persistente)
 
-### 2.4 Sinalização de degradação do watcher no detalhe de execução (CHK056) `[M]`
+### 2.4 Sinalização de degradação do watcher no detalhe de execução (CHK056) `[M]` ✅
 
 Ref: contracts/watchers.md §3 ("Decisão de escopo a fechar em
 `/create-tasks`"); checklists/performance.md CHK056; dec-027 (resolução:
 estender `meta.degraded`/`meta.reason` já existentes, sem endpoint novo
 `GET /api/v1/watchers`)
 
-- [ ] 2.4.1 Em `GET /executions/:executionId`
+- [x] 2.4.1 Em `GET /executions/:executionId`
       (`apps/server/src/routes/executions.ts`), consultar o cache de
       assinatura (2.2.1) pelo state-dir derivado da execução; se
       `lastError` presente e mais recente que o último `lastIngestAt`
       bem-sucedido, retornar `meta.degraded:true` /
       `meta.reason:'watcher-ingestion-failed'`
-- [ ] 2.4.2 Deixar `GET /executions` (listagem) sem alteração nesta
+      <!-- isWatcherDegraded() em ingest-watcher.ts; envelope NAO nulifica
+      data (diferente de wrapDegraded) — apenas sinaliza meta -->
+- [x] 2.4.2 Deixar `GET /executions` (listagem) sem alteração nesta
       feature — o sinal por-execução fica restrito ao endpoint de detalhe
       (decisão de granularidade desta decomposição, Ref dec-027); a lista
       continua refletindo frescor via `FreshnessLabel` já existente
-- [ ] 2.4.3 Escrever teste de integração: execução com falha registrada no
+      <!-- confirmado via teste: listagem retorna degraded:false mesmo com
+      falha no cache -->
+- [x] 2.4.3 Escrever teste de integração: execução com falha registrada no
       cache retorna `meta.degraded`/`reason` no detalhe; a listagem
       permanece inalterada
+      <!-- test/lib/watcher-degradation.test.ts — 5 testes, todos passando -->
 
-### 2.5 Inicialização do watcher no processo do servidor `[A]`
+### 2.5 Inicialização do watcher no processo do servidor `[A]` ✅
 
 Ref: research.md Decision 2; `apps/server/src/index.ts` (`main()`)
 
-- [ ] 2.5.1 Iniciar o watcher em `main()` após o registro das rotas, com
+- [x] 2.5.1 Iniciar o watcher em `main()` após o registro das rotas, com
       cadência configurável via env (2.1.1)
-- [ ] 2.5.2 Garantir encerramento limpo do timer no shutdown do processo
+      <!-- CSTK_WATCH_INTERVAL_MS -->
+- [x] 2.5.2 Garantir encerramento limpo do timer no shutdown do processo
       (evitar handle pendente / processo que não finaliza)
-- [ ] 2.5.3 Escrever teste smoke de start/stop do watcher
+      <!-- server.addHook('onClose', ...) chama watcherHandle.stop();
+      timer.unref() adicional -->
+- [x] 2.5.3 Escrever teste smoke de start/stop do watcher
+      <!-- test/watchers/ingest-watcher.test.ts describe
+      "startIngestWatcher — smoke start/stop" (fake timers) -->
 
 ---
 

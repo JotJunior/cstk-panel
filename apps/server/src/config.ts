@@ -74,6 +74,52 @@ function resolveSchemaVersions(): string[] {
   return parsed.length > 0 ? parsed : [...DEFAULT_SCHEMA_VERSIONS];
 }
 
+/**
+ * Resolve o mapa nome-logico -> caminho absoluto de projetos observaveis
+ * (FR-008, research.md Decision 1).
+ *
+ * Formato do env CSTK_PROJECT_PATHS (decisao de implementacao — [PROPOSTA]
+ * do research.md validada aqui): lista de pares `nome=/abs/path` separados
+ * por `;`, ex.: `CSTK_PROJECT_PATHS="cstk-panel=/Users/jot/…/cstk-panel;outro=/x/y"`.
+ * Cada path e canonicalizado via `path.resolve()` (mesmo anti-traversal de
+ * resolveDbPath()). Entradas malformadas (sem `=`, nome vazio) sao ignoradas
+ * silenciosamente — nunca lanca excecao (Principio II: Degradar-Nunca-Quebrar).
+ *
+ * Lido a cada chamada (sem cache), espelhando resolveSchemaVersions() — o
+ * mapa e pequeno e a config pode ser ajustada pelo operador sem restart do
+ * processo hospedeiro dos testes.
+ */
+function resolveProjectPathsMap(): Record<string, string> {
+  const raw = process.env['CSTK_PROJECT_PATHS'];
+  const map: Record<string, string> = {};
+  if (!raw || raw.trim() === '') return map;
+  for (const entry of raw.split(';')) {
+    const trimmed = entry.trim();
+    if (trimmed === '') continue;
+    const eqIdx = trimmed.indexOf('=');
+    if (eqIdx <= 0) continue; // sem '=' ou nome vazio -> entrada malformada, ignorar
+    const name = trimmed.slice(0, eqIdx).trim();
+    const rawPath = trimmed.slice(eqIdx + 1).trim();
+    if (name === '' || rawPath === '') continue;
+    map[name] = resolve(rawPath);
+  }
+  return map;
+}
+
+/**
+ * Resolve o nome logico de um projeto (`project`) para o caminho absoluto
+ * configurado pelo operador via CSTK_PROJECT_PATHS (FR-008). Retorna `null`
+ * (NUNCA lanca) quando o projeto nao esta no mapa — aciona a degradacao
+ * graciosa de FR-012 nos consumidores (watcher, rotas de docs), nunca 5xx.
+ *
+ * Default (env ausente/vazio): mapa vazio -> todo projeto e "nao observavel"
+ * ate o operador configurar.
+ */
+export function resolveProjectPath(project: string): string | null {
+  const map = resolveProjectPathsMap();
+  return map[project] ?? null;
+}
+
 export function loadConfig(): ServerConfig {
   return {
     dbPath: resolveDbPath(),
