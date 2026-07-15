@@ -16,6 +16,8 @@
 import { describe, it, expect } from 'vitest';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { isSafeUrl, MarkdownView } from './MarkdownView.js';
 
 describe('isSafeUrl', () => {
@@ -103,5 +105,38 @@ describe('MarkdownView — render seguro (renderToStaticMarkup, prova empirica E
   it('link relativo a outro artefato permanece navegavel', () => {
     const html = render('[ver plano](./plan.md)');
     expect(html).toContain('href="./plan.md"');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Auditoria de fonte (task 5.3.3, quickstart Cenario 8) — confirma por
+// grep-based scan (mesmo padrao de DecisionMapPanel.test.ts) a ausencia de
+// dangerouslySetInnerHTML nos arquivos que compoem o doc-viewer, alem do
+// gate de lint (eslint.config.mjs regra no-restricted-syntax) e da prova
+// empirica de render acima. Defesa em profundidade: 3 camadas independentes.
+// ---------------------------------------------------------------------------
+
+describe('Auditoria de fonte — ausencia de dangerouslySetInnerHTML (task 5.3.3)', () => {
+  const WEB_SRC = resolve(process.cwd(), 'apps/web/src');
+  function readSrc(rel: string): string {
+    return readFileSync(resolve(WEB_SRC, rel), 'utf-8');
+  }
+
+  // Uso REAL (JSX attribute `dangerouslySetInnerHTML={...}` ou object key
+  // `dangerouslySetInnerHTML:`), nao menção em comentario/prosa — o proprio
+  // MarkdownView.tsx documenta em comentario que NUNCA usa a prop, o que
+  // quebraria um `.not.toContain('dangerouslySetInnerHTML')` ingenuo.
+  const USAGE_RE = /dangerouslySetInnerHTML\s*[:=]/;
+
+  it('MarkdownView.tsx nao usa dangerouslySetInnerHTML como prop/atributo', () => {
+    expect(readSrc('components/MarkdownView.tsx')).not.toMatch(USAGE_RE);
+  });
+
+  it('FeatureDetail.tsx (consumidor do doc-viewer, DocumentationPanel) nao usa dangerouslySetInnerHTML', () => {
+    expect(readSrc('screens/FeatureDetail.tsx')).not.toMatch(USAGE_RE);
+  });
+
+  it('hooks.ts (camada de dados useFeatureDocs/useFeatureDocContent) nao usa dangerouslySetInnerHTML', () => {
+    expect(readSrc('lib/hooks.ts')).not.toMatch(USAGE_RE);
   });
 });
