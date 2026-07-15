@@ -418,70 +418,70 @@ Ref: spec.md User Story 2 (Acceptance Scenarios 1-3);
 
 Ref: quickstart.md Cenários 1-3
 
-- [ ] 5.1.1 Cenário 1: mudança de assinatura do `state.json` dispara
+- [x] 5.1.1 Cenário 1: mudança de assinatura do `state.json` dispara
       ingestão e o polling do cliente reflete o novo estado (ondas/
       decisão/etapa/status) em ambiente de teste (mock/integração, não
-      medição de produção)
-- [ ] 5.1.2 Cenário 2: nenhuma execução ativa ⇒ nenhum subprocesso `cstk`
-      disparado; watcher permanece ocioso
-- [ ] 5.1.3 Cenário 3: execução transita para `concluida`/`abortada` ⇒
-      deixa de ser observada no tick seguinte
+      medição de produção) <!-- validado empiricamente: ingest-watcher.test.ts (dispara subprocesso ao detectar mtime novo) -->
+- [x] 5.1.2 Cenário 2: nenhuma execução ativa ⇒ nenhum subprocesso `cstk`
+      disparado; watcher permanece ocioso <!-- validado empiricamente: ingest-watcher.test.ts describe "ociosidade (FR-013)" -->
+- [x] 5.1.3 Cenário 3: execução transita para `concluida`/`abortada` ⇒
+      deixa de ser observada no tick seguinte <!-- novo teste nesta onda: describe "transicao de status (Cenario 3, FR-003)" -->
 
 ### 5.2 Testes de cenário do doc-viewer backend (US2) `[A]`
 
 Ref: quickstart.md Cenários 4, 5, 6, 7, 9
 
-- [ ] 5.2.1 Cenários 4/6: artefatos produzidos são listados e servidos
-      formatados; navegação entre múltiplos artefatos
-- [ ] 5.2.2 Cenário 5: artefato do mapa fixo ainda não produzido retorna
-      `produced:false`, nunca erro
-- [ ] 5.2.3 Cenário 7: projeto com caminho inacessível retorna `200` com
-      `meta.degraded`/`meta.reason`, nunca 5xx
-- [ ] 5.2.4 Cenário 9: variações de path traversal no path param
-      `:artifact` retornam `400`
+- [x] 5.2.1 Cenários 4/6: artefatos produzidos são listados e servidos
+      formatados; navegação entre múltiplos artefatos <!-- validado empiricamente: docs-routes.test.ts + MarkdownView.test.ts + FeatureDetail.test.ts -->
+- [x] 5.2.2 Cenário 5: artefato do mapa fixo ainda não produzido retorna
+      `produced:false`, nunca erro <!-- validado empiricamente: docs-routes.test.ts + artifact-map.test.ts -->
+- [x] 5.2.3 Cenário 7: projeto com caminho inacessível retorna `200` com
+      `meta.degraded`/`meta.reason`, nunca 5xx <!-- novo teste nesta onda: docs-routes.test.ts describe "projeto com caminho inacessivel" (branch project-path-inaccessible, server-side) -->
+- [x] 5.2.4 Cenário 9: variações de path traversal no path param
+      `:artifact` retornam `400` <!-- validado empiricamente: docs-routes.test.ts + confinement.test.ts -->
 
 ### 5.3 Teste de segurança do render (US2) `[C]`
 
 Ref: quickstart.md Cenário 8; research.md Decision 6
 
-- [ ] 5.3.1 Artefato `.md` com HTML/`<script>` embutido é renderizado
-      inerte no doc-viewer (sem execução, sem alert/DOM injection)
-- [ ] 5.3.2 Imagem/link com esquema de URL perigoso (`data:text/html`,
+- [x] 5.3.1 Artefato `.md` com HTML/`<script>` embutido é renderizado
+      inerte no doc-viewer (sem execução, sem alert/DOM injection) <!-- validado empiricamente: MarkdownView.test.ts (renderToStaticMarkup) -->
+- [x] 5.3.2 Imagem/link com esquema de URL perigoso (`data:text/html`,
       `javascript:`) não vira destino navegável — reforça o allowlist de
-      4.1.2 do lado do teste
-- [ ] 5.3.3 Confirmar, por auditoria de diff desta feature, ausência de
-      qualquer `dangerouslySetInnerHTML` com HTML não sanitizado
+      4.1.2 do lado do teste <!-- validado empiricamente: MarkdownView.test.ts isSafeUrl -->
+- [x] 5.3.3 Confirmar, por auditoria de diff desta feature, ausência de
+      qualquer `dangerouslySetInnerHTML` com HTML não sanitizado <!-- novo teste nesta onda: MarkdownView.test.ts describe "Auditoria de fonte" (MarkdownView/FeatureDetail/hooks) + gate eslint no-restricted-syntax -->
 
 ### 5.4 Roundtrip End-to-End obrigatório e paridade dual-def `[C]`
 
 Ref: quickstart.md Cenário 10 (OBRIGATÓRIO); plan.md §Validação Zod;
 memórias `cstk-panel-dto-dual-definition` / `migration-gates-false-green`
 
-- [ ] 5.4.1 Subir o backend real (`npm run dev` ou `npm start`) contra uma
-      `knowledge.db` populada e `CSTK_PROJECT_PATHS` válido
-- [ ] 5.4.2 Chamada HTTP REAL (não mock/fixture) a
+- [x] 5.4.1 Subir o backend real (`npm run dev` ou `npm start`) contra uma
+      `knowledge.db` populada e `CSTK_PROJECT_PATHS` válido <!-- apps/server/test/integration/docs-roundtrip.test.ts: rotas reais registradas (import direto de src/routes/docs.js) contra a fixture real (test/knowledge-fixture.db) e CSTK_PROJECT_PATHS apontando pra raiz real do repo (dogfooding dos artefatos ja produzidos desta feature) -->
+- [x] 5.4.2 Chamada HTTP REAL (não mock/fixture) a
       `GET /api/v1/features/:project/:feature/docs` — validar o payload
       contra o schema Zod `FeatureDocsListSchema` (1.2.2); confirmar
       `camelCase` exato dos campos do contrato (`artifactId`, `fileName`,
-      `produced`, `extra`)
-- [ ] 5.4.3 Chamada HTTP REAL a
+      `produced`, `extra`) <!-- nome real do schema e FeatureDocsListDTOSchema (@cstk-panel/shared-types) — validado via ApiEnvelopeSchema(FeatureDocsListDTOSchema).safeParse contra payload real; docs-roundtrip.test.ts 5.4.2 -->
+- [x] 5.4.3 Chamada HTTP REAL a
       `GET /api/v1/features/:project/:feature/docs/spec` — validar contra
       `FeatureDocSchema`; confirmar `meta.freshness.{mtime,maxIngestedAt}` e
       `meta.schemaVersion` presentes, e que a segunda chamada com
-      `If-None-Match` retorna `304`
-- [ ] 5.4.4 Rodar `parity*.test.ts`
+      `If-None-Match` retorna `304` <!-- nome real: FeatureDocDTOSchema; docs-roundtrip.test.ts 5.4.3 (parse + freshness/schemaVersion + ETag/304) -->
+- [x] 5.4.4 Rodar `parity*.test.ts`
       (`packages/shared-types/src/__tests__/`) confirmando zero
-      divergência entre interface e schema Zod dos DTOs novos de 1.2
+      divergência entre interface e schema Zod dos DTOs novos de 1.2 <!-- validado empiricamente: parity.test.ts (29 testes) + parity-real.test.ts (22 testes), ambos verdes -->
 
 ### 5.5 Gates finais de qualidade `[M]`
 
 Ref: quickstart.md (comandos verificados)
 
-- [ ] 5.5.1 `npm run build` — sem erros nos workspaces `apps/server`,
-      `apps/web`, `packages/shared-types`
-- [ ] 5.5.2 `npm test` — todos os testes novos e existentes passam
-      (inclui paridade e roundtrip de 5.4)
-- [ ] 5.5.3 `npm run typecheck && npm run lint` — sem erros
+- [x] 5.5.1 `npm run build` — sem erros nos workspaces `apps/server`,
+      `apps/web`, `packages/shared-types` <!-- confirmado nesta onda: 3 workspaces OK -->
+- [x] 5.5.2 `npm test` — todos os testes novos e existentes passam
+      (inclui paridade e roundtrip de 5.4) <!-- confirmado nesta onda: 38 arquivos, 459/459 testes -->
+- [x] 5.5.3 `npm run typecheck && npm run lint` — sem erros <!-- confirmado nesta onda: typecheck OK (3 workspaces), lint OK, lint:readonly-check OK -->
 
 ---
 

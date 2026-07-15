@@ -237,6 +237,59 @@ describe('runWatcherTick — idempotencia (FR-014)', () => {
 });
 
 // ─────────────────────────────────────────────────────────
+// Transicao de status (task 5.1.3, quickstart Cenario 3, FR-003)
+// ─────────────────────────────────────────────────────────
+
+describe('runWatcherTick — transicao de status (Cenario 3, FR-003)', () => {
+  it('execucao concluida apos estar em_andamento sai do conjunto ativo no tick seguinte', async () => {
+    makeStateDir('feature-00c', projectDir, 'my-feature');
+    makeExecutionsDb(dbPath, [{ project: 'proj', feature: 'my-feature', status: 'em_andamento' }]);
+    const execFileImpl: ExecFileFn = async () => ({ stdout: '', stderr: '' });
+
+    const r1 = await runWatcherTick({ dbPath, supportedSchemaVersions: ['2'], execFileImpl });
+    expect(r1.activeCount).toBe(1);
+    expect(r1.triggered).toBe(1);
+
+    // Transicao real: a execucao conclui (mesma DB, UPDATE de status — nao
+    // recriar a DB, para provar que e a MUDANCA de status que tira do conjunto
+    // ativo, nao uma DB nova).
+    const db = new Database(dbPath);
+    db.prepare("UPDATE executions SET status = 'concluida' WHERE execution_id = 'exec-0'").run();
+    db.close();
+
+    const execFileImpl2: ExecFileFn = async () => {
+      throw new Error('NAO deveria ser chamado — execucao concluida deixou de ser ativa');
+    };
+    const r2 = await runWatcherTick({ dbPath, supportedSchemaVersions: ['2'], execFileImpl: execFileImpl2 });
+
+    expect(r2.activeCount).toBe(0);
+    expect(r2.triggered).toBe(0);
+  });
+
+  it('execucao abortada apos estar aguardando_humano tambem sai do conjunto ativo (FR-003)', async () => {
+    makeStateDir('agente-00c', projectDir);
+    makeExecutionsDb(dbPath, [{ project: 'proj', feature: null, status: 'aguardando_humano' }]);
+    const execFileImpl: ExecFileFn = async () => ({ stdout: '', stderr: '' });
+
+    const r1 = await runWatcherTick({ dbPath, supportedSchemaVersions: ['2'], execFileImpl });
+    expect(r1.activeCount).toBe(1);
+    expect(r1.triggered).toBe(1);
+
+    const db = new Database(dbPath);
+    db.prepare("UPDATE executions SET status = 'abortada' WHERE execution_id = 'exec-0'").run();
+    db.close();
+
+    const execFileImpl2: ExecFileFn = async () => {
+      throw new Error('NAO deveria ser chamado — execucao abortada deixou de ser ativa');
+    };
+    const r2 = await runWatcherTick({ dbPath, supportedSchemaVersions: ['2'], execFileImpl: execFileImpl2 });
+
+    expect(r2.activeCount).toBe(0);
+    expect(r2.triggered).toBe(0);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
 // Hardening (task 2.3.5)
 // ─────────────────────────────────────────────────────────
 

@@ -13,7 +13,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
 import Fastify from 'fastify';
 import type { FastifyInstance } from 'fastify';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync, symlinkSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, symlinkSync, chmodSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -188,6 +188,47 @@ describe('GET /features/:project/:feature/docs/:artifact — conteudo', () => {
       headers: { 'if-none-match': etag! },
     });
     expect(second.statusCode).toBe(304);
+  });
+});
+
+// ─── Caminho de projeto inacessivel (task 5.2.3, Cenario 7, FR-012) ──────
+// `describe.skipIf` porque root ignora permissoes de arquivo (accessSync
+// nunca lancaria EACCES rodando como root) — evita falso-negativo em
+// ambientes de CI que rodem containers como root.
+const isRoot = typeof process.getuid === 'function' && process.getuid() === 0;
+
+describe.skipIf(isRoot)('GET /docs — projeto com caminho inacessivel (Cenario 7, FR-012)', () => {
+  it('listagem: projeto mapeado mas sem permissao de leitura ⇒ 200 degradado, reason=project-path-inaccessible', async () => {
+    const restrictedRoot = join(tmpRoot, 'sem-permissao-list');
+    mkdirSync(restrictedRoot, { recursive: true });
+    chmodSync(restrictedRoot, 0o000);
+    process.env['CSTK_PROJECT_PATHS'] = `projeto-restrito=${restrictedRoot}`;
+    try {
+      const res = await server.inject({ method: 'GET', url: '/api/v1/features/projeto-restrito/minha-feature/docs' });
+      expect(res.statusCode).toBe(200); // nunca 5xx (Principio II)
+      const body = res.json();
+      expect(body.meta.degraded).toBe(true);
+      expect(body.meta.reason).toBe('project-path-inaccessible');
+      expect(body.data).toBeNull();
+    } finally {
+      chmodSync(restrictedRoot, 0o755); // restaurar antes do rmSync do afterEach
+    }
+  });
+
+  it('conteudo de artefato: mesma degradacao no endpoint /docs/:artifact', async () => {
+    const restrictedRoot = join(tmpRoot, 'sem-permissao-content');
+    mkdirSync(restrictedRoot, { recursive: true });
+    chmodSync(restrictedRoot, 0o000);
+    process.env['CSTK_PROJECT_PATHS'] = `projeto-restrito-2=${restrictedRoot}`;
+    try {
+      const res = await server.inject({ method: 'GET', url: '/api/v1/features/projeto-restrito-2/minha-feature/docs/spec' });
+      expect(res.statusCode).toBe(200);
+      const body = res.json();
+      expect(body.meta.degraded).toBe(true);
+      expect(body.meta.reason).toBe('project-path-inaccessible');
+    } finally {
+      chmodSync(restrictedRoot, 0o755);
+    }
   });
 });
 
