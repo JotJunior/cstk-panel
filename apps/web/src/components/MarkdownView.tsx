@@ -31,6 +31,7 @@
  */
 import Markdown, { type UrlTransform } from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
+import remarkGfm from 'remark-gfm';
 
 /**
  * Esquemas de URL permitidos em `href`/`src` (allowlist estrita — nunca
@@ -102,6 +103,13 @@ export function MarkdownView({ content }: MarkdownViewProps) {
   return (
     <div className="markdown-view">
       <Markdown
+        // remark-gfm habilita as EXTENSOES GFM exigidas por FR-006 (tabelas,
+        // strikethrough, task lists, autolinks) — opera no nivel do PARSER de
+        // markdown (mdast), nao reintroduz HTML bruto nem toca a postura de
+        // seguranca: rehype-sanitize continua como 2a camada (o schema default
+        // permite table/thead/tbody/tr/th/td) e urlTransform cobre os
+        // autolinks novos que o GFM gera (mesma allowlist de esquema).
+        remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeSanitize]}
         urlTransform={safeUrlTransform}
       >
