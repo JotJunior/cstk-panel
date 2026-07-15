@@ -5,6 +5,23 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.14.1] - 2026-07-15
+
+### Corrigido
+
+- **Tabelas markdown no doc-viewer**: tabelas GFM renderizavam como texto
+  corrido com pipes — o `react-markdown` não suporta a extensão de tabelas
+  sem o plugin `remark-gfm`. Plugin adicionado no nível do parser
+  (não reintroduz HTML bruto: `rehype-sanitize` segue como segunda camada
+  e a allowlist de esquemas de URL cobre links dentro de células e os
+  autolinks novos do GFM). Strikethrough e task-lists também passam a
+  renderizar.
+- **Navegação de artefatos responsiva**: as tabs horizontais no topo do
+  card de Documentação não comportavam os 12+ artefatos de uma feature.
+  Substituídas por um painel vertical à esquerda do conteúdo no desktop
+  (item ativo destacado, artefatos ausentes esmaecidos) e um select
+  full-width em telas estreitas (≤768px).
+
 ## [0.14.0] - 2026-07-15
 
 ### Adicionado
@@ -721,6 +738,7 @@ execuções dos orquestradores `agente-00c` / `feature-00c`, lido diretamente da
 - Invariantes constitucionais I–VI verificáveis por scripts de _lint_.
 - `npm run lint:readonly-check` garante zero verbos de mutação SQL em `apps/server/src`.
 
+[0.14.1]: https://github.com/JotJunior/cstk-panel/compare/v0.14.0...v0.14.1
 [0.14.0]: https://github.com/JotJunior/cstk-panel/compare/v0.13.1...v0.14.0
 [0.13.1]: https://github.com/JotJunior/cstk-panel/compare/v0.13.0...v0.13.1
 [0.13.0]: https://github.com/JotJunior/cstk-panel/compare/v0.12.1...v0.13.0
