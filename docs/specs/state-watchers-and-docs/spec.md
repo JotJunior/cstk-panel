@@ -4,6 +4,32 @@
 **Created**: 2026-07-15
 **Status**: Draft
 
+## Clarifications
+
+### Session 2026-07-15
+
+- Q: Qual é a fonte de verdade para resolver o caminho absoluto de um projeto
+  no sistema de arquivos a partir do nome lógico (`project`) já armazenado na
+  `knowledge.db`? → A: Configuração mantida pelo operador do painel — um
+  mapeamento nome lógico → caminho absoluto — seguindo o mesmo padrão de
+  resolução já adotado para o caminho da `knowledge.db` (flag/config
+  explícita > variável de ambiente > default). A `knowledge.db` não ganha
+  coluna nova nesta feature; o gap #7 de `docs/specs/cstk-panel/data-gaps.md`
+  segue documentado.
+- Q: O back-end do painel aciona proativamente o processo de ingestão
+  canônico para execuções em andamento, ou apenas consome o resultado já
+  produzido pelo hook fim-de-onda existente? → A: Aciona proativamente, em
+  cadência recorrente e somente enquanto houver execução em andamento —
+  sempre delegando ao processo de ingestão canônico já existente, nunca
+  escrevendo diretamente na `knowledge.db`, nunca tocando `state.json` e
+  nunca reconstruindo o índice (`--reindex`, cujo dono é externo ao painel).
+- Q: O painel conhece de antemão um mapeamento fixo etapa-SDD → artefato(s)
+  esperado(s), ou descobre dinamicamente qualquer arquivo presente na árvore
+  de documentação? → A: Mapeamento fixo por etapa do pipeline SDD, que
+  habilita o estado "ainda não produzido" exigido por FR-007; arquivos
+  adicionais presentes na árvore de documentação da feature continuam
+  listáveis e visualizáveis (SC-002 exige 100% dos artefatos já produzidos).
+
 ## User Scenarios & Testing
 
 ### User Story 1 - Acompanhar execuções em andamento quase em tempo real (Priority: P1)
@@ -113,7 +139,10 @@ ferramenta.
   delegar ao processo de ingestão canônico já existente, em vez de
   reimplementar a leitura de `state.json` ou a escrita no banco dentro do
   painel; nenhum caminho de código do painel MUST realizar escrita direta na
-  `knowledge.db`.
+  `knowledge.db`. Esse mecanismo MUST acionar a ingestão canônica de forma
+  proativa e recorrente enquanto houver execução em andamento (ver
+  Clarifications), e MUST NOT reconstruir o índice completo (`--reindex`,
+  dono externo ao painel) nem modificar `state.json`.
 - **FR-005**: Usuários MUST conseguir visualizar, dentro da visão de uma
   feature no painel, os artefatos de documentação já produzidos para ela pela
   pipeline de especificação (por exemplo: especificação, plano, backlog de
@@ -122,17 +151,20 @@ ferramenta.
   documentação formatado (renderizado), não como texto bruto sem formatação.
 - **FR-007**: O sistema MUST indicar claramente quando um artefato de
   documentação específico ainda não foi produzido para a feature, em vez de
-  apresentar isso como erro.
-- **FR-008**: O sistema MUST resolver, a partir de uma fonte definida e
-  auditável, a localização no sistema de arquivos necessária tanto para
-  observar o estado de uma execução (FR-001) quanto para ler os artefatos de
-  documentação de um projeto (FR-005). [NEEDS CLARIFICATION: a `knowledge.db`
-  hoje não armazena o caminho absoluto do projeto no sistema de arquivos —
-  apenas um nome lógico (`project`); esse gap já está documentado em
-  `docs/specs/cstk-panel/data-gaps.md` (item 7, "descrição e repo do
-  projeto"). Falta definir a fonte de verdade para esse caminho: nova coluna
-  populada na ingestão, configuração mantida pelo operador, ou outro
-  mecanismo.]
+  apresentar isso como erro; a expectativa de quais artefatos existem por
+  etapa vem do mapeamento fixo etapa-SDD → artefato(s) (ver Clarifications),
+  sem impedir a exibição de arquivos adicionais já presentes na árvore de
+  documentação.
+- **FR-008**: O sistema MUST resolver a localização do projeto no sistema de
+  arquivos — necessária tanto para observar o estado de uma execução
+  (FR-001) quanto para ler os artefatos de documentação (FR-005) — a partir
+  de configuração mantida pelo operador do painel: um mapeamento do nome
+  lógico (`project`, já armazenado na `knowledge.db`) para o caminho
+  absoluto, resolvido no padrão já adotado para o caminho da `knowledge.db`
+  (flag/config explícita > variável de ambiente > default). A `knowledge.db`
+  MUST NOT ganhar coluna de caminho nesta feature; projetos sem entrada no
+  mapeamento MUST ser tratados como não observáveis (degradação sinalizada,
+  FR-012), nunca como erro.
 - **FR-009**: O sistema MUST confinar qualquer acesso a arquivos de
   documentação à árvore de documentação do próprio projeto resolvido em
   FR-008; MUST NOT seguir caminhos que escapem dessa fronteira.
