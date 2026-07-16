@@ -5,6 +5,25 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.15.0] - 2026-07-16
+
+### Adicionado
+
+- **Diagramas Mermaid no doc-viewer**: blocos de código `mermaid` dos
+  artefatos de documentação (spec/plan/tasks/...) agora renderizam como
+  diagrama SVG no card de Documentação, mantendo a postura de segurança
+  para conteúdo de agente (UNTRUSTED, Princípio V) em três camadas
+  independentes: `securityLevel: 'strict'` (sanitização da própria lib e
+  interações de click desabilitadas), `htmlLabels: false` (labels em
+  `<text>` SVG puro — o SVG final não carrega `<foreignObject>` com HTML
+  embutido) e DOMPurify com profile SVG-only sobre o SVG gerado, injetado
+  via `replaceChildren` de `DocumentFragment` — nenhum uso de
+  `innerHTML`/`dangerouslySetInnerHTML`. A lib (~2 MB) entra por
+  `import()` dinâmico (chunk lazy do Vite, baixado só quando o documento
+  contém diagrama); o tema do diagrama acompanha o toggle claro/escuro do
+  painel; diagrama inválido degrada para o código-fonte em bloco `<pre>`
+  com aviso, sem derrubar o doc-viewer.
+
 ## [0.14.1] - 2026-07-15
 
 ### Corrigido
@@ -738,6 +757,7 @@ execuções dos orquestradores `agente-00c` / `feature-00c`, lido diretamente da
 - Invariantes constitucionais I–VI verificáveis por scripts de _lint_.
 - `npm run lint:readonly-check` garante zero verbos de mutação SQL em `apps/server/src`.
 
+[0.15.0]: https://github.com/JotJunior/cstk-panel/compare/v0.14.1...v0.15.0
 [0.14.1]: https://github.com/JotJunior/cstk-panel/compare/v0.14.0...v0.14.1
 [0.14.0]: https://github.com/JotJunior/cstk-panel/compare/v0.13.1...v0.14.0
 [0.13.1]: https://github.com/JotJunior/cstk-panel/compare/v0.13.0...v0.13.1
