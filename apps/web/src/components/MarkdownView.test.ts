@@ -18,7 +18,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { isSafeUrl, MarkdownView } from './MarkdownView.js';
+import { extractMermaidCode, isSafeUrl, MarkdownView } from './MarkdownView.js';
 
 describe('isSafeUrl', () => {
   it('permite esquemas da allowlist (http, https, mailto)', () => {
@@ -130,6 +130,67 @@ describe('MarkdownView — render seguro (renderToStaticMarkup, prova empirica E
   });
 });
 
+describe('extractMermaidCode — deteccao de bloco ```mermaid no children de <pre>', () => {
+  const codeEl = (className: string | undefined, children: unknown) =>
+    createElement('code', { className }, children as string);
+
+  it('extrai o codigo de <code class="language-mermaid"> (filho unico ou array unitario)', () => {
+    expect(extractMermaidCode(codeEl('language-mermaid', 'graph TD;\nA-->B;\n'))).toBe(
+      'graph TD;\nA-->B;\n',
+    );
+    expect(extractMermaidCode([codeEl('language-mermaid', 'graph TD;')])).toBe('graph TD;');
+  });
+
+  it('ignora blocos de outras linguagens e code sem className', () => {
+    expect(extractMermaidCode(codeEl('language-ts', 'const a = 1;'))).toBeNull();
+    expect(extractMermaidCode(codeEl(undefined, 'graph TD;'))).toBeNull();
+  });
+
+  it('nao confunde prefixo de classe: language-mermaidjs nao e mermaid', () => {
+    expect(extractMermaidCode(codeEl('language-mermaidjs', 'x'))).toBeNull();
+  });
+
+  it('ignora children nao-elemento, arrays multiplos e conteudo vazio', () => {
+    expect(extractMermaidCode('texto solto')).toBeNull();
+    expect(extractMermaidCode(null)).toBeNull();
+    expect(extractMermaidCode([codeEl('language-mermaid', 'a'), codeEl('language-mermaid', 'b')])).toBeNull();
+    expect(extractMermaidCode(codeEl('language-mermaid', '   \n  '))).toBeNull();
+  });
+
+  it('conteudo nao-string (ex.: elemento aninhado pos-sanitize) nao e tratado como mermaid', () => {
+    const nested = createElement('code', { className: 'language-mermaid' }, createElement('span', null, 'x'));
+    expect(extractMermaidCode(nested)).toBeNull();
+  });
+});
+
+describe('MarkdownView — bloco ```mermaid vira container de diagrama (prova empirica SSR)', () => {
+  function render(content: string): string {
+    return renderToStaticMarkup(createElement(MarkdownView, { content }));
+  }
+
+  it('```mermaid renderiza o container do MermaidDiagram no lugar de <pre>', () => {
+    const html = render('```mermaid\ngraph TD;\nA-->B;\n```');
+    // Em SSR o useEffect nao roda (o SVG e desenhado so no browser) — o que
+    // se prova aqui e a ROTA de render: container do diagrama, nao <pre>.
+    expect(html).toContain('mermaid-diagram');
+    expect(html).not.toContain('<pre>');
+  });
+
+  it('bloco de codigo comum continua renderizando <pre><code> intacto', () => {
+    const html = render('```ts\nconst a = 1;\n```');
+    expect(html).toContain('<pre>');
+    expect(html).toContain('const a = 1;');
+    expect(html).not.toContain('mermaid-diagram');
+  });
+
+  it('mermaid convive com o resto do documento (heading + tabela GFM seguem ok)', () => {
+    const html = render('# T\n\n```mermaid\ngraph TD;\nA-->B;\n```\n\n| a |\n|---|\n| b |');
+    expect(html).toContain('<h1>');
+    expect(html).toContain('<table>');
+    expect(html).toContain('mermaid-diagram');
+  });
+});
+
 // ---------------------------------------------------------------------------
 // Auditoria de fonte (task 5.3.3, quickstart Cenario 8) — confirma por
 // grep-based scan (mesmo padrao de DecisionMapPanel.test.ts) a ausencia de
@@ -152,6 +213,14 @@ describe('Auditoria de fonte — ausencia de dangerouslySetInnerHTML (task 5.3.3
 
   it('MarkdownView.tsx nao usa dangerouslySetInnerHTML como prop/atributo', () => {
     expect(readSrc('components/MarkdownView.tsx')).not.toMatch(USAGE_RE);
+  });
+
+  it('MermaidDiagram.tsx nao usa dangerouslySetInnerHTML nem atribuicao a innerHTML', () => {
+    const src = readSrc('components/MermaidDiagram.tsx');
+    expect(src).not.toMatch(USAGE_RE);
+    // Insercao de DOM permitida SO via replaceChildren(fragment sanitizado)
+    expect(src).not.toMatch(/\.innerHTML\s*=/);
+    expect(src).toContain('replaceChildren');
   });
 
   it('FeatureDetail.tsx (consumidor do doc-viewer, DocumentationPanel) nao usa dangerouslySetInnerHTML', () => {
