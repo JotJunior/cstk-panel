@@ -270,6 +270,23 @@
 .markdown-view hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
 .markdown-view img { max-width: 100%; border-radius: var(--r-xs); }
 
+/* Diagramas Mermaid (blocos ```mermaid — MermaidDiagram.tsx). O SVG gerado
+ * ja vem com max-width/width responsivos (useMaxWidth default da lib);
+ * overflow-x cobre diagramas mais largos que o card em telas estreitas. */
+.markdown-view .mermaid-diagram {
+  margin: 0 0 12px; padding: 12px;
+  background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--r-sm);
+  overflow-x: auto; text-align: center;
+}
+.markdown-view .mermaid-diagram svg { max-width: 100%; height: auto; }
+.markdown-view .mermaid-diagram--error { text-align: left; }
+.markdown-view .mermaid-diagram--error pre { margin: 0; }
+.mermaid-error-note { font-size: 11.5px; color: var(--warning); margin-bottom: 8px; }
+.mermaid-error-detail {
+  font-family: var(--font-mono); font-size: 11px; color: var(--text-2);
+  margin-top: 8px; white-space: pre-wrap; word-break: break-word;
+}
+
 /* ---------- Doc-viewer: navegação por artefato (painel esquerdo / select) ----
    Desktop: lista vertical à esquerda do conteúdo (12+ artefatos não cabem em
    tabs horizontais). Estreito (<=768px): a lista dá lugar a um select — mesmo

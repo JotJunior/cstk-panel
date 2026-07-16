@@ -29,9 +29,11 @@
  * Ref: research.md Decision 6; contracts/docs-api.md; spec.md FR-006/FR-010;
  * quickstart.md Cenario 8. Tasks 4.1.1-4.1.3.
  */
+import { isValidElement, type ComponentProps, type ReactNode } from 'react';
 import Markdown, { type UrlTransform } from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import remarkGfm from 'remark-gfm';
+import { MermaidDiagram } from './MermaidDiagram.js';
 
 /**
  * Esquemas de URL permitidos em `href`/`src` (allowlist estrita — nunca
@@ -94,6 +96,53 @@ export function isSafeUrl(url: string): boolean {
  */
 const safeUrlTransform: UrlTransform = (url) => (isSafeUrl(url) ? url : '');
 
+/**
+ * Extrai o codigo-fonte mermaid do children de um <pre> produzido pelo
+ * react-markdown (` ```mermaid ` vira hast `<pre><code class="language-mermaid">`),
+ * ou `null` quando o bloco nao e mermaid — caso em que o <pre> renderiza normal.
+ *
+ * A classe `language-mermaid` SOBREVIVE ao rehype-sanitize: o schema default
+ * permite `className` matching /^language-./ em `code`
+ * (node_modules/hast-util-sanitize/lib/schema.js) — nenhuma flexibilizacao de
+ * schema foi necessaria.
+ *
+ * Conservador por design: so trata como mermaid o <pre> com EXATAMENTE um
+ * filho <code class="language-mermaid"> cujo conteudo ja e texto puro (pos
+ * sanitize) e nao-vazio. Qualquer outra forma renderiza como bloco de codigo
+ * comum — degradacao graciosa, nunca throw.
+ *
+ * Exportada para teste unitario direto (sem DOM) — MarkdownView.test.ts.
+ */
+export function extractMermaidCode(node: ReactNode): string | null {
+  if (Array.isArray(node)) {
+    return node.length === 1 ? extractMermaidCode(node[0]) : null;
+  }
+  if (!isValidElement(node)) return null;
+  const props = node.props as { className?: unknown; children?: unknown };
+  const className = typeof props.className === 'string' ? props.className : '';
+  if (!/(?:^|\s)language-mermaid(?:\s|$)/.test(className)) return null;
+
+  const raw = props.children;
+  let code: string | null = null;
+  if (typeof raw === 'string') code = raw;
+  else if (Array.isArray(raw) && raw.every((c): c is string => typeof c === 'string')) {
+    code = raw.join('');
+  }
+  if (code == null || code.trim() === '') return null;
+  return code;
+}
+
+/**
+ * Override de `pre`: intercepta blocos ```mermaid e delega ao MermaidDiagram
+ * (render seguro em SVG — ver MermaidDiagram.tsx); demais blocos seguem o
+ * render default. `node` (hast) e descartado — nao e prop de DOM.
+ */
+function PreOrMermaid({ node: _node, children, ...rest }: ComponentProps<'pre'> & { node?: unknown }) {
+  const mermaidCode = extractMermaidCode(children);
+  if (mermaidCode != null) return <MermaidDiagram code={mermaidCode} />;
+  return <pre {...rest}>{children}</pre>;
+}
+
 export interface MarkdownViewProps {
   /** Markdown BRUTO de um artefato de documentacao — UNTRUSTED (Principio V). */
   content: string;
@@ -112,6 +161,9 @@ export function MarkdownView({ content }: MarkdownViewProps) {
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeSanitize]}
         urlTransform={safeUrlTransform}
+        // Blocos ```mermaid viram diagrama SVG (MermaidDiagram, mesma postura
+        // de seguranca — ver comentarios em PreOrMermaid/MermaidDiagram.tsx).
+        components={{ pre: PreOrMermaid }}
       >
         {content}
       </Markdown>
