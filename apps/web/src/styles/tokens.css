@@ -391,6 +391,7 @@ input, select, textarea { font-family: inherit; }
   color: var(--text-1);
   min-width: 0;
   flex: 1;
+  overflow: hidden; /* cadeia longa (projeto/feature/execucao) trunca com ellipsis por crumb */
 }
 .crumbs .sep { color: var(--text-3); }
 .crumb {

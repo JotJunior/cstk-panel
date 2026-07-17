@@ -769,6 +769,11 @@ export function ExecutionDetail() {
 
   if (!exec) return <EmptyState title="Execucao nao encontrada" subtitle="O execucao_id informado nao existe na base." />;
 
+  // Rota de volta para a feature-mae (null quando a execucao nao tem feature)
+  const featurePath = exec.feature
+    ? `/features/${encodeURIComponent(exec.project)}/${encodeURIComponent(exec.feature)}`
+    : null;
+
   function handleSelectWave(wave: string | null) {
     setSelectedWave(wave);
     const params = new URLSearchParams(searchParams);
@@ -812,14 +817,19 @@ export function ExecutionDetail() {
                 {exec.feature ?? exec.executionId}
               </div>
               <div className="row gap-2" style={{ fontSize: 11.5, color: 'var(--text-2)' }}>
-                <span
-                  onClick={() => navigate(`/projects/${encodeURIComponent(exec.project)}`)}
-                  style={{ cursor: 'pointer', color: 'var(--text-1)' }}
-                >
-                  {exec.project}
+                <span className="prov" style={{ fontSize: 11.5 }}>
+                  <a onClick={() => navigate(`/projects/${encodeURIComponent(exec.project)}`)} title="Ir para o projeto">
+                    {exec.project}
+                  </a>
+                  {featurePath && (
+                    <>
+                      <span className="sep">/</span>
+                      <a onClick={() => navigate(featurePath)} title="Voltar para a feature">
+                        {exec.feature}
+                      </a>
+                    </>
+                  )}
                 </span>
-                <span style={{ color: 'var(--text-3)' }}>/</span>
-                <span>{exec.feature}</span>
                 <span style={{ color: 'var(--text-3)' }}>·</span>
                 <span>iniciada {fmtTimestamp(exec.startedAt)}</span>
                 {exec.session && (
@@ -843,9 +853,16 @@ export function ExecutionDetail() {
                 )}
               </div>
             </div>
-            {/* Botoes decorativos (CARD-EX-02) — recursos externos ao painel */}
             <div className="row gap-2" style={{ flexShrink: 0 }}>
-              {/* Botão navega para a página dedicada da árvore de decisões */}
+              {featurePath && (
+                <button
+                  className="tb-btn"
+                  onClick={() => navigate(featurePath)}
+                  title="Voltar ao detalhe da feature"
+                >
+                  <Icon name="chevron-left" size={13} aria-hidden />voltar à feature
+                </button>
+              )}
               <button
                 className="tb-btn"
                 onClick={() =>
@@ -858,9 +875,6 @@ export function ExecutionDetail() {
                 title="Abrir árvore de decisões"
               >
                 <Icon name="tree" size={13} aria-hidden />árvore de decisões
-              </button>
-              <button className="tb-btn" disabled title="Disponível via CLI recall (externo)">
-                <Icon name="external" size={13} aria-hidden />abrir no recall
               </button>
             </div>
           </div>
