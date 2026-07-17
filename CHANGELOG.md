@@ -5,6 +5,23 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.15.1] - 2026-07-17
+
+### Corrigido
+
+- **Watcher de ingestão tolerante a ingestões longas**: o painel ficava
+  permanentemente em "Base degradada — watcher-ingestion-failed" porque o
+  timeout do subprocesso `cstk recall --ingest` (20s, calibrado sobre um
+  state.json de 49KB / ~11.6s) matava ingestões reais de ~52.5s
+  (state.json de 122KB, cstk 5.21.0). O default sobe para 90s (~1.7x de
+  folga sobre o medido) e passa a ser configurável sem rebuild via
+  `CSTK_INGEST_TIMEOUT_MS` (espelha `CSTK_WATCH_INTERVAL_MS`).
+- **Guarda de in-flight no watcher**: os ticks (5s) não se serializam e o
+  cache de assinatura só é gravado ao fim do subprocesso — ingestões mais
+  longas que a cadência disparavam subprocessos `cstk` concorrentes para
+  o mesmo state-dir, disputando a mesma knowledge.db. O tick agora pula
+  state-dirs com ingestão ainda em voo.
+
 ## [0.15.0] - 2026-07-16
 
 ### Adicionado
@@ -757,6 +774,7 @@ execuções dos orquestradores `agente-00c` / `feature-00c`, lido diretamente da
 - Invariantes constitucionais I–VI verificáveis por scripts de _lint_.
 - `npm run lint:readonly-check` garante zero verbos de mutação SQL em `apps/server/src`.
 
+[0.15.1]: https://github.com/JotJunior/cstk-panel/compare/v0.15.0...v0.15.1
 [0.15.0]: https://github.com/JotJunior/cstk-panel/compare/v0.14.1...v0.15.0
 [0.14.1]: https://github.com/JotJunior/cstk-panel/compare/v0.14.0...v0.14.1
 [0.14.0]: https://github.com/JotJunior/cstk-panel/compare/v0.13.1...v0.14.0
