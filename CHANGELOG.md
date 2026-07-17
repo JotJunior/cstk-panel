@@ -5,6 +5,38 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.16.0] - 2026-07-17
+
+### Adicionado
+
+- **Breadcrumb hierárquico no detalhe de execução**: o topo agora mostra
+  `cstk-panel / projeto / feature / execução` com projeto e feature
+  clicáveis. Como a rota `/executions/:id` não carrega projeto/feature na
+  URL, os crumbs vêm do DTO da própria execução (mesma queryKey da tela —
+  o cache do TanStack Query deduplica, sem fetch extra); enquanto a query
+  não resolve, degrada para o caminho genérico (`Execuções / <id>`). Na
+  árvore de decisões, o crumb da execução vira link de volta para ela.
+- **Volta à feature de dentro da execução**: botão "voltar à feature" no
+  header do detalhe de execução (mesmo padrão do "voltar à execução" da
+  árvore de decisões) e feature clicável na linha de proveniência
+  (padrão `.prov` da FeatureDetail). Ambos ausentes graciosamente quando
+  a execução não tem feature associada.
+
+### Corrigido
+
+- **Crumb do projeto no detalhe de feature**: apontava para
+  `/features/<projeto>`, rota inexistente (caía na página 404); agora o
+  breadcrumb é `cstk-panel / projeto / feature` e o crumb do projeto leva
+  a `/projects/<projeto>`.
+- **Truncamento do breadcrumb**: com a cadeia mais longa, o excedente era
+  pintado por baixo das abas de período; agora cada crumb encolhe com
+  ellipsis (o crumb-raiz nunca trunca) e o nome completo fica no tooltip.
+
+### Removido
+
+- **Botão "abrir no recall"** no detalhe de execução — decorativo,
+  permanentemente desabilitado e sem função.
+
 ## [0.15.1] - 2026-07-17
 
 ### Corrigido
@@ -774,6 +806,7 @@ execuções dos orquestradores `agente-00c` / `feature-00c`, lido diretamente da
 - Invariantes constitucionais I–VI verificáveis por scripts de _lint_.
 - `npm run lint:readonly-check` garante zero verbos de mutação SQL em `apps/server/src`.
 
+[0.16.0]: https://github.com/JotJunior/cstk-panel/compare/v0.15.1...v0.16.0
 [0.15.1]: https://github.com/JotJunior/cstk-panel/compare/v0.15.0...v0.15.1
 [0.15.0]: https://github.com/JotJunior/cstk-panel/compare/v0.14.1...v0.15.0
 [0.14.1]: https://github.com/JotJunior/cstk-panel/compare/v0.14.0...v0.14.1
