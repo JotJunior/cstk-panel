@@ -344,6 +344,42 @@ describe('runWatcherTick — hardening (Decision 9)', () => {
     expect(r2.triggered).toBe(0);
   });
 
+  it('ingestao em voo ⇒ tick seguinte NAO dispara segundo subprocesso para o mesmo state-dir', async () => {
+    makeStateDir('feature-00c', projectDir, 'my-feature');
+    makeExecutionsDb(dbPath, [{ project: 'proj', feature: 'my-feature', status: 'em_andamento' }]);
+
+    let callCount = 0;
+    let releaseFirst: () => void = () => {};
+    const hangingExec: ExecFileFn = async () => {
+      callCount++;
+      await new Promise<void>(resolvePromise => { releaseFirst = resolvePromise; });
+      return { stdout: '', stderr: '' };
+    };
+
+    // 1o tick fica pendente (subprocesso "em voo"); 2o tick roda por completo
+    // enquanto o 1o ainda nao terminou — deve pular, nao disparar de novo.
+    const tick1 = runWatcherTick({ dbPath, supportedSchemaVersions: ['2'], execFileImpl: hangingExec });
+    await new Promise(resolvePromise => setImmediate(resolvePromise)); // deixa o 1o tick chegar ao execImpl
+    const r2 = await runWatcherTick({ dbPath, supportedSchemaVersions: ['2'], execFileImpl: hangingExec });
+
+    expect(callCount).toBe(1);
+    expect(r2.triggered).toBe(0);
+    expect(r2.skipped).toBe(1);
+
+    releaseFirst();
+    const r1 = await tick1;
+    expect(r1.triggered).toBe(1);
+
+    // Apos o 1o terminar, o state-dir sai do conjunto em-voo: um tick novo com
+    // assinatura mudada volta a disparar normalmente.
+    const stateDir = join(projectDir, '.claude', 'feature-00c-state', 'my-feature');
+    const future = new Date(Date.now() + 5000);
+    utimesSync(join(stateDir, 'state.json'), future, future);
+    const resolvingExec: ExecFileFn = async () => ({ stdout: '', stderr: '' });
+    const r3 = await runWatcherTick({ dbPath, supportedSchemaVersions: ['2'], execFileImpl: resolvingExec });
+    expect(r3.triggered).toBe(1);
+  });
+
   it('apos backoff expirar, re-tentativa dispara normalmente', async () => {
     makeStateDir('feature-00c', projectDir, 'my-feature');
     makeExecutionsDb(dbPath, [{ project: 'proj', feature: 'my-feature', status: 'em_andamento' }]);

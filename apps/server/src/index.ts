@@ -24,7 +24,7 @@ import { eventRoutes } from './routes/events.js';
 import { metricsRoutes } from './routes/metrics.js';
 import { searchRoutes } from './routes/search.js';
 import { memoryRoutes } from './routes/memories.js';
-import { startIngestWatcher, DEFAULT_WATCH_INTERVAL_MS } from './watchers/ingest-watcher.js';
+import { startIngestWatcher, DEFAULT_WATCH_INTERVAL_MS, DEFAULT_SUBPROCESS_TIMEOUT_MS } from './watchers/ingest-watcher.js';
 
 async function main(): Promise<void> {
   const config = loadConfig();
@@ -96,10 +96,18 @@ async function main(): Promise<void> {
   const watchIntervalMs = watchIntervalRaw && /^\d+$/.test(watchIntervalRaw)
     ? parseInt(watchIntervalRaw, 10)
     : DEFAULT_WATCH_INTERVAL_MS;
+  // Timeout do subprocesso `cstk recall --ingest` — configuravel sem rebuild
+  // (a duracao real da ingestao cresce com o state.json; ver medicao no
+  // comentario de DEFAULT_SUBPROCESS_TIMEOUT_MS).
+  const ingestTimeoutRaw = process.env['CSTK_INGEST_TIMEOUT_MS'];
+  const ingestTimeoutMs = ingestTimeoutRaw && /^\d+$/.test(ingestTimeoutRaw)
+    ? parseInt(ingestTimeoutRaw, 10)
+    : DEFAULT_SUBPROCESS_TIMEOUT_MS;
   const watcherHandle = startIngestWatcher({
     dbPath: config.dbPath,
     supportedSchemaVersions: config.supportedSchemaVersions,
     intervalMs: watchIntervalMs,
+    subprocessTimeoutMs: ingestTimeoutMs,
     onTickError: (err: unknown) => {
       // Falha de tick nunca derruba o processo (Principio II) — apenas logada.
       server.log.warn({ err }, 'ingest-watcher: tick falhou');

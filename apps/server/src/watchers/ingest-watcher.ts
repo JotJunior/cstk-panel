@@ -47,11 +47,16 @@ import { validateProjectRootPath } from '../lib/project-root.js';
  */
 export const DEFAULT_WATCH_INTERVAL_MS = 5_000;
 /**
- * Timeout do subprocesso `cstk recall --ingest`. Medicao real (task 2.3.4) foi
- * ~11.6s para o state.json desta feature — 20s mantem ~1.7x de folga sobre o
- * medido antes de matar o subprocesso.
+ * Timeout do subprocesso `cstk recall --ingest`. Re-medicao real em 2026-07-17
+ * (cstk 5.21.0, state.json de 122KB / 176 memories / 77 decisions):
+ *   "16.53s user 28.47s system 85% cpu 52.499 total"
+ * ⇒ ingestao real ~52.5s — o default anterior de 20s (calibrado sobre um state
+ * de 49KB que levava ~11.6s) matava o subprocesso no meio e deixava o painel
+ * permanentemente em `watcher-ingestion-failed`. 90s mantem ~1.7x de folga
+ * sobre o medido (mesma margem da calibracao original). Ajustavel sem rebuild
+ * via CSTK_INGEST_TIMEOUT_MS (ver index.ts).
  */
-export const DEFAULT_SUBPROCESS_TIMEOUT_MS = 20_000;
+export const DEFAULT_SUBPROCESS_TIMEOUT_MS = 90_000;
 /** Cap de subprocessos `cstk` concorrentes por tick (Decision 9, item 3). */
 export const DEFAULT_MAX_CONCURRENT = 4;
 /** Backoff apos falha: pula re-tentativa para o mesmo state-dir por este intervalo. */
@@ -78,6 +83,16 @@ export interface WatcherCacheEntry {
 
 const signatureCache = new Map<string, WatcherCacheEntry>();
 
+/**
+ * State-dirs com subprocesso `cstk recall --ingest` EM VOO. Os ticks do
+ * setInterval nao se serializam e o cache de assinatura so e gravado quando o
+ * subprocesso termina — sem esta guarda, uma ingestao mais longa que a cadencia
+ * (medido: ~52.5s vs tick de 5s) faz cada tick seguinte disparar OUTRO
+ * subprocesso para o mesmo state-dir (ingests concorrentes disputando a mesma
+ * knowledge.db).
+ */
+const inFlightStateDirs = new Set<string>();
+
 /** Leitura do cache por state-dir — consumido pelo endpoint de detalhe (task 2.4). */
 export function getWatcherCacheEntry(stateDir: string): WatcherCacheEntry | undefined {
   return signatureCache.get(stateDir);
@@ -91,6 +106,7 @@ export function setWatcherCacheEntryForTests(stateDir: string, entry: WatcherCac
 /** Reset total do cache — uso exclusivo de testes (isolamento entre casos). */
 export function resetWatcherCacheForTests(): void {
   signatureCache.clear();
+  inFlightStateDirs.clear();
 }
 
 /**
@@ -320,6 +336,7 @@ export async function runWatcherTick(opts: WatcherTickOptions): Promise<WatcherT
       const stateDir = deriveStateDir(projectPath, row.feature);
       if (!stateDir) { skipped++; return; } // feature falhou anti-traversal (Decision 9)
       if (!existsSync(stateDir)) { skipped++; return; } // state-dir nao existe no FS (FR-012)
+      if (inFlightStateDirs.has(stateDir)) { skipped++; return; } // ingestao anterior ainda em voo
 
       const cached = signatureCache.get(stateDir);
       const nowMs = nowFn();
@@ -332,6 +349,7 @@ export async function runWatcherTick(opts: WatcherTickOptions): Promise<WatcherT
         skipped++; return; // idempotencia (FR-014) — state.json nao mudou desde a ultima vista
       }
 
+      inFlightStateDirs.add(stateDir);
       try {
         await execImpl(cstkBin, ['recall', '--ingest', '--state-dir', stateDir, '--db', opts.dbPath], {
           timeout: timeoutMs,
@@ -349,6 +367,8 @@ export async function runWatcherTick(opts: WatcherTickOptions): Promise<WatcherT
           lastErrorAt: nowMs,
         });
         skipped++;
+      } finally {
+        inFlightStateDirs.delete(stateDir);
       }
     })
   );
