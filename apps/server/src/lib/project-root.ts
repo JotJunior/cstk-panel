@@ -83,7 +83,7 @@ function isForbiddenZone(resolved: string): boolean {
  * knowledge.db). Retorna o caminho canonicalizado (realpath) quando e um
  * diretorio existente fora das zonas proibidas; null caso contrario.
  * Exportada isoladamente para o watcher, que carrega o valor bruto na
- * propria linha de `listActiveExecutions` (a conexao com a db ja foi
+ * propria linha de `listExecutionsForWatcher` (a conexao com a db ja foi
  * fechada quando a validacao acontece).
  */
 export function validateProjectRootPath(raw: unknown): string | null {
