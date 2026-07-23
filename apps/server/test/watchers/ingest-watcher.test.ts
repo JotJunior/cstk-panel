@@ -9,7 +9,7 @@
  * ambiente de CI.
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { mkdtempSync, writeFileSync, mkdirSync, chmodSync, rmSync, utimesSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, mkdirSync, chmodSync, realpathSync, rmSync, utimesSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import Database from 'better-sqlite3';
@@ -32,17 +32,22 @@ let tmpRoot: string;
 let dbPath: string;
 let projectDir: string;
 
-function makeExecutionsDb(path: string, rows: Array<{ project: string; feature: string | null; status: string }>): void {
+function makeExecutionsDb(
+  path: string,
+  rows: Array<{ project: string; feature: string | null; status: string; targetProjectPath?: string }>
+): void {
   const db = new Database(path);
   db.exec(`
     CREATE TABLE schema_meta (key TEXT PRIMARY KEY, value TEXT);
     INSERT INTO schema_meta VALUES ('schema_version', '2');
     CREATE TABLE executions (
-      execution_id TEXT PRIMARY KEY, project TEXT, feature TEXT, status TEXT
+      execution_id TEXT PRIMARY KEY, project TEXT, feature TEXT, status TEXT, target_project_path TEXT
     );
   `);
-  const ins = db.prepare('INSERT INTO executions (execution_id, project, feature, status) VALUES (?, ?, ?, ?)');
-  rows.forEach((r, i) => ins.run(`exec-${i}`, r.project, r.feature, r.status));
+  const ins = db.prepare(
+    'INSERT INTO executions (execution_id, project, feature, status, target_project_path) VALUES (?, ?, ?, ?, ?)'
+  );
+  rows.forEach((r, i) => ins.run(`exec-${i}`, r.project, r.feature, r.status, r.targetProjectPath ?? null));
   db.close();
 }
 
@@ -286,6 +291,144 @@ describe('runWatcherTick — transicao de status (Cenario 3, FR-003)', () => {
 
     expect(r2.activeCount).toBe(0);
     expect(r2.triggered).toBe(0);
+  });
+});
+
+// ─────────────────────────────────────────────────────────
+// Descoberta via filesystem (fix ovo-e-galinha: state.json
+// novo sem linha em `executions`)
+// ─────────────────────────────────────────────────────────
+
+describe('runWatcherTick — descoberta via filesystem', () => {
+  it('state.json recem-criado SEM nenhuma linha na db dispara ingestao (ovo-e-galinha)', async () => {
+    const stateDir = makeStateDir('feature-00c', projectDir, 'nova-feature');
+    makeExecutionsDb(dbPath, []); // db vazia: execucao ainda nunca ingerida
+
+    const calls: Array<{ args: string[] }> = [];
+    const execFileImpl: ExecFileFn = async (_file, args) => {
+      calls.push({ args });
+      return { stdout: '', stderr: '' };
+    };
+
+    const result = await runWatcherTick({ dbPath, supportedSchemaVersions: ['2'], execFileImpl });
+
+    expect(result.activeCount).toBe(0);
+    expect(result.fsDiscovered).toBe(1);
+    expect(result.triggered).toBe(1);
+    expect(calls[0]?.args).toEqual(['recall', '--ingest', '--state-dir', stateDir, '--db', dbPath]);
+  });
+
+  it('knowledge.db AUSENTE nao bloqueia a descoberta — ingest do cstk cria a db', async () => {
+    // Cenario "painel novo": nenhuma knowledge.db ainda; cstk recall --ingest
+    // cria e popula a db (verificado empiricamente, cstk 5.21.0).
+    makeStateDir('feature-00c', projectDir, 'primeira-feature');
+    // NAO cria dbPath de proposito
+    let callCount = 0;
+    const execFileImpl: ExecFileFn = async () => { callCount++; return { stdout: '', stderr: '' }; };
+
+    const result = await runWatcherTick({ dbPath, supportedSchemaVersions: ['2'], execFileImpl });
+
+    expect(result.degradedDb).toBe(true); // db ainda nao existe — flag mantida
+    expect(result.fsDiscovered).toBe(1);
+    expect(result.triggered).toBe(1);
+    expect(callCount).toBe(1);
+  });
+
+  it('layout agente-00c tambem e descoberto via filesystem', async () => {
+    makeStateDir('agente-00c', projectDir);
+    makeExecutionsDb(dbPath, []);
+    const execFileImpl: ExecFileFn = async () => ({ stdout: '', stderr: '' });
+
+    const result = await runWatcherTick({ dbPath, supportedSchemaVersions: ['2'], execFileImpl });
+    expect(result.fsDiscovered).toBe(1);
+    expect(result.triggered).toBe(1);
+  });
+
+  it('feature nova dispara; state-dir de execucao concluida conhecida e apenas semeado (sem ingest no boot)', async () => {
+    makeStateDir('feature-00c', projectDir, 'concluida-antiga');
+    const novaDir = makeStateDir('feature-00c', projectDir, 'feature-nova');
+    makeExecutionsDb(dbPath, [{ project: 'proj', feature: 'concluida-antiga', status: 'concluida' }]);
+
+    const calls: Array<{ args: string[] }> = [];
+    const execFileImpl: ExecFileFn = async (_file, args) => {
+      calls.push({ args });
+      return { stdout: '', stderr: '' };
+    };
+
+    const result = await runWatcherTick({ dbPath, supportedSchemaVersions: ['2'], execFileImpl });
+
+    expect(result.triggered).toBe(1); // SO a feature nova
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.args).toContain(novaDir);
+  });
+
+  it('state-dir terminal semeado volta a ingerir quando o state.json muda (re-execucao da feature)', async () => {
+    const stateDir = makeStateDir('feature-00c', projectDir, 'my-feature');
+    makeExecutionsDb(dbPath, [{ project: 'proj', feature: 'my-feature', status: 'concluida' }]);
+    let callCount = 0;
+    const execFileImpl: ExecFileFn = async () => { callCount++; return { stdout: '', stderr: '' }; };
+
+    const r1 = await runWatcherTick({ dbPath, supportedSchemaVersions: ['2'], execFileImpl });
+    expect(r1.triggered).toBe(0); // primeira vista: seed, sem subprocesso
+    expect(callCount).toBe(0);
+
+    // Re-execucao: novo processo escreve no MESMO state.json
+    const future = new Date(Date.now() + 5000);
+    utimesSync(join(stateDir, 'state.json'), future, future);
+
+    const r2 = await runWatcherTick({ dbPath, supportedSchemaVersions: ['2'], execFileImpl });
+    expect(r2.triggered).toBe(1);
+    expect(callCount).toBe(1);
+  });
+
+  it('raiz vinda de executions.target_project_path (schema v9) e varrida mesmo sem CSTK_PROJECT_PATHS', async () => {
+    delete process.env['CSTK_PROJECT_PATHS'];
+    const otherProject = join(tmpRoot, 'other-project');
+    mkdirSync(otherProject, { recursive: true });
+    makeStateDir('feature-00c', otherProject, 'feature-antiga');
+    const novaDir = makeStateDir('feature-00c', otherProject, 'feature-nova');
+    makeExecutionsDb(dbPath, [
+      { project: 'projx', feature: 'feature-antiga', status: 'concluida', targetProjectPath: otherProject },
+    ]);
+
+    const calls: Array<{ args: string[] }> = [];
+    const execFileImpl: ExecFileFn = async (_file, args) => {
+      calls.push({ args });
+      return { stdout: '', stderr: '' };
+    };
+
+    const result = await runWatcherTick({ dbPath, supportedSchemaVersions: ['2'], execFileImpl });
+
+    // validateProjectRootPath canonicaliza via realpath (no macOS, tmpdir e symlink)
+    const canonicalNovaDir = novaDir.replace(otherProject, realpathSync(otherProject));
+    expect(result.triggered).toBe(1); // so a feature nova; a antiga (terminal conhecida) e semeada
+    expect(calls[0]?.args).toContain(canonicalNovaDir);
+  });
+
+  it('nome de diretorio de feature fora do regex seguro e ignorado (anti-traversal)', async () => {
+    const base = join(projectDir, '.claude', 'feature-00c-state', 'nome.com.pontos');
+    mkdirSync(base, { recursive: true });
+    writeFileSync(join(base, 'state.json'), JSON.stringify({ ok: true }));
+    makeExecutionsDb(dbPath, []);
+    const execFileImpl: ExecFileFn = async () => { throw new Error('NAO deveria ser chamado'); };
+
+    const result = await runWatcherTick({ dbPath, supportedSchemaVersions: ['2'], execFileImpl });
+    expect(result.fsDiscovered).toBe(0);
+    expect(result.triggered).toBe(0);
+  });
+
+  it('descoberta via db + filesystem do MESMO state-dir nao duplica subprocesso', async () => {
+    makeStateDir('feature-00c', projectDir, 'my-feature');
+    makeExecutionsDb(dbPath, [{ project: 'proj', feature: 'my-feature', status: 'em_andamento' }]);
+    let callCount = 0;
+    const execFileImpl: ExecFileFn = async () => { callCount++; return { stdout: '', stderr: '' }; };
+
+    const result = await runWatcherTick({ dbPath, supportedSchemaVersions: ['2'], execFileImpl });
+
+    expect(result.activeCount).toBe(1);
+    expect(result.fsDiscovered).toBe(0); // deduplicado: ja alvo via execucao ativa
+    expect(result.triggered).toBe(1);
+    expect(callCount).toBe(1);
   });
 });
 

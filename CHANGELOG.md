@@ -5,6 +5,32 @@ Todas as mudanças notáveis deste projeto são documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.16.1] - 2026-07-22
+
+### Corrigido
+
+- **Watcher não via projetos/features recém-iniciados** (ovo-e-galinha da
+  descoberta): o ingest-watcher descobria execuções apenas pela tabela
+  `executions` da knowledge.db, mas a linha só nasce na primeira ingestão —
+  um `state.json` recém-criado no disco ficava invisível até o próprio
+  agente rodar `cstk recall --ingest`. O tick agora também varre o
+  filesystem das raízes conhecidas (`CSTK_PROJECT_PATHS` +
+  `executions.target_project_path` de qualquer status, validadas
+  anti-traversal) pelos dois layouts canônicos
+  (`agente-00c-state/state.json` e `feature-00c-state/*/state.json`),
+  deduplicado e passando pelo mesmo pipeline (assinatura mtime, in-flight,
+  backoff, cap de concorrência).
+- **Db vazia/ausente não bloqueia mais a descoberta**: `openDb` degrada com
+  `table-empty`/`db-missing` numa knowledge.db recém-criada — o tick
+  abortava e o painel novo nunca saía do zero. Como `cstk recall --ingest`
+  cria e popula a db (verificado empiricamente, cstk 5.21.0), o tick agora
+  prossegue com a descoberta via filesystem nesses dois casos;
+  `schema-mismatch`/`db-corrupt` seguem com tick ocioso (Princípio II).
+- **Sem tempestade de re-ingestões no boot**: state-dir cuja(s)
+  execução(ões) na db são todas terminais é apenas "semeado" na primeira
+  vista (assinatura registrada sem subprocesso); uma re-execução da mesma
+  feature (mtime do `state.json` muda) volta a disparar normalmente.
+
 ## [0.16.0] - 2026-07-17
 
 ### Adicionado
@@ -806,6 +832,7 @@ execuções dos orquestradores `agente-00c` / `feature-00c`, lido diretamente da
 - Invariantes constitucionais I–VI verificáveis por scripts de _lint_.
 - `npm run lint:readonly-check` garante zero verbos de mutação SQL em `apps/server/src`.
 
+[0.16.1]: https://github.com/JotJunior/cstk-panel/compare/v0.16.0...v0.16.1
 [0.16.0]: https://github.com/JotJunior/cstk-panel/compare/v0.15.1...v0.16.0
 [0.15.1]: https://github.com/JotJunior/cstk-panel/compare/v0.15.0...v0.15.1
 [0.15.0]: https://github.com/JotJunior/cstk-panel/compare/v0.14.1...v0.15.0

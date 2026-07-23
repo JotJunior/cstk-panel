@@ -122,6 +122,17 @@ export function resolveProjectPath(project: string): string | null {
   return map[project] ?? null;
 }
 
+/**
+ * Lista os caminhos absolutos de TODOS os projetos configurados pelo operador
+ * via CSTK_PROJECT_PATHS. Consumido pela descoberta via filesystem do watcher
+ * (ingest-watcher): raizes onde procurar `state.json` recem-criados que ainda
+ * NAO possuem linha na knowledge.db (ovo-e-galinha da descoberta via db).
+ * Mesmo contrato de resolveProjectPath: nunca lanca; env ausente ⇒ lista vazia.
+ */
+export function listConfiguredProjectPaths(): string[] {
+  return Object.values(resolveProjectPathsMap());
+}
+
 export function loadConfig(): ServerConfig {
   return {
     dbPath: resolveDbPath(),

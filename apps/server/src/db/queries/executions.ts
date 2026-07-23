@@ -111,10 +111,12 @@ export function listExecutions(db: Database.Database): ExecutionRow[] {
 }
 
 /** Projecao minima usada pelo watcher — so as colunas necessarias para derivar o state-dir. */
-export interface ActiveExecutionRow {
+export interface WatcherExecutionRow {
   project: string;
   feature: string | null;
   execution_id: string;
+  /** Status bruto da execucao — o watcher classifica ativa/terminal em JS. */
+  status: string | null;
   /** Caminho do projeto-alvo persistido pelo ingest (schema v9, cstk >= 5.19);
    *  null em db v8 (coluna ausente) ou execucao sem o campo no state.json.
    *  UNTRUSTED — validar via validateProjectRootPath() antes de usar. */
@@ -122,13 +124,16 @@ export interface ActiveExecutionRow {
 }
 
 /**
- * Lista execucoes com status `em_andamento`/`aguardando_humano` — usado pelo
- * watcher de ingestao (task 2.1.2, FR-001/FR-003). Projecao minima (sem as
- * ~19 colunas de metricas de `executionColumnsSelect`): o watcher so precisa
- * de `project`/`feature` para derivar o state-dir (Decision 3) — nunca lanca
- * (Principio II), tabela ausente/coluna ausente tratada como conjunto vazio.
+ * Lista TODAS as execucoes com a projecao minima do watcher de ingestao
+ * (task 2.1.2, FR-001/FR-003 + descoberta via filesystem). Sem filtro de
+ * status na query: o watcher precisa distinguir tres casos — execucao ativa
+ * (observa via db), state-dir conhecido de execucao terminal (observa
+ * mudancas via filesystem) e state-dir sem NENHUMA linha (ingestao inicial).
+ * Projecao minima (sem as ~19 colunas de metricas de
+ * `executionColumnsSelect`): o watcher so precisa de `project`/`feature`
+ * para derivar o state-dir (Decision 3).
  */
-export function listActiveExecutions(db: Database.Database): ActiveExecutionRow[] {
+export function listExecutionsForWatcher(db: Database.Database): WatcherExecutionRow[] {
   const featureCol = hasColumn(db, 'executions', 'feature') ? 'feature' : 'NULL as feature';
   const idCol = hasColumn(db, 'executions', 'execution_id') ? 'execution_id' : 'NULL as execution_id';
   const pathCol = hasColumn(db, 'executions', 'target_project_path')
@@ -136,11 +141,34 @@ export function listActiveExecutions(db: Database.Database): ActiveExecutionRow[
     : 'NULL as target_project_path';
   return db
     .prepare(`
-      SELECT project, ${featureCol}, ${idCol}, ${pathCol}
+      SELECT project, ${featureCol}, ${idCol}, status, ${pathCol}
       FROM executions
-      WHERE status IN ('em_andamento', 'aguardando_humano')
     `)
-    .all() as ActiveExecutionRow[];
+    .all() as WatcherExecutionRow[];
+}
+
+/**
+ * Raizes de projeto distintas ja persistidas pelo ingest (schema v9,
+ * executions.target_project_path) — QUALQUER status. Alimenta a descoberta
+ * via filesystem do watcher: um `state.json` de feature nova em projeto ja
+ * conhecido pode existir no disco antes de qualquer linha em `executions`.
+ * Valores UNTRUSTED (Principio V) — o consumidor valida via
+ * validateProjectRootPath(). Nunca lanca; coluna ausente (db v8) ⇒ [].
+ */
+export function listKnownProjectRoots(db: Database.Database): string[] {
+  try {
+    if (!hasColumn(db, 'executions', 'target_project_path')) return [];
+    const rows = db
+      .prepare(`
+        SELECT DISTINCT target_project_path AS p
+        FROM executions
+        WHERE target_project_path IS NOT NULL AND TRIM(target_project_path) != ''
+      `)
+      .all() as Array<{ p: string }>;
+    return rows.map(r => r.p);
+  } catch {
+    return [];
+  }
 }
 
 /** Busca execucao por ID */

@@ -2,9 +2,13 @@
  * Watcher de ingestao em segundo plano (US1, FR-001/FR-003/FR-004/FR-013/FR-014).
  *
  * Verifica recorrentemente execucoes agente-00c/feature-00c ativas na
- * knowledge.db e DELEGA a ingestao canonica `cstk recall --ingest` via
- * subprocesso seguro — NUNCA escreve na knowledge.db, NUNCA toca
- * `state.json`, NUNCA roda `--reindex` (Principio I; Constitution IV Opcao B).
+ * knowledge.db E state-dirs presentes no filesystem das raizes conhecidas
+ * (CSTK_PROJECT_PATHS + executions.target_project_path) — a descoberta via
+ * filesystem cobre o ovo-e-galinha de `state.json` recem-criados que ainda
+ * nao tem linha em `executions` (a linha so nasce na primeira ingestao).
+ * DELEGA a ingestao canonica `cstk recall --ingest` via subprocesso seguro —
+ * NUNCA escreve na knowledge.db, NUNCA toca `state.json` (apenas stat/readdir),
+ * NUNCA roda `--reindex` (Principio I; Constitution IV Opcao B).
  *
  * Ref: research.md Decisions 2, 3, 4, 9; contracts/watchers.md; tasks.md FASE 2
  *
@@ -17,13 +21,24 @@
  * participa da composicao do path.
  */
 import { execFile as execFileCb } from 'node:child_process';
-import { accessSync, constants as fsConstants, existsSync, statSync } from 'node:fs';
+import {
+  accessSync,
+  constants as fsConstants,
+  existsSync,
+  readdirSync,
+  realpathSync,
+  statSync,
+} from 'node:fs';
 import { homedir } from 'node:os';
 import { delimiter as pathDelimiter, join, resolve } from 'node:path';
 import type Database from 'better-sqlite3';
 import { openDb } from '../db/open.js';
-import { listActiveExecutions, type ActiveExecutionRow } from '../db/queries/executions.js';
-import { resolveProjectPath } from '../config.js';
+import {
+  listExecutionsForWatcher,
+  listKnownProjectRoots,
+  type WatcherExecutionRow,
+} from '../db/queries/executions.js';
+import { listConfiguredProjectPaths, resolveProjectPath } from '../config.js';
 import { validateProjectRootPath } from '../lib/project-root.js';
 
 // ---------------------------------------------------------------------------
@@ -162,6 +177,48 @@ function computeSignature(stateDir: string): string | null {
 }
 
 // ---------------------------------------------------------------------------
+// Descoberta via filesystem (fix ovo-e-galinha da descoberta via db)
+// ---------------------------------------------------------------------------
+
+/**
+ * Enumera state-dirs COM `state.json` presentes no disco sob uma raiz de
+ * projeto, nos dois layouts canonicos (Decision 3):
+ *   - `<root>/.claude/agente-00c-state/`
+ *   - `<root>/.claude/feature-00c-state/<feature>/` (readdir de 1 nivel)
+ *
+ * Motivacao: a descoberta original do watcher consultava APENAS a tabela
+ * `executions` da knowledge.db — mas a linha em `executions` so nasce na
+ * PRIMEIRA ingestao. Um projeto/feature recem-iniciado tinha `state.json` no
+ * disco e zero linhas na db ⇒ o watcher nunca o via ⇒ nunca ingeria ⇒ a linha
+ * nunca nascia (ovo-e-galinha); o painel so "acordava" quando o proprio
+ * agente rodava `cstk recall --ingest`. Esta funcao fecha o ciclo observando
+ * o filesystem das raizes conhecidas (CSTK_PROJECT_PATHS +
+ * executions.target_project_path de qualquer status).
+ *
+ * Nomes de diretorio de feature sao UNTRUSTED (conteudo do disco): filtrados
+ * pelo MESMO regex anti-traversal de deriveStateDir antes de compor o path.
+ * Nunca lanca (Principio II); raiz/layout ausente ⇒ contribuicao vazia.
+ */
+export function discoverStateDirsInRoot(projectRoot: string): string[] {
+  const found: string[] = [];
+  const agentDir = join(projectRoot, '.claude', 'agente-00c-state');
+  if (existsSync(join(agentDir, 'state.json'))) found.push(agentDir);
+
+  const featureBase = join(projectRoot, '.claude', 'feature-00c-state');
+  try {
+    for (const entry of readdirSync(featureBase, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      if (!isSafeSegment(entry.name)) continue;
+      const dir = join(featureBase, entry.name);
+      if (existsSync(join(dir, 'state.json'))) found.push(dir);
+    }
+  } catch {
+    // feature-00c-state ausente/ilegivel — sem contribuicao deste layout
+  }
+  return found;
+}
+
+// ---------------------------------------------------------------------------
 // Resolucao do binario `cstk` (task 2.3.1 — anti PATH-hijack, gate owasp medium)
 // ---------------------------------------------------------------------------
 
@@ -283,59 +340,152 @@ export interface WatcherTickResult {
   cstkUnresolved: boolean;
   /** numero de execucoes ativas encontradas na knowledge.db (antes do cap de concorrencia) */
   activeCount: number;
+  /** state-dirs descobertos APENAS via filesystem nesta tick (sem execucao ativa na db) */
+  fsDiscovered: number;
   /** numero de subprocessos `cstk recall --ingest` de fato disparados */
   triggered: number;
-  /** numero de execucoes ativas puladas nesta tick (idempotencia, degradacao, backoff, cap) */
+  /** numero de alvos pulados nesta tick (idempotencia, degradacao, backoff, cap, seed) */
   skipped: number;
+}
+
+/** Alvo unificado de ingestao: state-dir + modo de primeira-vista (ver seedFirst abaixo). */
+interface IngestTarget {
+  stateDir: string;
+  /**
+   * true para state-dirs descobertos via filesystem cuja(s) execucao(oes) na
+   * db sao TODAS terminais: na primeira vista o watcher apenas registra a
+   * assinatura corrente (sem subprocesso) e passa a ingerir SOMENTE quando o
+   * state.json mudar de novo (ex.: re-execucao da mesma feature). Evita uma
+   * tempestade de re-ingestoes de execucoes ja concluidas a cada boot do
+   * server (o cache de assinatura e apenas em memoria — Principio I).
+   */
+  seedFirst: boolean;
 }
 
 /** Executa UM tick do watcher. Read-only sobre a knowledge.db; abre/fecha por tick (Principio VI). */
 export async function runWatcherTick(opts: WatcherTickOptions): Promise<WatcherTickResult> {
   const openResult = openDb(opts.dbPath, opts.supportedSchemaVersions);
-  if (!openResult.ok) {
-    return { degradedDb: true, cstkUnresolved: false, activeCount: 0, triggered: 0, skipped: 0 };
+
+  let rows: WatcherExecutionRow[] = [];
+  let dbRootsRaw: string[] = [];
+  let degradedDb = false;
+  if (openResult.ok) {
+    try {
+      rows = listExecutionsForWatcher(openResult.db as Database.Database);
+      dbRootsRaw = listKnownProjectRoots(openResult.db as Database.Database);
+    } finally {
+      openResult.db.close();
+    }
+  } else if (openResult.reason === 'table-empty' || openResult.reason === 'db-missing') {
+    // Db ainda NAO populada — exatamente o cenario ovo-e-galinha que a
+    // descoberta via filesystem existe para resolver: um `state.json` novo em
+    // disco e a primeira ingestao ainda nao rodou. `cstk recall --ingest` cria
+    // e popula a db (verificado empiricamente: cstk 5.21.0 contra db
+    // inexistente ⇒ exit 0, arquivo criado, executions populada). Prossegue
+    // com rows vazias — descoberta somente via CSTK_PROJECT_PATHS.
+    degradedDb = true;
+  } else {
+    // schema-mismatch / db-corrupt ⇒ tick ocioso por completo (Principio II):
+    // ingerir contra uma db incompativel/corrompida nao ajudaria o painel a
+    // ler o resultado e poderia agravar o estado.
+    return { degradedDb: true, cstkUnresolved: false, activeCount: 0, fsDiscovered: 0, triggered: 0, skipped: 0 };
   }
 
-  let rows: ActiveExecutionRow[];
-  try {
-    rows = listActiveExecutions(openResult.db as Database.Database);
-  } finally {
-    openResult.db.close();
+  const activeRows = rows.filter(
+    row => row.status === 'em_andamento' || row.status === 'aguardando_humano'
+  );
+
+  let skipped = 0;
+  const targets: IngestTarget[] = [];
+  const targeted = new Set<string>();
+
+  // 1) Alvos vindos de execucoes ATIVAS na knowledge.db (descoberta original).
+  for (const row of activeRows) {
+    // Cadeia FR-008: env do operador > target_project_path da propria linha
+    // (schema v9; a conexao com a db ja fechou — o valor UNTRUSTED viaja na
+    // row e e validado aqui: realpath + diretorio + zonas proibidas).
+    const projectPath =
+      resolveProjectPath(row.project) ?? validateProjectRootPath(row.target_project_path);
+    if (!projectPath) { skipped++; continue; } // FR-008/FR-012 — projeto nao mapeado
+
+    const stateDir = deriveStateDir(projectPath, row.feature);
+    if (!stateDir) { skipped++; continue; } // feature falhou anti-traversal (Decision 9)
+    if (!existsSync(join(stateDir, 'state.json'))) { skipped++; continue; } // sem state.json no FS (FR-012)
+    if (targeted.has(stateDir)) continue; // duas execucoes ativas no mesmo state-dir
+    targeted.add(stateDir);
+    targets.push({ stateDir, seedFirst: false });
   }
 
-  if (rows.length === 0) {
+  // 2) State-dirs ja conhecidos da db (QUALQUER status) — classificam as
+  //    descobertas do filesystem: dir conhecido-terminal ⇒ seedFirst.
+  const knownStateDirs = new Set<string>();
+  for (const row of rows) {
+    const projectPath =
+      resolveProjectPath(row.project) ?? validateProjectRootPath(row.target_project_path);
+    if (!projectPath) continue;
+    const stateDir = deriveStateDir(projectPath, row.feature);
+    if (stateDir) knownStateDirs.add(stateDir);
+  }
+
+  // 3) Descoberta via filesystem sobre as raizes conhecidas (fix ovo-e-galinha):
+  //    CSTK_PROJECT_PATHS (config do operador) + target_project_path distintos
+  //    da db (UNTRUSTED ⇒ validados). Raizes deduplicadas por realpath — a
+  //    mesma raiz pode chegar via env (path.resolve) e via db (realpath).
+  const rootCandidates = [
+    ...listConfiguredProjectPaths(),
+    ...dbRootsRaw
+      .map(validateProjectRootPath)
+      .filter((p): p is string => p !== null),
+  ];
+  const seenRootReal = new Set<string>();
+  let fsDiscovered = 0;
+  for (const root of rootCandidates) {
+    let real: string;
+    try {
+      real = realpathSync(root);
+    } catch {
+      continue; // raiz configurada mas inexistente no FS — degradacao graciosa
+    }
+    if (seenRootReal.has(real)) continue;
+    seenRootReal.add(real);
+    for (const stateDir of discoverStateDirsInRoot(root)) {
+      if (targeted.has(stateDir)) continue; // ja alvo via execucao ativa
+      targeted.add(stateDir);
+      targets.push({ stateDir, seedFirst: knownStateDirs.has(stateDir) });
+      fsDiscovered++;
+    }
+  }
+
+  if (targets.length === 0) {
     // Ociosidade (FR-013, AC US1-3): NENHUM subprocesso disparado.
-    return { degradedDb: false, cstkUnresolved: false, activeCount: 0, triggered: 0, skipped: 0 };
+    return { degradedDb, cstkUnresolved: false, activeCount: activeRows.length, fsDiscovered: 0, triggered: 0, skipped };
   }
 
   const cstkBin = resolveCstkBinary();
   if (!cstkBin) {
     // Falha segura (Principio II): binario nao resolvido, nenhum subprocesso disparado.
-    return { degradedDb: false, cstkUnresolved: true, activeCount: rows.length, triggered: 0, skipped: rows.length };
+    return {
+      degradedDb,
+      cstkUnresolved: true,
+      activeCount: activeRows.length,
+      fsDiscovered,
+      triggered: 0,
+      skipped: skipped + targets.length,
+    };
   }
 
   const cap = opts.maxConcurrent ?? DEFAULT_MAX_CONCURRENT;
-  const targets = rows.slice(0, cap); // bound de concorrencia por tick (Decision 9, item 3)
+  const capped = targets.slice(0, cap); // bound de concorrencia por tick (Decision 9, item 3)
   const execImpl = opts.execFileImpl ?? defaultExecFile;
   const nowFn = opts.now ?? Date.now;
   const backoffMs = opts.backoffMs ?? DEFAULT_BACKOFF_MS;
   const timeoutMs = opts.subprocessTimeoutMs ?? DEFAULT_SUBPROCESS_TIMEOUT_MS;
 
   let triggered = 0;
-  let skipped = rows.length - targets.length; // excedentes ao cap desta tick
+  skipped += targets.length - capped.length; // excedentes ao cap desta tick
 
   await Promise.all(
-    targets.map(async row => {
-      // Cadeia FR-008: env do operador > target_project_path da propria linha
-      // (schema v9; a conexao com a db ja fechou — o valor UNTRUSTED viaja na
-      // row e e validado aqui: realpath + diretorio + zonas proibidas).
-      const projectPath =
-        resolveProjectPath(row.project) ?? validateProjectRootPath(row.target_project_path);
-      if (!projectPath) { skipped++; return; } // FR-008/FR-012 — projeto nao mapeado
-
-      const stateDir = deriveStateDir(projectPath, row.feature);
-      if (!stateDir) { skipped++; return; } // feature falhou anti-traversal (Decision 9)
-      if (!existsSync(stateDir)) { skipped++; return; } // state-dir nao existe no FS (FR-012)
+    capped.map(async ({ stateDir, seedFirst }) => {
       if (inFlightStateDirs.has(stateDir)) { skipped++; return; } // ingestao anterior ainda em voo
 
       const cached = signatureCache.get(stateDir);
@@ -347,6 +497,13 @@ export async function runWatcherTick(opts: WatcherTickOptions): Promise<WatcherT
       const sig = computeSignature(stateDir);
       if (sig !== null && cached?.signature === sig) {
         skipped++; return; // idempotencia (FR-014) — state.json nao mudou desde a ultima vista
+      }
+
+      if (seedFirst && cached === undefined) {
+        // Primeira vista de um state-dir terminal ja conhecido: registra a
+        // assinatura sem ingerir — proxima mudanca de mtime dispara normalmente.
+        signatureCache.set(stateDir, { signature: sig, lastIngestAt: null, lastError: null, lastErrorAt: null });
+        skipped++; return;
       }
 
       inFlightStateDirs.add(stateDir);
@@ -373,7 +530,7 @@ export async function runWatcherTick(opts: WatcherTickOptions): Promise<WatcherT
     })
   );
 
-  return { degradedDb: false, cstkUnresolved: false, activeCount: rows.length, triggered, skipped };
+  return { degradedDb, cstkUnresolved: false, activeCount: activeRows.length, fsDiscovered, triggered, skipped };
 }
 
 // ---------------------------------------------------------------------------
